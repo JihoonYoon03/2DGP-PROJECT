@@ -2,19 +2,26 @@ from pico2d import *
 
 from robo_spider import RoboSpider
 
-open_canvas(800, 600)
-
-
-
 def reset_world():
     global world
+    global spider
 
     world = []
+
     spider = RoboSpider()
     world.append(spider)
 
 def handle_events():
-    pass
+    global running
+
+    event_list = get_events()
+    for event in event_list:
+        if event.type == SDL_QUIT:
+            running = False
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
+            running = False
+        else:
+            spider.handle_event(event)
 
 
 def update_world():
@@ -29,9 +36,13 @@ def render_world():
     for thing in world:
         thing.draw()
 
+running = True
+
+
+open_canvas()
 reset_world()
 
-while True:
+while running:
     clear_canvas()
 
     # logic
