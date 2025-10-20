@@ -1,5 +1,6 @@
 from pico2d import *
 
+from background import Background
 from robo_spider import RoboSpider
 
 def reset_world():
@@ -7,6 +8,9 @@ def reset_world():
     global spider
 
     world = []
+
+    background = Background()
+    world.append(background)
 
     spider = RoboSpider()
     world.append(spider)
