@@ -14,7 +14,7 @@ class Idle:
     def do(self):
         pass
 
-    def draw(self):
+    def draw(self, camera = None):
         self.background.image.clip_draw(0, 0, self.background.image.w, self.background.image.h,
                                         self.background.x, self.background.y, 800, 600)
 
@@ -30,5 +30,5 @@ class Background:
     def update(self):
         self.stateMachine.update()
 
-    def draw(self):
-        self.stateMachine.draw()
+    def draw(self, camera):
+        self.stateMachine.draw(None)

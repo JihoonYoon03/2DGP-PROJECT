@@ -18,5 +18,5 @@ class StateMachine:
                 self.cur_state = self.next_state
                 return
 
-    def draw(self):
-        self.cur_state.draw()
+    def draw(self, camera):
+        self.cur_state.draw(camera)

@@ -2,13 +2,16 @@ from pico2d import *
 
 from background import Background
 from robo_spider import RoboSpider
+from camera import Camera
 
 def reset_world():
     global world
     global spider
+    global camera
 
     world = []
 
+    camera = Camera(0, 0)
     background = Background()
     world.append(background)
 
@@ -35,10 +38,10 @@ def update_world():
 
 
 def render_world():
-    global world
+    global world, camera
 
     for thing in world:
-        thing.draw()
+        thing.draw(camera)
 
 running = True
 

@@ -31,9 +31,9 @@ class SpIdle:
     def do(self):
         pass
 
-    def draw(self):
+    def draw(self, camera):
         self.spider.image.clip_draw(self.spider.frame * 178 % (11 * 178), self.spider.height - 440 - (self.spider.frame // 11 * 444), 178, 440,
-                                    self.spider.x, self.spider.y, 178 * self.size, 440 * self.size)
+                                    self.spider.x - camera.x, self.spider.y - camera.y, 178 * self.size, 440 * self.size)
 
 class SpUp:
     def __init__(self, spider):
@@ -53,9 +53,9 @@ class SpUp:
         self.spider.frame = (self.spider.frame + 1) % 16
         self.spider.y += 5 * self.size
 
-    def draw(self):
+    def draw(self, camera):
         self.spider.image.clip_draw(self.spider.frame * 178 % (11 * 178), self.spider.height - 440 - (self.spider.frame // 11 * 444), 178, 440,
-                                    self.spider.x, self.spider.y, 178 * self.size, 440 * self.size)
+                                    self.spider.x - camera.x, self.spider.y - camera.y, 178 * self.size, 440 * self.size)
 
 class SpDown:
     def __init__(self, spider):
@@ -75,9 +75,9 @@ class SpDown:
         self.spider.frame = self.spider.frame - 1 if self.spider.frame > 0 else 15
         self.spider.y -= 5 * self.size
 
-    def draw(self):
+    def draw(self, camera):
         self.spider.image.clip_draw(self.spider.frame * 178 % (11 * 178), self.spider.height - 440 - (self.spider.frame // 11 * 444), 178, 440,
-                                    self.spider.x, self.spider.y, 178 * self.size, 440 * self.size)
+                                    self.spider.x - camera.x, self.spider.y - camera.y, 178 * self.size, 440 * self.size)
 
 class RoboSpider:
     def __init__(self):
@@ -104,8 +104,8 @@ class RoboSpider:
     def update(self):
         self.stateMachine.update()
 
-    def draw(self):
-        self.stateMachine.draw()
+    def draw(self, camera):
+        self.stateMachine.draw(camera)
 
     def handle_event(self, event):
         self.stateMachine.handle_state_event(('INPUT', event))

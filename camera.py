@@ -1,4 +1,5 @@
 class Camera:
-    def __init__(self, position=(0, 0, 0)):
-        self.position = position
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
         self.zoom = 1.0
