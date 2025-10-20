@@ -15,8 +15,22 @@ class Idle:
         pass
 
     def draw(self, camera):
+        # 중앙
         self.background.image.clip_draw(0, 0, self.background.image.w, self.background.image.h,
                                         self.background.x - camera.x, self.background.y - camera.y, 800, 600)
+
+        if self.background.y - camera.y > 300:
+            self.background.y = self.background.y - 300
+        elif self.background.y - camera.y < 0:
+            self.background.y = self.background.y + 300
+
+        # 상단
+        self.background.image.clip_draw(0, 0, self.background.image.w, self.background.image.h,
+                                        self.background.x - camera.x, self.background.y + 600 - camera.y, 800, 600)
+
+        # 하단
+        self.background.image.clip_draw(0, 0, self.background.image.w, self.background.image.h,
+                                        self.background.x - camera.x, self.background.y - 600 - camera.y, 800, 600)
 
 class Background:
     def __init__(self):
