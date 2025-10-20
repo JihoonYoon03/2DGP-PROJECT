@@ -11,12 +11,14 @@ def reset_world():
 
     world = []
 
-    camera = Camera(0, 0)
     background = Background()
     world.append(background)
 
     spider = RoboSpider()
     world.append(spider)
+
+    camera = Camera(0, 0, spider.speed)
+
 
 def handle_events():
     global running
@@ -28,13 +30,16 @@ def handle_events():
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             running = False
         else:
-            spider.handle_event(event)
+            for thing in world:
+                thing.handle_event(event)
+            camera.handle_event(event)
 
 
 def update_world():
     global world
     for thing in world:
         thing.update()
+    camera.update()
 
 
 def render_world():

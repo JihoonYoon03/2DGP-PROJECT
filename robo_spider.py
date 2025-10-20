@@ -1,5 +1,5 @@
 from pico2d import *
-from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT, SDLK_a, SDLK_w
+from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT, SDLK_a, SDLK_w, SDLK_s
 
 from state_machine import StateMachine
 
@@ -51,7 +51,7 @@ class SpUp:
 
     def do(self):
         self.spider.frame = (self.spider.frame + 1) % 16
-        self.spider.y += 5 * self.size
+        self.spider.y += self.spider.speed
 
     def draw(self, camera):
         self.spider.image.clip_draw(self.spider.frame * 178 % (11 * 178), self.spider.height - 440 - (self.spider.frame // 11 * 444), 178, 440,
@@ -73,7 +73,7 @@ class SpDown:
 
     def do(self):
         self.spider.frame = self.spider.frame - 1 if self.spider.frame > 0 else 15
-        self.spider.y -= 5 * self.size
+        self.spider.y -= self.spider.speed
 
     def draw(self, camera):
         self.spider.image.clip_draw(self.spider.frame * 178 % (11 * 178), self.spider.height - 440 - (self.spider.frame // 11 * 444), 178, 440,
@@ -85,6 +85,7 @@ class RoboSpider:
         self.size = SizeOffset
         self.x = 400
         self.y = 300
+        self.speed = 5 * self.size
         self.frame = 0
         self.image = load_image('Assets/Sprites/Spider/Spider_Moving.png')
         self.width = self.image.w

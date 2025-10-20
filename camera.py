@@ -1,4 +1,4 @@
-from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT, SDLK_a, SDLK_w
+from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT, SDLK_a, SDLK_w, SDLK_s
 from state_machine import StateMachine
 
 def w_pressed(e):
@@ -20,6 +20,9 @@ class camStop():
     def enter(self, e):
         pass
 
+    def exit(self, e):
+        pass
+
     def do(self):
         pass
 
@@ -29,6 +32,9 @@ class camUp():
         self.amount = amount
 
     def enter(self, e):
+        pass
+
+    def exit(self, e):
         pass
 
     def do(self):
@@ -42,21 +48,30 @@ class camDown():
     def enter(self, e):
         pass
 
+    def exit(self, e):
+        pass
+
     def do(self):
         self.camera.y -= self.amount
 
 class Camera:
-    def __init__(self, x, y):
+    def __init__(self, x, y, speed):
         self.x = x
         self.y = y
         self.zoom = 1.0
 
         self.IDLE = camStop(self)
-        self.UP = camUp(self, 5)
-        self.DOWN = camDown(self, 5)
+        self.UP = camUp(self, speed)
+        self.DOWN = camDown(self, speed)
         self.stateMachine = StateMachine(self.IDLE,
         {
             self.IDLE : { w_pressed : self.UP, s_pressed : self.DOWN },
             self.UP : { w_released : self.IDLE, s_pressed : self.DOWN },
             self.DOWN : { s_released : self.IDLE, w_pressed: self.UP }
         })
+
+    def update(self):
+        self.stateMachine.update()
+
+    def handle_event(self, event):
+        self.stateMachine.handle_state_event(('INPUT', event))
