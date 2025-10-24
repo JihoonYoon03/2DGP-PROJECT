@@ -29,7 +29,14 @@ class SpIdle:
         pass
 
     def do(self):
-        pass
+        if self.spider.is_moving:
+            self.spider.frame = self.spider.frame + self.spider.move_dir
+            if self.spider.frame <= 0 or self.spider.frame >= 16:
+                self.spider.is_moving = False
+                self.spider.frame = 0
+                self.spider.move_dir = 0
+                return
+            self.spider.y += self.spider.speed * self.spider.move_dir
 
     def draw(self, camera):
         self.spider.image.clip_draw(self.spider.frame * 178 % (11 * 178), self.spider.height - 440 - (self.spider.frame // 11 * 444), 178, 440,
@@ -43,7 +50,8 @@ class SpUp:
         self.h = spider.image.h
 
     def enter(self, e):
-        pass
+        self.spider.is_moving = True
+        self.spider.move_dir = 1
 
     def exit(self, e):
         # 추가 구현 필요사항: 애니메이션이 끝나기 전엔 IDLE 상태로 넘어가면 안됨.
@@ -51,7 +59,7 @@ class SpUp:
 
     def do(self):
         self.spider.frame = (self.spider.frame + 1) % 16
-        self.spider.y += self.spider.speed
+        self.spider.y += self.spider.speed * self.spider.move_dir
 
     def draw(self, camera):
         self.spider.image.clip_draw(self.spider.frame * 178 % (11 * 178), self.spider.height - 440 - (self.spider.frame // 11 * 444), 178, 440,
@@ -65,7 +73,8 @@ class SpDown:
         self.h = spider.image.h
 
     def enter(self, e):
-        pass
+        self.spider.is_moving = True
+        self.spider.move_dir = -1
 
     def exit(self, e):
         # 추가 구현 필요사항: 애니메이션이 끝나기 전엔 IDLE 상태로 넘어가면 안됨.
@@ -73,7 +82,7 @@ class SpDown:
 
     def do(self):
         self.spider.frame = self.spider.frame - 1 if self.spider.frame > 0 else 15
-        self.spider.y -= self.spider.speed
+        self.spider.y += self.spider.speed * self.spider.move_dir
 
     def draw(self, camera):
         self.spider.image.clip_draw(self.spider.frame * 178 % (11 * 178), self.spider.height - 440 - (self.spider.frame // 11 * 444), 178, 440,
@@ -86,6 +95,8 @@ class RoboSpider:
         self.x = 400
         self.y = 300
         self.speed = 5 * self.size
+        self.is_moving = False
+        self.move_dir = 0
         self.frame = 0
         self.image = load_image('Assets/Sprites/Spider/Spider_Moving.png')
         self.width = self.image.w
