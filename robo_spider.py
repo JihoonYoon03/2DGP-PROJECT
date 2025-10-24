@@ -40,7 +40,7 @@ class SpIdle:
 
     def draw(self, camera):
         self.spider.image.clip_draw(self.spider.frame * 178 % (11 * 178), self.spider.height - 440 - (self.spider.frame // 11 * 444), 178, 440,
-                                    self.spider.x - camera.x, self.spider.y - camera.y, 178 * self.size, 440 * self.size)
+                                    self.spider.x - camera.x + camera.center_x, self.spider.y - camera.y + camera.center_y, 178 * self.size, 440 * self.size)
 
 class SpUp:
     def __init__(self, spider):
@@ -54,7 +54,6 @@ class SpUp:
         self.spider.move_dir = 1
 
     def exit(self, e):
-        # 추가 구현 필요사항: 애니메이션이 끝나기 전엔 IDLE 상태로 넘어가면 안됨.
         pass
 
     def do(self):
@@ -63,7 +62,7 @@ class SpUp:
 
     def draw(self, camera):
         self.spider.image.clip_draw(self.spider.frame * 178 % (11 * 178), self.spider.height - 440 - (self.spider.frame // 11 * 444), 178, 440,
-                                    self.spider.x - camera.x, self.spider.y - camera.y, 178 * self.size, 440 * self.size)
+                                    self.spider.x - camera.x + camera.center_x, self.spider.y - camera.y + camera.center_y, 178 * self.size, 440 * self.size)
 
 class SpDown:
     def __init__(self, spider):
@@ -77,7 +76,6 @@ class SpDown:
         self.spider.move_dir = -1
 
     def exit(self, e):
-        # 추가 구현 필요사항: 애니메이션이 끝나기 전엔 IDLE 상태로 넘어가면 안됨.
         pass
 
     def do(self):
@@ -86,7 +84,7 @@ class SpDown:
 
     def draw(self, camera):
         self.spider.image.clip_draw(self.spider.frame * 178 % (11 * 178), self.spider.height - 440 - (self.spider.frame // 11 * 444), 178, 440,
-                                    self.spider.x - camera.x, self.spider.y - camera.y, 178 * self.size, 440 * self.size)
+                                    self.spider.x - camera.x + camera.center_x, self.spider.y - camera.y + camera.center_y, 178 * self.size, 440 * self.size)
 
 class RoboSpider:
     def __init__(self):

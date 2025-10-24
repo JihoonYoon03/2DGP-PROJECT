@@ -17,7 +17,7 @@ def reset_world():
     spider = RoboSpider()
     world.append(spider)
 
-    camera = Camera(0, 0, spider.speed)
+    camera = Camera(800, 600, spider)
 
 
 def handle_events():

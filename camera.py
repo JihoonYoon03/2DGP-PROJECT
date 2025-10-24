@@ -24,12 +24,13 @@ class camStop():
         pass
 
     def do(self):
-        pass
+        if self.camera.lock_spider:
+            self.camera.x = self.camera.spider.x
+            self.camera.y = self.camera.spider.y
 
 class camUp():
-    def __init__(self, camera, amount):
+    def __init__(self, camera):
         self.camera = camera
-        self.amount = amount
 
     def enter(self, e):
         pass
@@ -38,12 +39,15 @@ class camUp():
         pass
 
     def do(self):
-        self.camera.y += self.amount
+        if self.camera.lock_spider:
+            self.camera.x = self.camera.spider.x
+            self.camera.y = self.camera.spider.y
+        else:
+            self.camera.y += self.camera.speed
 
 class camDown():
-    def __init__(self, camera, amount):
+    def __init__(self, camera):
         self.camera = camera
-        self.amount = amount
 
     def enter(self, e):
         pass
@@ -52,17 +56,26 @@ class camDown():
         pass
 
     def do(self):
-        self.camera.y -= self.amount
+        if self.camera.lock_spider:
+            self.camera.x = self.camera.spider.x
+            self.camera.y = self.camera.spider.y
+        else:
+            self.camera.y -= self.camera.speed
 
 class Camera:
-    def __init__(self, x, y, speed):
-        self.x = x
-        self.y = y
+    def __init__(self, x_width, y_height, spider):
+        self.x = x_width // 2
+        self.y = y_height // 2
+        self.center_x = x_width // 2
+        self.center_y = y_height // 2
         self.zoom = 1.0
+        self.lock_spider = True
+        self.spider = spider
+        self.speed = spider.speed
 
         self.IDLE = camStop(self)
-        self.UP = camUp(self, speed)
-        self.DOWN = camDown(self, speed)
+        self.UP = camUp(self)
+        self.DOWN = camDown(self)
         self.stateMachine = StateMachine(self.IDLE,
         {
             self.IDLE : { w_pressed : self.UP, s_pressed : self.DOWN },
