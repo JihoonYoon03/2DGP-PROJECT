@@ -12,17 +12,16 @@ class Idle:
         pass
 
     def do(self):
-        pass
+        if self.background.camera is not None:
+            if self.background.y - self.background.camera.y > 300:
+                self.background.y = self.background.y - 600
+            elif self.background.y - self.background.camera.y < -300:
+                self.background.y = self.background.y + 600
 
     def draw(self, camera):
         # 중앙
         self.background.image.clip_draw(0, 0, self.background.image.w, self.background.image.h,
                                         self.background.x - camera.x, self.background.y - camera.y, 800, 600)
-
-        if self.background.y - camera.y > 300:
-            self.background.y = self.background.y - 300
-        elif self.background.y - camera.y < 0:
-            self.background.y = self.background.y + 300
 
         # 상단
         self.background.image.clip_draw(0, 0, self.background.image.w, self.background.image.h,
@@ -36,6 +35,7 @@ class Background:
     def __init__(self):
         self.x = 400
         self.y = 300
+        self.camera = None
         self.image = load_image('Assets/Sprites/Background/NightBackground.png')
 
         self.IDLE = Idle(self)
@@ -45,6 +45,7 @@ class Background:
         self.stateMachine.update()
 
     def draw(self, camera):
+        self.camera = camera
         self.stateMachine.draw(camera)
 
     def handle_event(self, event):
