@@ -4,16 +4,23 @@ from background import Background
 from robo_spider import RoboSpider
 from camera import Camera
 import game_world
+from tile import Tile
+
+tile = None
 
 def reset_world():
     global spider
     global camera
+    #global tile
 
     background = Background()
     game_world.add_object(background, 0)
 
     spider = RoboSpider()
     game_world.add_object(spider, 1)
+
+    #tile = Tile()
+    #game_world.add_object(tile, 2)
 
     camera = Camera(800, 600, spider)
 
