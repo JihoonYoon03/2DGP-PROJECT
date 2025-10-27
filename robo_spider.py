@@ -87,11 +87,11 @@ class SpDown:
                                     self.spider.x - camera.x + camera.center_x, self.spider.y - camera.y + camera.center_y, 178 * self.size, 440 * self.size)
 
 class RoboSpider:
-    def __init__(self):
+    def __init__(self, x = 400, y = 300):
         global SizeOffset
         self.size = SizeOffset
-        self.x = 400
-        self.y = 300
+        self.x = x
+        self.y = y
         self.speed = 5 * self.size
         self.is_moving = False
         self.move_dir = 0

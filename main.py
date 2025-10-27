@@ -3,19 +3,17 @@ from pico2d import *
 from background import Background
 from robo_spider import RoboSpider
 from camera import Camera
+import game_world
 
 def reset_world():
-    global world
     global spider
     global camera
 
-    world = []
-
     background = Background()
-    world.append(background)
+    game_world.add_object(background, 0)
 
     spider = RoboSpider()
-    world.append(spider)
+    game_world.add_object(spider, 1)
 
     camera = Camera(800, 600, spider)
 
@@ -30,23 +28,18 @@ def handle_events():
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             running = False
         else:
-            for thing in world:
-                thing.handle_event(event)
+            game_world.handle_event(event)
             camera.handle_event(event)
 
 
 def update_world():
-    global world
-    for thing in world:
-        thing.update()
+    game_world.update()
     camera.update()
 
 
 def render_world():
-    global world, camera
-
-    for thing in world:
-        thing.draw(camera)
+    global camera
+    game_world.render(camera)
 
 running = True
 
