@@ -2,14 +2,14 @@ from pico2d import *
 
 from background import Background
 from robo_spider import RoboSpider
+from tile import Tile
 from camera import Camera
 import game_world
-from tile import Tile
+import game_framework
 
-running = True
 tile = None
 
-def reset_world():
+def init():
     global spider
     global camera
     global tile
@@ -27,25 +27,33 @@ def reset_world():
 
 
 def handle_events():
-    global running
-
     event_list = get_events()
     for event in event_list:
         if event.type == SDL_QUIT:
-            running = False
+            game_framework.quit()
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
-            running = False
+            game_framework.quit()
         else:
             game_world.handle_event(event)
             camera.handle_event(event)
 
 
-def update_world():
+def update():
     game_world.update()
     camera.update()
 
 
-def render_world():
+def draw():
     global camera
+    clear_canvas()
     game_world.render(camera)
+    update_canvas()
 
+def pause():
+    pass
+
+def resume():
+    pass
+
+def finish():
+    game_world.clear()

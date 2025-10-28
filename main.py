@@ -1,20 +1,8 @@
 from pico2d import *
-import play_scene
+import game_framework
+import play_scene as start_scene
 
 
 open_canvas()
-play_scene.reset_world()
-
-while play_scene.running:
-    clear_canvas()
-
-    # logic
-    play_scene.handle_events()
-    play_scene.update_world()
-
-    # render
-    play_scene.render_world()
-    update_canvas()
-    delay(0.05)
-
+game_framework.run(start_scene)
 close_canvas()

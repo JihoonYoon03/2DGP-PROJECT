@@ -31,3 +31,6 @@ def remove_object(obj):
             return
 
     raise Exception("object not found in any layer")
+
+def clear():
+    pass
