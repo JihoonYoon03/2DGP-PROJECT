@@ -33,4 +33,5 @@ def remove_object(obj):
     raise Exception("object not found in any layer")
 
 def clear():
-    pass
+    for layer in world:
+        layer.clear()
