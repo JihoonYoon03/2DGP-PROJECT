@@ -20,21 +20,21 @@ class Idle:
 
     def draw(self, camera):
         # 중앙
-        self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h,
-                                        self.bg.x - camera.world_x + camera.view_x, self.bg.y + self.bg.image.h - camera.world_y + camera.view_y)
+        view_x, view_y = camera.world_to_view(self.bg.x, self.bg.y + self.bg.image.h)
+        self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h, view_x, view_y, self.bg.image.w * camera.zoom, self.bg.image.h * camera.zoom)
 
         # 상단
-        self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h,
-                                        self.bg.x - camera.world_x + camera.view_x, self.bg.y - camera.world_y + camera.view_y)
+        view_x, view_y = camera.world_to_view(self.bg.x, self.bg.y)
+        self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h, view_x, view_y, self.bg.image.w * camera.zoom, self.bg.image.h * camera.zoom)
 
         # 하단
-        self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h,
-                                        self.bg.x - camera.world_x + camera.view_x, self.bg.y - self.bg.image.h  - camera.world_y + camera.view_y)
+        view_x, view_y = camera.world_to_view(self.bg.x, self.bg.y - self.bg.image.h)
+        self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h, view_x, view_y, self.bg.image.w * camera.zoom, self.bg.image.h * camera.zoom)
 
 class Background:
     def __init__(self):
-        self.x = 400
-        self.y = 300
+        self.x = 0
+        self.y = 0
         self.camera = None
         self.image = load_image('Assets/Sprites/Background/NightBackground.png')
 
