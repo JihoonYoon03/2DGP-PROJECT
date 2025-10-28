@@ -23,7 +23,8 @@ def init():
     tile = Tile()
     game_world.add_object(tile, 2)
 
-    camera = Camera(800, 600, spider)
+    camera = Camera(800, 600)
+    camera.cam_lock(spider)
 
 
 def handle_events():

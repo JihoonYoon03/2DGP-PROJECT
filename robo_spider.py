@@ -41,7 +41,7 @@ class SpIdle:
 
     def draw(self, camera):
         self.sp.image.clip_draw(self.sp.frame * 178 % (11 * 178), self.h - 440 - (self.sp.frame // 11 * 444), 178, 440,
-                                    self.sp.x - camera.x + camera.center_x, self.sp.y - camera.y + camera.center_y, 178 * self.size, 440 * self.size)
+                                    self.sp.x - camera.world_x + camera.view_x, self.sp.y - camera.world_y + camera.view_y, 178 * self.size, 440 * self.size)
 
 class SpUp:
     def __init__(self, sp):
@@ -62,7 +62,7 @@ class SpUp:
 
     def draw(self, camera):
         self.sp.image.clip_draw(self.sp.frame * 178 % (11 * 178), self.h - 440 - (self.sp.frame // 11 * 444), 178, 440,
-                                    self.sp.x - camera.x + camera.center_x, self.sp.y - camera.y + camera.center_y, 178 * self.size, 440 * self.size)
+                                    self.sp.x - camera.world_x + camera.view_x, self.sp.y - camera.world_y + camera.view_y, 178 * self.size, 440 * self.size)
 
 class SpDown:
     def __init__(self, sp):
@@ -83,7 +83,7 @@ class SpDown:
 
     def draw(self, camera):
         self.sp.image.clip_draw(self.sp.frame * 178 % (11 * 178), self.h - 440 - (self.sp.frame // 11 * 444), 178, 440,
-                                    self.sp.x - camera.x + camera.center_x, self.sp.y - camera.y + camera.center_y, 178 * self.size, 440 * self.size)
+                                    self.sp.x - camera.world_x + camera.view_x, self.sp.y - camera.world_y + camera.view_y, 178 * self.size, 440 * self.size)
 
 class RoboSpider:
     def __init__(self, x = 800, y = 300):

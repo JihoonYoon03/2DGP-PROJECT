@@ -1,5 +1,3 @@
-from sys import exception
-
 world = [[]]
 
 def add_object(obj, layer = 0):

@@ -13,23 +13,23 @@ class Idle:
 
     def do(self):
         if self.bg.camera is not None:
-            if self.bg.y - self.bg.camera.y > 300:
+            if self.bg.y - self.bg.camera.world_y > 300:
                 self.bg.y = self.bg.y - 600
-            elif self.bg.y - self.bg.camera.y < -300:
+            elif self.bg.y - self.bg.camera.world_y < -300:
                 self.bg.y = self.bg.y + 600
 
     def draw(self, camera):
         # 중앙
         self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h,
-                                        self.bg.x - camera.x, self.bg.y - camera.y)
+                                        self.bg.x - camera.world_x + camera.view_x, self.bg.y + self.bg.image.h - camera.world_y + camera.view_y)
 
         # 상단
         self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h,
-                                        self.bg.x - camera.x, self.bg.y + 600 - camera.y)
+                                        self.bg.x - camera.world_x + camera.view_x, self.bg.y - camera.world_y + camera.view_y)
 
         # 하단
         self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h,
-                                        self.bg.x - camera.x, self.bg.y - 600 - camera.y)
+                                        self.bg.x - camera.world_x + camera.view_x, self.bg.y - self.bg.image.h  - camera.world_y + camera.view_y)
 
 class Background:
     def __init__(self):

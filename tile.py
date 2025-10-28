@@ -35,17 +35,17 @@ class Idle:
 
     def do(self):
         if self.tile.camera is not None:
-            if self.tile.y - self.tile.camera.y > 300:
+            if self.tile.y - self.tile.camera.world_y > 300:
                 self.tile.y = self.tile.y - 300
-            elif self.tile.y - self.tile.camera.y < -300:
+            elif self.tile.y - self.tile.camera.world_y < -300:
                 self.tile.y = self.tile.y + 300
 
     def draw(self, camera):
         tile_x, tile_y = TILES[2]  # 0행 2열 타일 (0-based)
         for dy in range(-15, 16):   # 위아래 600 픽셀 커버
             self.tile.image.clip_draw(tile_x, tile_y, self.tile.w, self.tile.h,
-                                 self.tile.x - camera.x + camera.center_x,
-                                 self.tile.y + dy * self.tile.h - camera.y + camera.center_y)
+                                 self.tile.x - camera.world_x + camera.view_x,
+                                 self.tile.y + dy * self.tile.h - camera.world_y + camera.view_y)
 
 
 class Tile:
