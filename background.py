@@ -2,8 +2,8 @@ from pico2d import *
 from state_machine import StateMachine
 
 class Idle:
-    def __init__(self, background):
-        self.background = background
+    def __init__(self, bg):
+        self.bg = bg
 
     def enter(self, e):
         pass
@@ -12,24 +12,24 @@ class Idle:
         pass
 
     def do(self):
-        if self.background.camera is not None:
-            if self.background.y - self.background.camera.y > 300:
-                self.background.y = self.background.y - 600
-            elif self.background.y - self.background.camera.y < -300:
-                self.background.y = self.background.y + 600
+        if self.bg.camera is not None:
+            if self.bg.y - self.bg.camera.y > 300:
+                self.bg.y = self.bg.y - 600
+            elif self.bg.y - self.bg.camera.y < -300:
+                self.bg.y = self.bg.y + 600
 
     def draw(self, camera):
         # 중앙
-        self.background.image.clip_draw(0, 0, self.background.image.w, self.background.image.h,
-                                        self.background.x - camera.x, self.background.y - camera.y, 800, 600)
+        self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h,
+                                        self.bg.x - camera.x, self.bg.y - camera.y)
 
         # 상단
-        self.background.image.clip_draw(0, 0, self.background.image.w, self.background.image.h,
-                                        self.background.x - camera.x, self.background.y + 600 - camera.y, 800, 600)
+        self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h,
+                                        self.bg.x - camera.x, self.bg.y + 600 - camera.y)
 
         # 하단
-        self.background.image.clip_draw(0, 0, self.background.image.w, self.background.image.h,
-                                        self.background.x - camera.x, self.background.y - 600 - camera.y, 800, 600)
+        self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h,
+                                        self.bg.x - camera.x, self.bg.y - 600 - camera.y)
 
 class Background:
     def __init__(self):

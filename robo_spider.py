@@ -3,7 +3,7 @@ from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT, SDLK
 
 from state_machine import StateMachine
 
-SizeOffset = 0.4
+SizeOffset = 1.0
 
 def w_pressed(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_w
@@ -18,9 +18,10 @@ def s_released(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_s
 
 class SpIdle:
-    def __init__(self, spider):
-        self.spider = spider
-        self.size = spider.size
+    def __init__(self, sp):
+        self.sp = sp
+        self.size = sp.size
+        self.h = sp.image.h
 
     def enter(self, e):
         pass
@@ -29,65 +30,63 @@ class SpIdle:
         pass
 
     def do(self):
-        if self.spider.is_moving:
-            self.spider.frame = self.spider.frame + self.spider.move_dir
-            if self.spider.frame <= 0 or self.spider.frame >= 16:
-                self.spider.is_moving = False
-                self.spider.frame = 0
-                self.spider.move_dir = 0
+        if self.sp.is_moving:
+            self.sp.frame = self.sp.frame + self.sp.move_dir
+            if self.sp.frame <= 0 or self.sp.frame >= 16:
+                self.sp.is_moving = False
+                self.sp.frame = 0
+                self.sp.move_dir = 0
                 return
-            self.spider.y += self.spider.speed * self.spider.move_dir
+            self.sp.y += self.sp.speed * self.sp.move_dir
 
     def draw(self, camera):
-        self.spider.image.clip_draw(self.spider.frame * 178 % (11 * 178), self.spider.height - 440 - (self.spider.frame // 11 * 444), 178, 440,
-                                    self.spider.x - camera.x + camera.center_x, self.spider.y - camera.y + camera.center_y, 178 * self.size, 440 * self.size)
+        self.sp.image.clip_draw(self.sp.frame * 178 % (11 * 178), self.h - 440 - (self.sp.frame // 11 * 444), 178, 440,
+                                    self.sp.x - camera.x + camera.center_x, self.sp.y - camera.y + camera.center_y, 178 * self.size, 440 * self.size)
 
 class SpUp:
-    def __init__(self, spider):
-        self.spider = spider
-        self.size = spider.size
-        self.w = spider.image.w
-        self.h = spider.image.h
+    def __init__(self, sp):
+        self.sp = sp
+        self.size = sp.size
+        self.h = sp.image.h
 
     def enter(self, e):
-        self.spider.is_moving = True
-        self.spider.move_dir = 1
+        self.sp.is_moving = True
+        self.sp.move_dir = 1
 
     def exit(self, e):
         pass
 
     def do(self):
-        self.spider.frame = (self.spider.frame + 1) % 16
-        self.spider.y += self.spider.speed * self.spider.move_dir
+        self.sp.frame = (self.sp.frame + 1) % 16
+        self.sp.y += self.sp.speed * self.sp.move_dir
 
     def draw(self, camera):
-        self.spider.image.clip_draw(self.spider.frame * 178 % (11 * 178), self.spider.height - 440 - (self.spider.frame // 11 * 444), 178, 440,
-                                    self.spider.x - camera.x + camera.center_x, self.spider.y - camera.y + camera.center_y, 178 * self.size, 440 * self.size)
+        self.sp.image.clip_draw(self.sp.frame * 178 % (11 * 178), self.h - 440 - (self.sp.frame // 11 * 444), 178, 440,
+                                    self.sp.x - camera.x + camera.center_x, self.sp.y - camera.y + camera.center_y, 178 * self.size, 440 * self.size)
 
 class SpDown:
-    def __init__(self, spider):
-        self.spider = spider
-        self.size = spider.size
-        self.w = spider.image.w
-        self.h = spider.image.h
+    def __init__(self, sp):
+        self.sp = sp
+        self.size = sp.size
+        self.h = sp.image.h
 
     def enter(self, e):
-        self.spider.is_moving = True
-        self.spider.move_dir = -1
+        self.sp.is_moving = True
+        self.sp.move_dir = -1
 
     def exit(self, e):
         pass
 
     def do(self):
-        self.spider.frame = self.spider.frame - 1 if self.spider.frame > 0 else 15
-        self.spider.y += self.spider.speed * self.spider.move_dir
+        self.sp.frame = self.sp.frame - 1 if self.sp.frame > 0 else 15
+        self.sp.y += self.sp.speed * self.sp.move_dir
 
     def draw(self, camera):
-        self.spider.image.clip_draw(self.spider.frame * 178 % (11 * 178), self.spider.height - 440 - (self.spider.frame // 11 * 444), 178, 440,
-                                    self.spider.x - camera.x + camera.center_x, self.spider.y - camera.y + camera.center_y, 178 * self.size, 440 * self.size)
+        self.sp.image.clip_draw(self.sp.frame * 178 % (11 * 178), self.h - 440 - (self.sp.frame // 11 * 444), 178, 440,
+                                    self.sp.x - camera.x + camera.center_x, self.sp.y - camera.y + camera.center_y, 178 * self.size, 440 * self.size)
 
 class RoboSpider:
-    def __init__(self, x = 400, y = 300):
+    def __init__(self, x = 800, y = 300):
         global SizeOffset
         self.size = SizeOffset
         self.x = x
@@ -97,8 +96,9 @@ class RoboSpider:
         self.move_dir = 0
         self.frame = 0
         self.image = load_image('Assets/Sprites/Spider/Spider_Moving.png')
-        self.width = self.image.w
-        self.height = self.image.h
+        self.w = 178 * self.size
+        self.h = 440 * self.size
+        self.x -= 178 * self.size // 2
 
         self.IDLE = SpIdle(self)
         self.UP = SpUp(self)
