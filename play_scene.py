@@ -42,6 +42,7 @@ def handle_events():
 def update():
     game_world.update()
     camera.update()
+    delay(0.05)
 
 
 def draw():
