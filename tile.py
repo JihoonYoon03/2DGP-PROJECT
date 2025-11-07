@@ -1,5 +1,8 @@
+from contextlib import nullcontext
+
 from pico2d import *
 from state_machine import StateMachine
+from enum import IntFlag
 
 # Tex_Bedrock.png 타일 좌표 (x, y)
 # 타일 크기: 40x40, 패딩: 20칸, 좌측/상단 패딩: 10칸
@@ -23,9 +26,144 @@ TILES = (
     (10, 42), (70, 42), (130, 42), (190, 42), (250, 42), (310, 42),
 )
 
+
+# 타일 기준 8방향으로 열린/닫힌 상태를 비트 플래그로 표현
+class TileFlag(IntFlag):
+    # 면 (Face) - 상위 4비트
+    F_U = 0b10000000  # 상단 (Up)
+    F_R = 0b01000000  # 우측 (Right)
+    F_D = 0b00100000  # 하단 (Down)
+    F_L = 0b00010000  # 좌측 (Left)
+
+    # 모서리 (Corner) - 하위 4비트
+    C_RU = 0b00001000  # 우상단 (Right-Up)
+    C_RD = 0b00000100  # 우하단 (Right-Down)
+    C_LD = 0b00000010  # 좌하단 (Left-Down)
+    C_LU = 0b00000001  # 좌상단 (Left-Up)
+
+    ALL_OPEN = 0b11111111
+    ALL_CLOSED = 0b00000000
+
+
+F_U, F_R, F_D, F_L = TileFlag.F_U, TileFlag.F_R, TileFlag.F_D, TileFlag.F_L
+C_RU, C_RD, C_LD, C_LU = TileFlag.C_RU, TileFlag.C_RD, TileFlag.C_LD, TileFlag.C_LU
+ALL_OPEN, ALL_CLOSED = TileFlag.ALL_OPEN, TileFlag.ALL_CLOSED
+
+# 비트 플래그 -> 타일 인덱스 직접 매핑
+TILE_FLAG_MAP = {
+
+    # 0행
+    ALL_CLOSED: 0,  # 모든 모서리 닫힘
+    F_U: 1,
+    F_L: 2,
+    ALL_OPEN: 3,
+    C_LD | C_RD: 4,
+    C_LU | C_RD: 5,
+
+    # 1행
+    F_U | F_L: 6,
+    F_U | F_R: 7,
+    F_D | F_L: 8,
+    F_D | F_R: 9,
+    C_LU | C_LD: 10,
+    C_LD | C_RU: 11,
+
+    # 2행
+    F_L | F_D | F_R: 12,
+    F_U | F_L | F_D: 13,
+    F_U | F_L | F_R: 14,
+    F_U | F_R | F_D: 15,
+    C_LU | C_RU: 16,
+    F_D: 17,
+
+    # 3행
+    C_RD: 18,
+    C_LD: 19,
+    C_LU: 20,
+    C_RU: 21,
+    C_RU | C_RD: 22,
+    F_R: 23,
+
+    # 4행
+    F_L | F_R: 24,
+    F_U | F_D: 25,
+    C_LU | C_LD | C_RU | C_RD: 26,
+    -1: 27,
+    F_U | C_LD | C_RD: 28,
+    F_R | C_RU | C_RD: 29,
+
+    # 5행
+    C_LU | C_LD | C_RU: 30,
+    C_LU | C_RU | C_RD: 31,
+    C_LD | C_RU | C_RD: 32,
+    C_LU | C_LD | C_RD: 33,
+    F_R | C_LU | C_LD: 34,
+    F_D | C_LU | C_RU: 35,
+
+    # 6행
+    F_U | F_L | C_RD: 36,
+    F_U | F_R | C_LD: 37,
+    F_L | F_D | C_RU: 38,
+    F_D | F_R | C_LU: 39,
+    F_U | C_RD: 40,
+    F_L | C_RD: 41,
+
+    # 7행
+    F_U | C_LD: 42,
+    F_R | C_LD: 43,
+    F_R | C_LU: 44,
+    F_D | C_LU: 45,
+    F_L | C_RU: 46,
+    F_D | C_RU: 47
+}
+
+
+# 타일 플래그 정규화 함수. 플래그 조합을 입력으로 받으면 하나로 합쳐 int형 반환
+def normalize_tile_flags(flags: int) -> int:
+    """
+    규칙:
+    1. 모든 면이 오픈되면 모든 모서리도 오픈
+    2. 인접한 두 면이 오픈되면 사이 모서리도 오픈
+       ex- 상단+우측 -> 우상단 모서리 오픈
+    """
+    faces = flags & 0b11110000
+    corners = flags & 0b00001111
+
+    # 모든 면이 오픈되면 모든 모서리도 오픈
+    if faces == 0b11110000:
+        return flags | 0b00001111
+
+    # 인접한 두 면이 오픈되면 사이 모서리 오픈
+    # 상단+우측 -> 우상단
+    if (flags & TileFlag.F_U) and (flags & TileFlag.F_R):
+        corners |= TileFlag.C_RU
+
+    # 우측+하단 -> 우하단
+    if (flags & TileFlag.F_R) and (flags & TileFlag.F_D):
+        corners |= TileFlag.C_RD
+
+    # 하단+좌측 -> 좌하단
+    if (flags & TileFlag.F_D) and (flags & TileFlag.F_L):
+        corners |= TileFlag.C_LD
+
+    # 좌측+상단 -> 좌상단
+    if (flags & TileFlag.F_L) and (flags & TileFlag.F_U):
+        corners |= TileFlag.C_LU
+
+    return faces | corners
+
+
+# 타일 인덱스 변환 함수
+def tile_index_from_flags(flags: int) -> int:
+    """비트 플래그를 타일 인덱스로 변환"""
+    normalized = normalize_tile_flags(flags)
+    return TILE_FLAG_MAP.get(normalized, 0)  # 매핑에 없으면 0번 타일
+
+
 class Idle:
     deep_x = -1
     deep_y = -1
+
     def __init__(self, tile):
         self.tile = tile
         if Idle.deep_x and Idle.deep_y == -1:
@@ -46,7 +184,7 @@ class Idle:
 
     def draw(self, camera):
         tile_x, tile_y = TILES[2]  # 0행 2열 타일 (0-based)
-        for dy in range(-30, 31):   # 위아래 30칸 커버
+        for dy in range(-30, 31):  # 위아래 30칸 커버
             # 땅 표면 그리기
             view_x, view_y = camera.world_to_view(self.tile.x, self.tile.y + dy * self.tile.h)
             self.tile.image.clip_draw(tile_x, tile_y, self.tile.w, self.tile.h,
@@ -62,6 +200,7 @@ class Idle:
 
 class Ground:
     image = None
+
     def __init__(self, x = 1920 / 2, y = 1080 / 2):
         self.x = x + 20
         self.y = y
@@ -84,3 +223,58 @@ class Ground:
 
     def handle_event(self, event):
         pass
+
+
+class TileSet:
+    image = None # 타일셋이 타일 별 이미지를 갖고 있음
+
+    def __init__(self, image_path, tiles):
+        if TileSet.image is None:
+            TileSet.image = load_image(image_path)
+        self.tiles = list()
+        for tile in tiles:
+            self.tile.append(Tile(tile))
+        self.camera = None
+
+    def update(self):
+        pass
+
+    def draw(self, camera):
+        self.camera = camera
+        pass
+
+    def handle_event(self, event):
+        pass
+
+class Tile:
+    # tile_data: 타일 데이터 튜플
+    def __init__(self, tile_data):
+        """
+            flags: 8비트 타일 플래그 (TileFlag 조합)
+            tileset: TileSet 인스턴스
+        """
+        self.x = tile_data.x
+        self.y = tile_data.y
+        # self.raw_flags = tile_data.flags # 원본 비트 플래그 (이어진 면에 대한 모서리 플래그 제외 없음)
+        self.flags = normalize_tile_flags(tile_data.flags)  # 정규화된 플래그
+        self.tileset = tileset
+        self.w = 40
+        self.h = 40
+
+    def get_tile_coords(self):
+        index = tile_index_from_flags(self.flags) # 인덱스화된 플래그
+        return self.tileset.tiles[index]
+
+    def update_flags(self, flags):
+        self.raw_flags = flags
+        self.flags = normalize_tile_flags(flags)
+
+    def draw(self, camera):
+        tile_x, tile_y = self.get_tile_coords()
+        view_x, view_y = camera.world_to_view(self.x, self.y)
+
+        self.tileset.image.clip_draw(
+            tile_x, tile_y, self.w, self.h,
+            round(view_x), round(view_y),
+            round(self.w * camera.zoom), round(self.h * camera.zoom)
+        )
