@@ -226,14 +226,13 @@ class Ground:
 
 
 class TileSet:
-    image = None # 타일셋이 타일 별 이미지를 갖고 있음
-
-    def __init__(self, image_path, tiles):
-        if TileSet.image is None:
-            TileSet.image = load_image(image_path)
+    def __init__(self, image_path, map_type):
+        self.image = load_image(image_path)
         self.tiles = list()
-        for tile in tiles:
-            self.tile.append(Tile(tile))
+        for i in range(20):
+            for j in range(20):
+                if map_type['location'][i][j] is False: continue
+                self.tiles.append(Tile(self, j, i, map_type['flag'][i][j]))
         self.camera = None
 
     def update(self):
@@ -248,20 +247,20 @@ class TileSet:
 
 class Tile:
     # tile_data: 타일 데이터 튜플
-    def __init__(self, tile_data):
-        """
-            flags: 8비트 타일 플래그 (TileFlag 조합)
-            tileset: TileSet 인스턴스
-        """
-        self.x = tile_data.x
-        self.y = tile_data.y
-        # self.raw_flags = tile_data.flags # 원본 비트 플래그 (이어진 면에 대한 모서리 플래그 제외 없음)
-        self.flags = normalize_tile_flags(tile_data.flags)  # 정규화된 플래그
-        self.tileset = tileset
+    image_bedrock = None
+    def __init__(self, tile_set, x, y, flags):
+        if Tile.image_bedrock is None:
+            Tile.image_bedrock = load_image('Assets/Sprites/Tile/Tex_Bedrock.png')
+
         self.w = 40
         self.h = 40
+        self.x = x * self.w
+        self.y = y * self.h
+        self.raw_flags = flags # 원본 비트 플래그 (이어진 면에 대한 모서리 플래그 제외 없음)
+        self.flags = normalize_tile_flags(flags)  # 정규화된 플래그
+        self.tileset = tile_set
 
-    def get_tile_coords(self):
+    def get_tile_coord(self):
         index = tile_index_from_flags(self.flags) # 인덱스화된 플래그
         return self.tileset.tiles[index]
 
@@ -270,7 +269,7 @@ class Tile:
         self.flags = normalize_tile_flags(flags)
 
     def draw(self, camera):
-        tile_x, tile_y = self.get_tile_coords()
+        tile_x, tile_y = self.get_tile_coord()
         view_x, view_y = camera.world_to_view(self.x, self.y)
 
         self.tileset.image.clip_draw(
