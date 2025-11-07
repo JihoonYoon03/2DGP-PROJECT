@@ -2,17 +2,17 @@ from pico2d import *
 
 from background import Background
 from robo_spider import RoboSpider
-from tile import Tile
+from tile import Ground
 from camera import Camera
 import game_world
 import game_framework
 
-tile = None
+ground = None
 
 def init():
     global spider
     global camera
-    global tile
+    global ground
 
     background = Background()
     game_world.add_object(background, 0)
@@ -20,8 +20,8 @@ def init():
     spider = RoboSpider()
     game_world.add_object(spider, 1)
 
-    tile = Tile()
-    game_world.add_object(tile, 2)
+    ground = Ground()
+    game_world.add_object(ground, 2)
 
     camera = Camera(800, 600)
     camera.cam_lock(spider)
