@@ -13,10 +13,10 @@ class Idle:
 
     def do(self):
         if self.bg.camera is not None:
-            if self.bg.y - self.bg.camera.world_y > 300:
-                self.bg.y = self.bg.y - 600
-            elif self.bg.y - self.bg.camera.world_y < -300:
-                self.bg.y = self.bg.y + 600
+            if self.bg.y - self.bg.camera.world_y > self.bg.image.h / 2:
+                self.bg.y = self.bg.y - self.bg.image.h
+            elif self.bg.y - self.bg.camera.world_y < self.bg.image.h / -2:
+                self.bg.y = self.bg.y + self.bg.image.h
 
     def draw(self, camera):
         # 중앙

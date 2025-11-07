@@ -4,7 +4,7 @@ class Camera:
         self.world_y = 0
         self.view_x = x_width // 2
         self.view_y = y_height // 2
-        self.zoom = 1.0
+        self.zoom = x_width / 1920
         self.lock = False
         self.lock_target = None
 
