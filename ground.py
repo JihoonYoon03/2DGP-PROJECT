@@ -24,8 +24,12 @@ TILES = (
 )
 
 class Idle:
+    deep_x = -1
+    deep_y = -1
     def __init__(self, tile):
         self.tile = tile
+        if Idle.deep_x and Idle.deep_y == -1:
+            Idle.deep_x, Idle.deep_y = TILES[0]
 
     def enter(self, e):
         pass
@@ -42,18 +46,27 @@ class Idle:
 
     def draw(self, camera):
         tile_x, tile_y = TILES[2]  # 0행 2열 타일 (0-based)
-        for dy in range(-15, 16):   # 위아래 600 픽셀 커버
+        for dy in range(-30, 31):   # 위아래 30칸 커버
+            # 땅 표면 그리기
             view_x, view_y = camera.world_to_view(self.tile.x, self.tile.y + dy * self.tile.h)
-            self.tile.image.clip_draw(tile_x, tile_y, self.tile.w, self.tile.h, view_x, view_y, self.tile.w * camera.zoom, self.tile.h * camera.zoom)
+            self.tile.image.clip_draw(tile_x, tile_y, self.tile.w, self.tile.h,
+                                      round(view_x), round(view_y),
+                                      round(self.tile.w * camera.zoom), round(self.tile.h * camera.zoom))
+
+            # 땅 내부 그리기
+            view_x, view_y = camera.world_to_view(self.tile.x + self.tile.w * 10, self.tile.y + dy * self.tile.h)
+            self.tile.image.clip_draw(Idle.deep_x, Idle.deep_y, self.tile.w, self.tile.h,
+                                      round(view_x), round(view_y),
+                                      round(self.tile.w * 19 * camera.zoom), round(self.tile.h * camera.zoom))
 
 
-class Tile:
+class Ground:
     image = None
-    def __init__(self, x = 960, y = 540):
+    def __init__(self, x = 1920 / 2, y = 1080 / 2):
         self.x = x + 20
         self.y = y
-        if Tile.image is None:
-            Tile.image = load_image('Assets/Sprites/Tile/Tex_Bedrock.png')
+        if Ground.image is None:
+            Ground.image = load_image('Assets/Sprites/Tile/Tex_Bedrock.png')
         self.w = 40
         self.h = 40
         self.camera = None
