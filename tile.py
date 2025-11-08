@@ -136,19 +136,19 @@ def normalize_tile_flags(flags: int) -> int:
     # 인접한 두 면이 오픈되면 사이 모서리 오픈
     # 상단+우측 -> 우상단
     if (flags & TileFlag.F_U) and (flags & TileFlag.F_R):
-        corners |= TileFlag.C_RU
+        corners &= ~TileFlag.C_RU
 
     # 우측+하단 -> 우하단
     if (flags & TileFlag.F_R) and (flags & TileFlag.F_D):
-        corners |= TileFlag.C_RD
+        corners &= ~TileFlag.C_RD
 
     # 하단+좌측 -> 좌하단
     if (flags & TileFlag.F_D) and (flags & TileFlag.F_L):
-        corners |= TileFlag.C_LD
+        corners &= ~TileFlag.C_LD
 
     # 좌측+상단 -> 좌상단
     if (flags & TileFlag.F_L) and (flags & TileFlag.F_U):
-        corners |= TileFlag.C_LU
+        corners &= ~TileFlag.C_LU
 
     return faces | corners
 
@@ -229,10 +229,10 @@ class TileSet:
     def __init__(self, image_path, tile_info, entrance_x=0, entrance_y=0):
         self.image = load_image(image_path)
         self.tiles = list()
-        for y in range(20):
-            for x in range(20):
+        for y in range(22):
+            for x in range(22):
                 if tile_info['location'][y][x] is False: continue
-                self.tiles.append(Tile(self, entrance_x, entrance_y, x, y, tile_info['flag'][y][x]))
+                self.tiles.append(Tile(self, entrance_x, entrance_y, x, y, tile_info['flag'][y][x], tile_info['entrance']))
         self.camera = None
 
     def update(self):
@@ -249,7 +249,7 @@ class TileSet:
 class Tile:
     # tile_data: 타일 데이터 튜플
     image_bedrock = None
-    def __init__(self, tile_set, entrance_x, entrance_y, x, y, flags):
+    def __init__(self, tile_set, entrance_x, entrance_y, x, y, flags, entrance_index):
         if Tile.image_bedrock is None:
             Tile.image_bedrock = load_image('Assets/Sprites/Tile/Tex_Bedrock.png')
 
@@ -259,7 +259,7 @@ class Tile:
 
         # 타일 월드 좌표
         self.x = x * self.w + entrance_x
-        self.y = y * self.h + entrance_y
+        self.y = (entrance_index[1] - y) * self.h + entrance_y # 출입구 인덱스 기준 좌표 보정
 
         # 타일 플래그 및 인덱스화
         self.raw_flags = flags # 원본 비트 플래그 (이어진 면에 대한 모서리 플래그 제외 없음)
