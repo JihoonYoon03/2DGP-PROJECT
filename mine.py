@@ -13,8 +13,8 @@ class Mine:
     def update(self):
         pass
 
-    def draw(self, camera):
-        self.tile_set.draw(camera)
+    def draw(self):
+        self.tile_set.draw()
 
     def handle_event(self, event):
         pass

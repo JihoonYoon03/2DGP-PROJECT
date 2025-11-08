@@ -1,5 +1,6 @@
 from pico2d import *
 from state_machine import StateMachine
+from game_world import get_camera
 
 class Idle:
     def __init__(self, bg):
@@ -12,13 +13,14 @@ class Idle:
         return True
 
     def do(self):
-        if self.bg.camera is not None:
-            if self.bg.y - self.bg.camera.world_y > self.bg.image.h / 2:
-                self.bg.y = self.bg.y - self.bg.image.h
-            elif self.bg.y - self.bg.camera.world_y < self.bg.image.h / -2:
-                self.bg.y = self.bg.y + self.bg.image.h
+        camera = get_camera()
+        if self.bg.y - camera.world_y > self.bg.image.h / 2:
+            self.bg.y = self.bg.y - self.bg.image.h
+        elif self.bg.y - camera.world_y < self.bg.image.h / -2:
+            self.bg.y = self.bg.y + self.bg.image.h
 
-    def draw(self, camera):
+    def draw(self):
+        camera = get_camera()
         draw_w, draw_h = camera.get_draw_size(self.bg.image.w, self.bg.image.h)
 
         # 중앙
@@ -38,7 +40,6 @@ class Background:
     def __init__(self):
         self.x = 0
         self.y = 0
-        self.camera = None
         self.image = load_image('Assets/Sprites/Background/NightBackground.png')
 
         self.IDLE = Idle(self)
@@ -47,9 +48,8 @@ class Background:
     def update(self):
         self.stateMachine.update()
 
-    def draw(self, camera):
-        self.camera = camera
-        self.stateMachine.draw(camera)
+    def draw(self):
+        self.stateMachine.draw()
 
     def handle_event(self, event):
         pass

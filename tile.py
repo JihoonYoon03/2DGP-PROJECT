@@ -3,6 +3,7 @@ from contextlib import nullcontext
 from pico2d import *
 from state_machine import StateMachine
 from enum import IntFlag
+from game_world import get_camera
 
 # Tex_Bedrock.png 타일 좌표 (x, y)
 # 타일 크기: 40x40, 패딩: 20칸, 좌측/상단 패딩: 10칸
@@ -182,7 +183,8 @@ class Idle:
             elif self.tile.y - self.tile.camera.world_y < -300:
                 self.tile.y = self.tile.y + 300
 
-    def draw(self, camera):
+    def draw(self):
+        camera = get_camera()
         tile_x, tile_y = TILES[2]
         draw_w, draw_h = camera.get_draw_size(self.tile.w, self.tile.h)
 
@@ -217,9 +219,8 @@ class Ground:
     def update(self):
         self.stateMachine.update()
 
-    def draw(self, camera):
-        self.camera = camera
-        self.stateMachine.draw(camera)
+    def draw(self):
+        self.stateMachine.draw()
 
     def handle_event(self, event):
         pass
@@ -238,10 +239,9 @@ class TileSet:
     def update(self):
         pass
 
-    def draw(self, camera):
-        self.camera = camera
+    def draw(self):
         for tile in self.tiles:
-            tile.draw(camera)
+            tile.draw()
 
     def handle_event(self, event):
         pass
@@ -274,7 +274,8 @@ class Tile:
         self.raw_flags = flags
         self.TILES_index = tile_index_from_flags(normalize_tile_flags(flags))
 
-    def draw(self, camera):
+    def draw(self):
+        camera = get_camera()
         view_x, view_y = camera.world_to_view(self.x, self.y)
         draw_w, draw_h = camera.get_draw_size(self.w, self.h)
 

@@ -10,7 +10,6 @@ import game_framework
 
 def init():
     global spider
-    global cam
     global ground
     global mines
 
@@ -25,6 +24,7 @@ def init():
 
     cam = Camera(800, 600)
     cam.cam_lock(spider)
+    game_world.set_camera(cam)
 
     mines = Mine(1)
     game_world.add_object(mines, 2)
@@ -39,19 +39,16 @@ def handle_events():
             game_framework.quit()
         else:
             game_world.handle_event(event)
-            cam.handle_event(event)
 
 
 def update():
     game_world.update()
-    cam.update()
     delay(0.05)
 
 
 def draw():
-    global cam
     clear_canvas()
-    game_world.render(cam)
+    game_world.render()
     update_canvas()
 
 def pause():

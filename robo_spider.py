@@ -1,7 +1,7 @@
 from pico2d import *
-from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT, SDLK_a, SDLK_w, SDLK_s, SDLK_r
-from camera import Camera
 from state_machine import StateMachine
+from event_set import *
+from game_world import get_camera
 
 # self.sp.frame * 178 % (11 * 178), self.h - 440 - (self.sp.frame // 11 * 444), 178, 440,
 
@@ -54,24 +54,6 @@ SPIDER_UNDOCK_FRAMES = (
     (890, 140, 178, 440), (1068, 140, 178, 440)
 )
 
-def time_out(e):
-    return e[0] == 'TIME_OUT'
-
-def w_pressed(e):
-    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_w
-
-def w_released(e):
-    return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_w
-
-def s_pressed(e):
-    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_s
-
-def s_released(e):
-    return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_s
-
-def r_pressed(e):
-    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_r
-
 class SpIdle:
     def __init__(self, sp):
         self.sp = sp
@@ -93,7 +75,8 @@ class SpIdle:
                 return
             self.sp.y += self.sp.speed * self.sp.move_dir
 
-    def draw(self, camera):
+    def draw(self):
+        camera = get_camera()
         x, y, w, h = SPIDER_MOVE_FRAMES[self.sp.frame]
         view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y)
         draw_w, draw_h = camera.get_draw_size(178, 440)
@@ -114,7 +97,8 @@ class SpUp:
         self.sp.frame = (self.sp.frame + 1) % 16
         self.sp.y += self.sp.speed * self.sp.move_dir
 
-    def draw(self, camera):
+    def draw(self):
+        camera = get_camera()
         x, y, w, h = SPIDER_MOVE_FRAMES[self.sp.frame]
         view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y)
         draw_w, draw_h = camera.get_draw_size(178, 440)
@@ -135,7 +119,8 @@ class SpDown:
         self.sp.frame = self.sp.frame - 1 if self.sp.frame > 0 else 15
         self.sp.y += self.sp.speed * self.sp.move_dir
 
-    def draw(self, camera):
+    def draw(self):
+        camera = get_camera()
         x, y, w, h = SPIDER_MOVE_FRAMES[self.sp.frame]
         view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y)
         draw_w, draw_h = camera.get_draw_size(178, 440)
@@ -160,7 +145,8 @@ class SpDock:
         else:
             self.sp.is_docking = True
 
-    def draw(self, camera):
+    def draw(self):
+        camera = get_camera()
         x, y, w, h = SPIDER_DOCK_FRAMES[self.sp.frame]
         view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y)
         draw_w, draw_h = camera.get_draw_size(178, 440)
@@ -183,7 +169,8 @@ class SpUndock:
         else:
             self.sp.stateMachine.handle_state_event(('TIME_OUT', None))
 
-    def draw(self, camera):
+    def draw(self):
+        camera = get_camera()
         x, y, w, h = SPIDER_UNDOCK_FRAMES[self.sp.frame]
         view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y)
         draw_w, draw_h = camera.get_draw_size(178, 440)
@@ -225,10 +212,10 @@ class RoboSpider:
     def update(self):
         self.stateMachine.update()
 
-    def draw(self, camera):
-        self.stateMachine.draw(camera)
+    def draw(self):
+        self.stateMachine.draw()
         if self.is_docking:
-            self.inner.draw(camera)
+            self.inner.draw()
 
     def handle_event(self, event):
         self.stateMachine.handle_state_event(('INPUT', event))
@@ -247,7 +234,8 @@ class SpInIdle:
         self.sp_in.image_background.set_opacity(1.0)
         pass
 
-    def draw(self, camera):
+    def draw(self):
+        camera = get_camera()
         # 배경 그리기
         view_x, view_y = camera.world_to_view(self.sp_in.robo_spider.x, self.sp_in.robo_spider.y - 2) # 2는 이미지 크기 보정용
         draw_w, draw_h = camera.get_draw_size(self.sp_in.image_background.w, self.sp_in.image_background.h)
@@ -276,8 +264,8 @@ class RoboSpiderIn:
     def update(self):
         self.stateMachine.update()
 
-    def draw(self, camera):
-        self.stateMachine.draw(camera)
+    def draw(self):
+        self.stateMachine.draw()
 
     def handle_event(self, event):
         self.stateMachine.handle_state_event(('INPUT', event))
