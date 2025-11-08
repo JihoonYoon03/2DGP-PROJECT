@@ -84,10 +84,6 @@ class Idle:
         return True
 
     def do(self):
-        if self.player.move_x != 0 or self.player.move_y != 0:
-            self.player.stateMachine.handle_state_event(('!EMPTY', None))
-            print('Player start moving')
-
         if self.player.is_docked and self.player.frame <= 0: # 도킹 애니메이션이 끝났을 때
             self.player.is_docked = False
             self.frame_delta = 1
@@ -115,21 +111,17 @@ class Move:
         self.player = player
 
     def enter(self, e):
-        self.player.frame = 0
+        if e[0] == '!EMPTY':
+            self.player.frame = 0
 
     def exit(self, e):
         return True
 
     def do(self):
-        if self.player.move_x == 0 and self.player.move_y == 0:
-            self.player.stateMachine.handle_state_event(('EMPTY', None))
-
         self.player.x += self.player.move_x * 4
         self.player.y += self.player.move_y * 4
 
         self.player.frame = (self.player.frame + 1) % len(PLAYER_MOVE_FRAMES)
-
-        print(f'Player position: x={self.player.x}, y={self.player.y}')
 
         if self.player.x > self.player.robo_spider.x + 100:
             camera = get_camera()
@@ -188,6 +180,8 @@ class Player:
         self.stateMachine.draw()
 
     def handle_event(self, event):
+        prev_moving = (self.move_x != 0 or self.move_y != 0)
+
         # IDLE과 MOVE 상태 변환을 위해 Player가 직접 키 입력을 처리
         if event.type == SDL_KEYDOWN:
             if event.key == SDLK_d:
@@ -212,5 +206,17 @@ class Player:
                 self.move_y -= 1
             elif event.key == SDLK_s:
                 self.move_y += 1
+
+        now_moving = (self.move_x != 0 or self.move_y != 0)
+
+        # 정지 -> 이동
+        if not prev_moving and now_moving and not self.is_docked:
+            self.stateMachine.handle_state_event(('!EMPTY', None))
+
+        # 이동 -> 정지
+        elif prev_moving and not now_moving:
+            self.stateMachine.handle_state_event(('EMPTY', None))
+
+        # 만약 이동 -> 이동 (방향 전환 등)이면 IDLE 상태를 거치지 않게됨
 
         self.stateMachine.handle_state_event(('INPUT', event))

@@ -4,33 +4,19 @@ from event_set import *
 from game_world import get_camera
 from player import Player
 
-# self.sp.frame * 178 % (11 * 178), self.h - 440 - (self.sp.frame // 11 * 444), 178, 440,
-
-
-# Spider_Moving 스프라이트 프레임 정보 (x, y, w, h)
+# 스프라이트 프레임 정보 (x, y, w, h)
 # 1행 1열부터 시작 (좌상단 기준)
+# 178 * 444
 
-SPIDER_MOVE_FRAMES = (
-    # 1행 (프레임 0-10)
-    (0, 584, 178, 440),
-    (178, 584, 178, 440),
-    (356, 584, 178, 440),
-    (534, 584, 178, 440),
-    (712, 584, 178, 440),
-    (890, 584, 178, 440),
-    (1068, 584, 178, 440),
-    (1246, 584, 178, 440),
-    (1424, 584, 178, 440),
-    (1602, 584, 178, 440),
-    (1780, 584, 178, 440),
+SPIDER_WIDTH_SMALL = 178
+SPIDER_HEIGHT_SMALL = 444
 
-    # 2행 (프레임 11-15)
-    (0, 140, 178, 440),
-    (178, 140, 178, 440),
-    (356, 140, 178, 440),
-    (534, 140, 178, 440),
-    (712, 140, 178, 440),
-)
+SPIDER_MOVE_FRAMES = [
+    # 1행 (11개)
+    (0, 0), (178, 0), (356, 0), (534, 0), (712, 0), (890, 0), (1068, 0), (1246, 0), (1424, 0), (1602, 0), (1780, 0),
+    # 2행 (5개)
+    (0, 444), (178, 444), (356, 444), (534, 444), (712, 444)
+]
 
 SPIDER_DOCK_FRAMES = (
     # 1행 (y=1608, h=440)
@@ -67,65 +53,53 @@ class SpIdle:
         return True
 
     def do(self):
+        if self.sp.move_dir != 0:
+            self.sp.stateMachine.handle_state_event(('!EMPTY', None))
+            return
+
         if self.sp.is_moving:
-            self.sp.frame = self.sp.frame + self.sp.move_dir
+            self.sp.frame = self.sp.frame + self.sp.last_move_dir
+            self.sp.y += self.sp.speed * self.sp.last_move_dir
             if self.sp.frame <= 0 or self.sp.frame >= 16: # 이동 모션이 끝났을 때
                 self.sp.is_moving = False
                 self.sp.frame = 0
                 self.sp.move_dir = 0
+                self.sp.last_move_dir = 0
                 return
-            self.sp.y += self.sp.speed * self.sp.move_dir
 
     def draw(self):
         camera = get_camera()
-        x, y, w, h = SPIDER_MOVE_FRAMES[self.sp.frame]
+        x, y = SPIDER_MOVE_FRAMES[self.sp.frame]
         view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y)
-        draw_w, draw_h = camera.get_draw_size(178, 440)
-        self.sp.image_move.clip_draw(x, y, w, h, view_x, view_y, draw_w, draw_h)
+        draw_w, draw_h = camera.get_draw_size(SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL)
+        self.sp.image_move.clip_draw(x, self.sp.image_move.h - SPIDER_HEIGHT_SMALL - y,
+                                     SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL, view_x, view_y, draw_w, draw_h)
 
-class SpUp:
+class SpMove:
     def __init__(self, sp):
         self.sp = sp
 
     def enter(self, e):
         self.sp.is_moving = True
-        self.sp.move_dir = 1
 
     def exit(self, e):
         return True
 
     def do(self):
-        self.sp.frame = (self.sp.frame + 1) % 16
+        if self.sp.move_dir == 0:
+            self.sp.stateMachine.handle_state_event(('EMPTY', None))
+            return
+
+        self.sp.frame = (self.sp.frame + self.sp.move_dir) % len(SPIDER_MOVE_FRAMES)
         self.sp.y += self.sp.speed * self.sp.move_dir
 
     def draw(self):
         camera = get_camera()
-        x, y, w, h = SPIDER_MOVE_FRAMES[self.sp.frame]
+        x, y = SPIDER_MOVE_FRAMES[self.sp.frame]
         view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y)
-        draw_w, draw_h = camera.get_draw_size(178, 440)
-        self.sp.image_move.clip_draw(x, y, w, h, view_x, view_y, draw_w, draw_h)
-
-class SpDown:
-    def __init__(self, sp):
-        self.sp = sp
-
-    def enter(self, e):
-        self.sp.is_moving = True
-        self.sp.move_dir = -1
-
-    def exit(self, e):
-        return True
-
-    def do(self):
-        self.sp.frame = self.sp.frame - 1 if self.sp.frame > 0 else 15
-        self.sp.y += self.sp.speed * self.sp.move_dir
-
-    def draw(self):
-        camera = get_camera()
-        x, y, w, h = SPIDER_MOVE_FRAMES[self.sp.frame]
-        view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y)
-        draw_w, draw_h = camera.get_draw_size(178, 440)
-        self.sp.image_move.clip_draw(x, y, w, h, view_x, view_y, draw_w, draw_h)
+        draw_w, draw_h = camera.get_draw_size(SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL)
+        self.sp.image_move.clip_draw(x, self.sp.image_move.h - SPIDER_HEIGHT_SMALL - y,
+                                     SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL, view_x, view_y, draw_w, draw_h)
 
 class SpDock:
     def __init__(self, sp):
@@ -134,6 +108,7 @@ class SpDock:
     def enter(self, e):
         self.sp.is_moving = False
         self.sp.move_dir = 0
+        self.sp.last_move_dir = 0
         self.sp.frame = 0
 
     def exit(self, e):
@@ -164,6 +139,8 @@ class SpUndock:
         camera.zoom = camera.screen_width / 1920 * 2
         self.sp.frame = 0
         self.sp.is_docking = False
+        self.sp.move_dir = 0
+        self.sp.last_move_dir = 0
 
     def exit(self, e):
         return True
@@ -194,6 +171,7 @@ class RoboSpider:
         self.is_moving = False
         self.is_docking = False
         self.move_dir = 0
+        self.last_move_dir = 0
         self.frame = 0
         self.w = 178
         self.h = 440
@@ -202,16 +180,15 @@ class RoboSpider:
         self.player = Player(self)
 
         self.IDLE = SpIdle(self)
-        self.UP = SpUp(self)
-        self.DOWN = SpDown(self)
+        self.UP = SpMove(self)
+        # self.DOWN = SpDown(self)
         self.DOCK = SpDock(self)
         self.UNDOCK = SpUndock(self)
         self.stateMachine = StateMachine(
             self.IDLE,
         {
-            self.IDLE : { w_pressed : self.UP, s_pressed : self.DOWN, r_pressed : self.DOCK },
-            self.UP : { w_released : self.IDLE, s_pressed : self.DOWN, r_pressed : self.DOCK },
-            self.DOWN : { s_released : self.IDLE, w_pressed : self.UP, r_pressed : self.DOCK },
+            self.IDLE : { signal_not_empty : self.UP, r_pressed : self.DOCK },
+            self.UP : { signal_empty : self.IDLE, r_pressed : self.DOCK },
             self.DOCK : { r_pressed : self.UNDOCK },
             self.UNDOCK : { signal_time_out : self.IDLE },
         })
@@ -229,6 +206,34 @@ class RoboSpider:
             self.player.draw()
 
     def handle_event(self, event):
+        if not self.is_docking:
+            prev_moving = self.move_dir != 0
+
+            if event.type == SDL_KEYDOWN:
+                if event.key == SDLK_w:
+                    self.move_dir += 1
+                    self.last_move_dir = 1
+                elif event.key == SDLK_s:
+                    self.move_dir -= 1
+                    self.last_move_dir = -1
+
+            # 도킹 상태에서 키 홀딩 후, 도킹 해제 뒤 키업 처리 방지 필요
+            elif event.type == SDL_KEYUP:
+                if event.key == SDLK_w:
+                    self.move_dir -= 1
+                elif event.key == SDLK_s:
+                    self.move_dir += 1
+
+            now_moving = self.move_dir != 0
+
+            # 정지 -> 이동
+            if not prev_moving and now_moving:
+                self.stateMachine.handle_state_event(('!EMPTY', None))
+
+            # 이동 -> 정지
+            elif prev_moving and not now_moving:
+                self.stateMachine.handle_state_event(('EMPTY', None))
+
         self.stateMachine.handle_state_event(('INPUT', event))
         if self.is_docking:
             self.player.handle_event(event)
