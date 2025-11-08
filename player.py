@@ -129,6 +129,15 @@ class Move:
 
         self.player.frame = (self.player.frame + 1) % len(PLAYER_MOVE_FRAMES)
 
+        print(f'Player position: x={self.player.x}, y={self.player.y}')
+
+        if self.player.x > self.player.robo_spider.x + 100:
+            camera = get_camera()
+            camera.cam_lock(self.player)
+        else:
+            camera = get_camera()
+            camera.cam_lock(self.player.robo_spider)
+
     def draw(self):
         camera = get_camera()
         x, y, w, h = PLAYER_MOVE_FRAMES[self.player.frame]
@@ -203,7 +212,5 @@ class Player:
                 self.move_y -= 1
             elif event.key == SDLK_s:
                 self.move_y += 1
-
-        print(f'Player handle_event: move_x={self.move_x}, move_y={self.move_y}, face_dir={self.face_dir}')
 
         self.stateMachine.handle_state_event(('INPUT', event))
