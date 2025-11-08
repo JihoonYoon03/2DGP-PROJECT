@@ -171,6 +171,7 @@ class SpUndock:
 
     def enter(self, e):
         self.sp.frame = 0
+        self.sp.is_docking = False
 
     def exit(self, e):
         return True
@@ -179,7 +180,6 @@ class SpUndock:
         if self.sp.frame < 17:
             self.sp.frame = self.sp.frame + 1
         else:
-            self.sp.is_docking = False
             self.sp.stateMachine.handle_state_event(('TIME_OUT', None))
 
     def draw(self, camera):
@@ -225,6 +225,51 @@ class RoboSpider:
 
     def draw(self, camera):
         self.stateMachine.draw(camera)
+
+    def handle_event(self, event):
+        self.stateMachine.handle_state_event(('INPUT', event))
+
+class SpInIdle:
+    def __init__(self, sp_in):
+        self.sp_in = sp_in
+
+    def enter(self, e):
+        pass
+
+    def exit(self, e):
+        return True
+
+    def do(self):
+        pass
+
+    def draw(self, camera):
+        # 배경 그리기
+        view_x, view_y = camera.world_to_view(self.sp_in.robo_spider.x, self.sp_in.robo_spider.y)
+        draw_w, draw_h = camera.get_draw_size(self.sp_in.image_background.w, self.sp_in.image_background.h)
+        self.sp_in.image_background.clip_draw(0, 0, self.sp_in.image_background.w, self.sp_in.image_background.h,
+                                              view_x, view_y, draw_w, draw_h)
+
+        # 프레임 그리기
+        draw_w, draw_h = camera.get_draw_size(self.sp_in.image_frame.w, self.sp_in.image_frame.h)
+        self.sp_in.image_frame.clip_draw(0, 0, self.sp_in.image_frame.w, self.sp_in.image_frame.h,
+                                         view_x, view_y, draw_w, draw_h)
+
+# 스파이더 내부
+class RoboSpiderIn:
+    def __init__(self, robo_spider):
+        self.image_room = load_image('Assets/Sprites/Spider/Spider_Inner_Back.png')
+        self.image_frame = load_image('Assets/Sprites/Spider/Spider_Inner_Frame.png')
+        self.image_background = load_image('Assets/Sprites/Spider/Spider_Inner_Opened.png')
+        self.robo_spider = robo_spider
+        self.IDLE = SpInIdle(self)
+        self.stateMachine = StateMachine(self.IDLE, {})
+
+    def update(self):
+        self.stateMachine.update()
+
+    def draw(self, camera):
+        if self.robo_spider.is_docking:
+            self.stateMachine.draw(camera)
 
     def handle_event(self, event):
         self.stateMachine.handle_state_event(('INPUT', event))
