@@ -46,8 +46,16 @@ SPIDER_DOCK_FRAMES = (
 )
 
 SPIDER_UNDOCK_FRAMES = (
-
+    # 1행 (y=584, h=440)
+    (0, 584, 178, 440), (178, 584, 178, 440), (356, 584, 178, 440), (534, 584, 178, 440), (712, 584, 178, 440),
+    (890, 584, 178, 440), (1068, 584, 178, 440), (1246, 584, 178, 440), (1424, 584, 178, 440), (1602, 584, 178, 440), (1780, 584, 178, 440),
+    # 2행 (y=140, h=440) - 7개만 사용
+    (0, 140, 178, 440), (178, 140, 178, 440), (356, 140, 178, 440), (534, 140, 178, 440), (712, 140, 178, 440),
+    (890, 140, 178, 440), (1068, 140, 178, 440)
 )
+
+def time_out(e):
+    return e[0] == 'TIME_OUT'
 
 def w_pressed(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_w
@@ -67,10 +75,10 @@ def r_pressed(e):
 class SpIdle:
     def __init__(self, sp):
         self.sp = sp
-        self.h = sp.image_move.h
 
     def enter(self, e):
-        pass
+        if not self.sp.is_moving:
+            self.sp.frame = 0
 
     def exit(self, e):
         return True
@@ -94,7 +102,6 @@ class SpIdle:
 class SpUp:
     def __init__(self, sp):
         self.sp = sp
-        self.h = sp.image_move.h
 
     def enter(self, e):
         self.sp.is_moving = True
@@ -116,7 +123,6 @@ class SpUp:
 class SpDown:
     def __init__(self, sp):
         self.sp = sp
-        self.h = sp.image_move.h
 
     def enter(self, e):
         self.sp.is_moving = True
@@ -138,10 +144,10 @@ class SpDown:
 class SpDock:
     def __init__(self, sp):
         self.sp = sp
-        self.h = sp.image_dock.h
 
     def enter(self, e):
         self.sp.is_moving = False
+        self.sp.is_docking = True
         self.sp.move_dir = 0
         self.sp.frame = 0
 
@@ -162,7 +168,6 @@ class SpDock:
 class SpUndock:
     def __init__(self, sp):
         self.sp = sp
-        self.h = sp.image_dock.h
 
     def enter(self, e):
         self.sp.frame = 0
@@ -171,19 +176,23 @@ class SpUndock:
         return True
 
     def do(self):
-        if self.sp.frame < 34:
+        if self.sp.frame < 17:
             self.sp.frame = self.sp.frame + 1
+        else:
+            self.sp.is_docking = False
+            self.sp.stateMachine.handle_state_event(('TIME_OUT', None))
 
     def draw(self, camera):
         x, y, w, h = SPIDER_UNDOCK_FRAMES[self.sp.frame]
         view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y)
         draw_w, draw_h = camera.get_draw_size(178, 440)
-        self.sp.image_dock.clip_draw(x, y, w, h, view_x, view_y, draw_w, draw_h)
+        self.sp.image_undock.clip_draw(x, y, w, h, view_x, view_y, draw_w, draw_h)
 
 class RoboSpider:
     def __init__(self, x = 960, y = 540):
         self.image_move = load_image('Assets/Sprites/Spider/Spider_Moving.png')
         self.image_dock = load_image('Assets/Sprites/Spider/Spider_Docking.png')
+        self.image_undock = load_image('Assets/Sprites/Spider/Spider_Undocking.png')
 
         self.x = x
         self.y = y
@@ -200,13 +209,15 @@ class RoboSpider:
         self.UP = SpUp(self)
         self.DOWN = SpDown(self)
         self.DOCK = SpDock(self)
+        self.UNDOCK = SpUndock(self)
         self.stateMachine = StateMachine(
             self.IDLE,
         {
             self.IDLE : { w_pressed : self.UP, s_pressed : self.DOWN, r_pressed : self.DOCK },
             self.UP : { w_released : self.IDLE, s_pressed : self.DOWN, r_pressed : self.DOCK },
             self.DOWN : { s_released : self.IDLE, w_pressed : self.UP, r_pressed : self.DOCK },
-            self.DOCK : {},
+            self.DOCK : { r_pressed : self.UNDOCK },
+            self.UNDOCK : { time_out : self.IDLE },
         })
 
     def update(self):
