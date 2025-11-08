@@ -1,5 +1,5 @@
 from pico2d import *
-from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT, SDLK_a, SDLK_w, SDLK_s
+from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT, SDLK_a, SDLK_w, SDLK_s, SDLK_r
 from camera import Camera
 from state_machine import StateMachine
 
@@ -8,6 +8,7 @@ from state_machine import StateMachine
 
 # Spider_Moving 스프라이트 프레임 정보 (x, y, w, h)
 # 1행 1열부터 시작 (좌상단 기준)
+
 SPIDER_MOVE_FRAMES = (
     # 1행 (프레임 0-10)
     (0, 584, 178, 440),
@@ -31,14 +32,17 @@ SPIDER_MOVE_FRAMES = (
 )
 
 SPIDER_DOCK_FRAMES = (
-    # 1행 (y=0)
-    (0, 0), (128, 0), (256, 0), (384, 0), (512, 0), (640, 0), (768, 0), (896, 0), (1024, 0), (1152, 0), (1280, 0),
-    # 2행 (y=128)
-    (0, 128), (128, 128), (256, 128), (384, 128), (512, 128), (640, 128), (768, 128), (896, 128), (1024, 128), (1152, 128), (1280, 128),
-    # 3행 (y=256)
-    (0, 256), (128, 256), (256, 256), (384, 256), (512, 256), (640, 256), (768, 256), (896, 256), (1024, 256), (1152, 256), (1280, 256),
-    # 4행 (y=384)
-    (0, 384), (128, 384)
+    # 1행 (y=1608, h=440)
+    (0, 1608, 178, 440), (178, 1608, 178, 440), (356, 1608, 178, 440), (534, 1608, 178, 440), (712, 1608, 178, 440),
+    (890, 1608, 178, 440), (1068, 1608, 178, 440), (1246, 1608, 178, 440), (1424, 1608, 178, 440), (1602, 1608, 178, 440), (1780, 1608, 178, 440),
+    # 2행 (y=1164, h=440)
+    (0, 1164, 178, 440), (178, 1164, 178, 440), (356, 1164, 178, 440), (534, 1164, 178, 440), (712, 1164, 178, 440),
+    (890, 1164, 178, 440), (1068, 1164, 178, 440), (1246, 1164, 178, 440), (1424, 1164, 178, 440), (1602, 1164, 178, 440), (1780, 1164, 178, 440),
+    # 3행 (y=720, h=440)
+    (0, 720, 178, 440), (178, 720, 178, 440), (356, 720, 178, 440), (534, 720, 178, 440), (712, 720, 178, 440),
+    (890, 720, 178, 440), (1068, 720, 178, 440), (1246, 720, 178, 440), (1424, 720, 178, 440), (1602, 720, 178, 440), (1780, 720, 178, 440),
+    # 4행 (y=276, h=440)
+    (0, 276, 178, 440), (178, 276, 178, 440)
 )
 
 def w_pressed(e):
@@ -54,7 +58,7 @@ def s_released(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_s
 
 def r_pressed(e):
-    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_s
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_r
 
 class SpIdle:
     def __init__(self, sp):
@@ -169,10 +173,10 @@ class RoboSpider:
         self.stateMachine = StateMachine(
             self.IDLE,
         {
-            self.IDLE : { w_pressed : self.UP, s_pressed : self.DOWN },
-            self.UP : { w_released : self.IDLE, s_pressed : self.DOWN },
-            self.DOWN : { s_released : self.IDLE, w_pressed : self.UP },
-            self.DOCK : {}
+            self.IDLE : { w_pressed : self.UP, s_pressed : self.DOWN, r_pressed : self.DOCK },
+            self.UP : { w_released : self.IDLE, s_pressed : self.DOWN, r_pressed : self.DOCK },
+            self.DOWN : { s_released : self.IDLE, w_pressed : self.UP, r_pressed : self.DOCK },
+            self.DOCK : {},
         })
 
     def update(self):
