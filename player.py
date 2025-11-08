@@ -3,7 +3,7 @@ from event_set import *
 from game_world import get_camera
 from state_machine import StateMachine
 
-ATTACHING_PLAYER_DOCKING_FRAMES = (
+PLAYER_DOCK_FRAMES = (
     (0, 0, 40, 40),      # 프레임 0
     (40, 0, 40, 40),     # 프레임 1
     (80, 0, 40, 40),     # 프레임 2
@@ -19,6 +19,25 @@ ATTACHING_PLAYER_DOCKING_FRAMES = (
     (0, 80, 40, 40),     # 프레임 12
 )
 
+PLAYER_IDLE_FRAMES = (
+    (0, 0, 40, 40),      # 프레임 0
+    (40, 0, 40, 40),     # 프레임 1
+    (80, 0, 40, 40),     # 프레임 2
+    (120, 0, 40, 40),    # 프레임 3
+    (160, 0, 40, 40),    # 프레임 4
+    (200, 0, 40, 40),    # 프레임 5
+    (0, 40, 40, 40),     # 프레임 6
+    (40, 40, 40, 40),    # 프레임 7
+    (80, 40, 40, 40),    # 프레임 8
+    (120, 40, 40, 40),   # 프레임 9
+    (160, 40, 40, 40),   # 프레임 10
+    (200, 40, 40, 40),   # 프레임 11
+    (0, 80, 40, 40),     # 프레임 12
+    (40, 80, 40, 40),    # 프레임 13
+    (80, 80, 40, 40),    # 프레임 14
+    (120, 80, 40, 40)    # 프레임 15
+)
+
 class Dock:
     def __init__(self, player):
         self.player = player
@@ -29,7 +48,6 @@ class Dock:
             self.player.frame = 12
 
     def exit(self, e):
-        self.player.is_docked = False
         return True
 
     def do(self):
@@ -37,7 +55,7 @@ class Dock:
 
     def draw(self):
         camera = get_camera()
-        x, y, w, h = ATTACHING_PLAYER_DOCKING_FRAMES[self.player.frame]
+        x, y, w, h = PLAYER_DOCK_FRAMES[self.player.frame]
         view_x, view_y = camera.world_to_view(self.player.x, self.player.y)
         draw_w, draw_h = camera.get_draw_size(w, h)
         self.player.image_dock.clip_draw(x, self.player.image_dock.h - 40 - y, w, h, view_x, view_y, draw_w, draw_h);
@@ -45,19 +63,43 @@ class Dock:
 class Idle:
     def __init__(self, player):
         self.player = player
+        self.frame_delta = 1
 
     def enter(self, e):
-        pass
+        if self.player.is_docked:  # Dock 상태에서 온 경우
+            self.frame_delta = -1 # 도킹 애니메이션 역재생
+        else:
+            self.frame_delta = 1
+            self.player.frame = 0
 
     def exit(self, e):
+        if self.frame_delta == -1:
+            return False # 도킹 애니메이션이 끝나지 않았으면 상태 전환 불가
         return True
 
     def do(self):
         if self.player.move_x != 0 or self.player.move_y != 0:
             self.player.stateMachine.handle_state_event((signal_not_empty, None))
 
+        if self.player.is_docked and self.player.frame == 0: # 도킹 애니메이션이 끝났을 때
+            self.player.is_docked = False
+            self.frame_delta = 1
+
+        self.player.frame = (self.player.frame + self.frame_delta) % len(PLAYER_IDLE_FRAMES)
+
     def draw(self):
         camera = get_camera()
+        if self.player.is_docked:
+            image = self.player.image_dock
+            x, y, w, h = PLAYER_DOCK_FRAMES[self.player.frame]
+        else:
+            image = self.player.image_idle
+            x, y, w, h = PLAYER_IDLE_FRAMES[self.player.frame]
+
+        view_x, view_y = camera.world_to_view(self.player.x, self.player.y)
+        draw_w, draw_h = camera.get_draw_size(w, h)
+
+        image.clip_draw(x, image.h - 40 - y, w, h, view_x, view_y, draw_w, draw_h)
 
 class Move:
     key_push_count = int()
@@ -110,7 +152,7 @@ class Player:
 
 
     def update(self):
-        pass
+        self.stateMachine.update()
 
     def draw(self):
         self.stateMachine.draw()
