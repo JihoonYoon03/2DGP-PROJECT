@@ -2,6 +2,7 @@ from pico2d import *
 from state_machine import StateMachine
 from event_set import *
 from game_world import get_camera
+from player import Player
 
 # self.sp.frame * 178 % (11 * 178), self.h - 440 - (self.sp.frame // 11 * 444), 178, 440,
 
@@ -143,6 +144,8 @@ class SpDock:
         if self.sp.frame < 34:
             self.sp.frame = self.sp.frame + 1
         else:
+            camera = get_camera()
+            camera.zoom = 2.0
             self.sp.is_docking = True
 
     def draw(self):
@@ -157,6 +160,8 @@ class SpUndock:
         self.sp = sp
 
     def enter(self, e):
+        camera = get_camera()
+        camera.zoom = camera.screen_width / 1920 * 2
         self.sp.frame = 0
         self.sp.is_docking = False
 
@@ -194,6 +199,8 @@ class RoboSpider:
         self.h = 440
         self.x -= 178 // 2
 
+        self.player = Player(self)
+
         self.IDLE = SpIdle(self)
         self.UP = SpUp(self)
         self.DOWN = SpDown(self)
@@ -211,14 +218,20 @@ class RoboSpider:
 
     def update(self):
         self.stateMachine.update()
+        if self.is_docking:
+            self.player.update()
+            self.inner.update()
 
     def draw(self):
         self.stateMachine.draw()
         if self.is_docking:
             self.inner.draw()
+            self.player.draw()
 
     def handle_event(self, event):
         self.stateMachine.handle_state_event(('INPUT', event))
+        if self.is_docking:
+            self.player.handle_event(event)
 
 class SpInIdle:
     def __init__(self, sp_in):
@@ -231,7 +244,6 @@ class SpInIdle:
         return True
 
     def do(self):
-        self.sp_in.image_background.set_opacity(1.0)
         pass
 
     def draw(self):

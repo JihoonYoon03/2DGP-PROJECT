@@ -3,12 +3,30 @@ from event_set import *
 from game_world import get_camera
 from state_machine import StateMachine
 
+ATTACHING_PLAYER_DOCKING_FRAMES = (
+    (0, 0, 40, 40),      # 프레임 0
+    (40, 0, 40, 40),     # 프레임 1
+    (80, 0, 40, 40),     # 프레임 2
+    (120, 0, 40, 40),    # 프레임 3
+    (160, 0, 40, 40),    # 프레임 4
+    (200, 0, 40, 40),    # 프레임 5
+    (0, 40, 40, 40),     # 프레임 6
+    (40, 40, 40, 40),    # 프레임 7
+    (80, 40, 40, 40),    # 프레임 8
+    (120, 40, 40, 40),   # 프레임 9
+    (160, 40, 40, 40),   # 프레임 10
+    (200, 40, 40, 40),   # 프레임 11
+    (0, 80, 40, 40),     # 프레임 12
+)
+
 class Dock:
     def __init__(self, player):
         self.player = player
 
     def enter(self, e):
-        pass
+        if e[0] == 'START':
+            self.player.is_docked = True
+            self.player.frame = 12
 
     def exit(self, e):
         self.player.is_docked = False
@@ -19,7 +37,10 @@ class Dock:
 
     def draw(self):
         camera = get_camera()
-        pass
+        x, y, w, h = ATTACHING_PLAYER_DOCKING_FRAMES[self.player.frame]
+        view_x, view_y = camera.world_to_view(self.player.x, self.player.y)
+        draw_w, draw_h = camera.get_draw_size(w, h)
+        self.player.image_dock.clip_draw(x, self.player.image_dock.h - 40 - y, w, h, view_x, view_y, draw_w, draw_h);
 
 class Idle:
     def __init__(self, player):
@@ -68,8 +89,9 @@ class Player:
 
         self.robo_spider = robo_spider
         self.is_docked = True   # 스파이더에 도킹 여부
-        self.x = robo_spider.x
-        self.y = robo_spider.y
+        self.x = robo_spider.x - 16
+        self.y = robo_spider.y + 16
+        self.frame = 0
         self.face_dir = 0 # 1: right, -1: left, 2: up, -2: down
         self.move_x = 0
         self.move_y = 0
@@ -91,7 +113,7 @@ class Player:
         pass
 
     def draw(self):
-        pass
+        self.stateMachine.draw()
 
     def handle_event(self, event):
         # IDLE과 MOVE 상태 변환을 위해 Player가 직접 키 입력을 처리

@@ -2,6 +2,8 @@ class Camera:
     def __init__(self, x_width, y_height):
         self.world_x = 0
         self.world_y = 0
+        self.screen_width = x_width
+        self.screen_height = y_height
         self.view_x = x_width // 2
         self.view_y = y_height // 2
         self.zoom = x_width / 1920 * 2

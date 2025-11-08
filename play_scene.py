@@ -9,10 +9,6 @@ import game_world
 import game_framework
 
 def init():
-    global spider
-    global ground
-    global mines
-
     background = Background()
     game_world.add_object(background, 0)
 
