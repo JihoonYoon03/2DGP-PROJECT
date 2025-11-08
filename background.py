@@ -9,7 +9,7 @@ class Idle:
         pass
 
     def exit(self, e):
-        pass
+        return True
 
     def do(self):
         if self.bg.camera is not None:
@@ -19,17 +19,20 @@ class Idle:
                 self.bg.y = self.bg.y + self.bg.image.h
 
     def draw(self, camera):
+        draw_w, draw_h = camera.get_draw_size(self.bg.image.w, self.bg.image.h)
+
         # 중앙
         view_x, view_y = camera.world_to_view(self.bg.x, self.bg.y + self.bg.image.h)
-        self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h, view_x, view_y, self.bg.image.w * camera.zoom, self.bg.image.h * camera.zoom)
+        self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h, view_x, view_y, draw_w, draw_h)
 
         # 상단
         view_x, view_y = camera.world_to_view(self.bg.x, self.bg.y)
-        self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h, view_x, view_y, self.bg.image.w * camera.zoom, self.bg.image.h * camera.zoom)
+        self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h, view_x, view_y, draw_w, draw_h)
 
         # 하단
         view_x, view_y = camera.world_to_view(self.bg.x, self.bg.y - self.bg.image.h)
-        self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h, view_x, view_y, self.bg.image.w * camera.zoom, self.bg.image.h * camera.zoom)
+        self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h, view_x, view_y, draw_w, draw_h)
+
 
 class Background:
     def __init__(self):

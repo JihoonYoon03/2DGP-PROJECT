@@ -26,5 +26,8 @@ class Camera:
         view_y = (world_y - self.world_y) * self.zoom + self.view_y
         return view_x, view_y
 
+    def get_draw_size(self, width, height):
+        return round(width * self.zoom) + 1, round(height * self.zoom) + 1
+
     def handle_event(self, event):
         pass

@@ -12,7 +12,7 @@ class StateMachine:
         for check_event in self.rules[self.cur_state].keys():
             if check_event(state_event):
                 self.next_state = self.rules[self.cur_state][check_event]
-                self.cur_state.exit(state_event)
+                if not self.cur_state.exit(state_event): continue
                 self.next_state.enter(state_event)
                 # print(f'{self.cur_state.__class__.__name__} - {state_event[0]} -> {self.next_state.__class__.__name__}')
                 self.cur_state = self.next_state

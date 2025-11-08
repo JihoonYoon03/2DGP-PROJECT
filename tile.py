@@ -173,7 +173,7 @@ class Idle:
         pass
 
     def exit(self, e):
-        pass
+        return True
 
     def do(self):
         if self.tile.camera is not None:
@@ -183,13 +183,13 @@ class Idle:
                 self.tile.y = self.tile.y + 300
 
     def draw(self, camera):
-        tile_x, tile_y = TILES[2]  # 0행 2열 타일 (0-based)
-        for dy in range(-30, 31):  # 위아래 30칸 커버
-            # 땅 표면 그리기
+        tile_x, tile_y = TILES[2]
+        draw_w, draw_h = camera.get_draw_size(self.tile.w, self.tile.h)
+
+        for dy in range(-30, 31):
             view_x, view_y = camera.world_to_view(self.tile.x, self.tile.y + dy * self.tile.h)
             self.tile.image.clip_draw(tile_x, tile_y, self.tile.w, self.tile.h,
-                                      round(view_x), round(view_y),
-                                      round(self.tile.w * camera.zoom), round(self.tile.h * camera.zoom))
+                                      view_x, view_y, draw_w, draw_h)
 
             # 땅 내부 그리기
             # view_x, view_y = camera.world_to_view(self.tile.x + self.tile.w * 10, self.tile.y + dy * self.tile.h)
@@ -276,9 +276,9 @@ class Tile:
 
     def draw(self, camera):
         view_x, view_y = camera.world_to_view(self.x, self.y)
+        draw_w, draw_h = camera.get_draw_size(self.w, self.h)
 
         self.tileset.image.clip_draw(
             self.image_x, self.image_y, self.w, self.h,
-            round(view_x), round(view_y),
-            round(self.w * camera.zoom), round(self.h * camera.zoom)
+            view_x, view_y, draw_w, draw_h
         )
