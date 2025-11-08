@@ -13,17 +13,17 @@ def init():
     game_world.add_object(background, 0)
 
     spider = RoboSpider()
-    game_world.add_object(spider, 1)
+    game_world.add_object(spider, 2)
 
     ground = Ground()
-    game_world.add_object(ground, 2)
+    game_world.add_object(ground, 1)
 
     cam = Camera(800, 600)
     cam.cam_lock(spider)
     game_world.set_camera(cam)
 
     mines = Mine(1)
-    game_world.add_object(mines, 2)
+    game_world.add_object(mines, 1)
 
 
 def handle_events():
