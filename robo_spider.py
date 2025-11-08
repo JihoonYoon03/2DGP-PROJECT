@@ -206,7 +206,7 @@ class RoboSpider:
             self.UP : { w_released : self.IDLE, s_pressed : self.DOWN, r_pressed : self.DOCK },
             self.DOWN : { s_released : self.IDLE, w_pressed : self.UP, r_pressed : self.DOCK },
             self.DOCK : { r_pressed : self.UNDOCK },
-            self.UNDOCK : { time_out : self.IDLE },
+            self.UNDOCK : { signal_time_out : self.IDLE },
         })
 
     def update(self):

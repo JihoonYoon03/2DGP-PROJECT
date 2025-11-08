@@ -1,8 +1,9 @@
 import sdl2
 from camera import Camera
 
-def time_out(e):
-    return e[0] == 'TIME_OUT'
+signal_time_out = lambda e: e[0] == 'TIME_OUT'
+signal_empty = lambda e: e[0] == 'EMPTY'
+signal_not_empty = lambda e: e[0] == '!EMPTY'
 
 def e_pressed(e):
     return e[0] == 'INPUT' and e[1].type == sdl2.SDL_KEYDOWN and e[1].key == sdl2.SDLK_e
@@ -36,7 +37,3 @@ def d_released(e):
 
 def r_pressed(e):
     return e[0] == 'INPUT' and e[1].type == sdl2.SDL_KEYDOWN and e[1].key == sdl2.SDLK_r
-
-def no_key_pressed(e):
-    return e[0] == 'INPUT' and e[1].type == sdl2.SDL_KEYDOWN and \
-        e[1].key not in (sdl2.SDLK_w, sdl2.SDLK_a, sdl2.SDLK_s, sdl2.SDLK_d)
