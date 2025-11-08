@@ -147,7 +147,6 @@ class SpDock:
 
     def enter(self, e):
         self.sp.is_moving = False
-        self.sp.is_docking = True
         self.sp.move_dir = 0
         self.sp.frame = 0
 
@@ -158,6 +157,8 @@ class SpDock:
     def do(self):
         if self.sp.frame < 34:
             self.sp.frame = self.sp.frame + 1
+        else:
+            self.sp.is_docking = True
 
     def draw(self, camera):
         x, y, w, h = SPIDER_DOCK_FRAMES[self.sp.frame]
@@ -194,6 +195,7 @@ class RoboSpider:
         self.image_dock = load_image('Assets/Sprites/Spider/Spider_Docking.png')
         self.image_undock = load_image('Assets/Sprites/Spider/Spider_Undocking.png')
 
+        self.inner = RoboSpiderIn(self)
         self.x = x
         self.y = y
         self.speed = 5
@@ -225,6 +227,8 @@ class RoboSpider:
 
     def draw(self, camera):
         self.stateMachine.draw(camera)
+        if self.is_docking:
+            self.inner.draw(camera)
 
     def handle_event(self, event):
         self.stateMachine.handle_state_event(('INPUT', event))
@@ -240,14 +244,19 @@ class SpInIdle:
         return True
 
     def do(self):
+        self.sp_in.image_background.set_opacity(1.0)
         pass
 
     def draw(self, camera):
         # 배경 그리기
-        view_x, view_y = camera.world_to_view(self.sp_in.robo_spider.x, self.sp_in.robo_spider.y)
+        view_x, view_y = camera.world_to_view(self.sp_in.robo_spider.x, self.sp_in.robo_spider.y - 2) # 2는 이미지 크기 보정용
         draw_w, draw_h = camera.get_draw_size(self.sp_in.image_background.w, self.sp_in.image_background.h)
         self.sp_in.image_background.clip_draw(0, 0, self.sp_in.image_background.w, self.sp_in.image_background.h,
                                               view_x, view_y, draw_w, draw_h)
+        # 방 내부 그리기
+        draw_w, draw_h = camera.get_draw_size(self.sp_in.image_room.w, self.sp_in.image_room.h)
+        self.sp_in.image_room.clip_draw(0, 0, self.sp_in.image_room.w, self.sp_in.image_room.h,
+                                        view_x, view_y, draw_w, draw_h)
 
         # 프레임 그리기
         draw_w, draw_h = camera.get_draw_size(self.sp_in.image_frame.w, self.sp_in.image_frame.h)
@@ -268,8 +277,7 @@ class RoboSpiderIn:
         self.stateMachine.update()
 
     def draw(self, camera):
-        if self.robo_spider.is_docking:
-            self.stateMachine.draw(camera)
+        self.stateMachine.draw(camera)
 
     def handle_event(self, event):
         self.stateMachine.handle_state_event(('INPUT', event))
