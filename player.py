@@ -2,46 +2,25 @@ from pico2d import *
 from event_set import *
 from game_world import get_camera
 from state_machine import StateMachine
+import math
+
+PLAYER_WIDTH = 40
+PLAYER_HEIGHT = 40
 
 PLAYER_DOCK_FRAMES = (
-    (0, 0, 40, 40),      # 프레임 0
-    (40, 0, 40, 40),     # 프레임 1
-    (80, 0, 40, 40),     # 프레임 2
-    (120, 0, 40, 40),    # 프레임 3
-    (160, 0, 40, 40),    # 프레임 4
-    (200, 0, 40, 40),    # 프레임 5
-    (0, 40, 40, 40),     # 프레임 6
-    (40, 40, 40, 40),    # 프레임 7
-    (80, 40, 40, 40),    # 프레임 8
-    (120, 40, 40, 40),   # 프레임 9
-    (160, 40, 40, 40),   # 프레임 10
-    (200, 40, 40, 40),   # 프레임 11
-    (0, 80, 40, 40),     # 프레임 12
+    (0, 0), (40, 0), (80, 0), (120, 0), (160, 0), (200, 0),
+    (0, 40), (40, 40), (80, 40), (120, 40), (160, 40), (200, 40),
+    (0, 80),
 )
 
 PLAYER_IDLE_FRAMES = (
-    (0, 0, 40, 40),      # 프레임 0
-    (40, 0, 40, 40),     # 프레임 1
-    (80, 0, 40, 40),     # 프레임 2
-    (120, 0, 40, 40),    # 프레임 3
-    (160, 0, 40, 40),    # 프레임 4
-    (200, 0, 40, 40),    # 프레임 5
-    (0, 40, 40, 40),     # 프레임 6
-    (40, 40, 40, 40),    # 프레임 7
-    (80, 40, 40, 40),    # 프레임 8
-    (120, 40, 40, 40),   # 프레임 9
-    (160, 40, 40, 40),   # 프레임 10
-    (200, 40, 40, 40),   # 프레임 11
-    (0, 80, 40, 40),     # 프레임 12
-    (40, 80, 40, 40),    # 프레임 13
-    (80, 80, 40, 40),    # 프레임 14
-    (120, 80, 40, 40)    # 프레임 15
+    (0, 0), (40, 0), (80, 0), (120, 0), (160, 0), (200, 0),
+    (0, 40), (40, 40), (80, 40), (120, 40), (160, 40), (200, 40),
+    (0, 80), (40, 80), (80, 80), (120, 80)
 )
 
 PLAYER_MOVE_FRAMES = (
-    (0, 0, 40, 40),      # 프레임 0
-    (40, 0, 40, 40),     # 프레임 1
-    (80, 0, 40, 40)     # 프레임 2
+    (0, 0), (40, 0), (80, 0)
 )
 
 class Dock:
@@ -52,19 +31,28 @@ class Dock:
         if e[0] == 'START':
             self.player.is_docked = True
             self.player.frame = 12
+        elif e[0] == 'IN_RANGE':
+            self.player.is_docked = True
+            self.player.x = self.player.robo_spider.inner.docker_x
+            self.player.y = self.player.robo_spider.inner.docker_y
+            self.player.frame = 0
 
     def exit(self, e):
         return True
 
     def do(self):
-        pass
+        if self.player.is_docked:
+            self.player.x = self.player.robo_spider.inner.docker_x
+            self.player.y = self.player.robo_spider.inner.docker_y
+        if self.player.frame < len(PLAYER_DOCK_FRAMES) - 1:
+            self.player.frame += 1
 
     def draw(self):
         camera = get_camera()
-        x, y, w, h = PLAYER_DOCK_FRAMES[self.player.frame]
+        x, y = PLAYER_DOCK_FRAMES[self.player.frame]
         view_x, view_y = camera.world_to_view(self.player.x, self.player.y)
-        draw_w, draw_h = camera.get_draw_size(w, h)
-        self.player.image_dock.clip_draw(x, self.player.image_dock.h - 40 - y, w, h, view_x, view_y, draw_w, draw_h);
+        draw_w, draw_h = camera.get_draw_size(PLAYER_WIDTH, PLAYER_HEIGHT)
+        self.player.image_dock.clip_draw(x, self.player.image_dock.h - PLAYER_HEIGHT - y, PLAYER_WIDTH, PLAYER_HEIGHT, view_x, view_y, draw_w, draw_h);
 
 class Idle:
     def __init__(self, player):
@@ -87,7 +75,6 @@ class Idle:
         if self.player.is_docked and self.player.frame <= 0: # 도킹 애니메이션이 끝났을 때
             self.player.is_docked = False
             self.frame_delta = 1
-            print('Player undocked')
 
         self.player.frame = (self.player.frame + self.frame_delta) % len(PLAYER_IDLE_FRAMES)
 
@@ -95,15 +82,15 @@ class Idle:
         camera = get_camera()
         if self.player.is_docked:
             image = self.player.image_dock
-            x, y, w, h = PLAYER_DOCK_FRAMES[self.player.frame]
+            x, y = PLAYER_DOCK_FRAMES[self.player.frame]
         else:
             image = self.player.image_idle
-            x, y, w, h = PLAYER_IDLE_FRAMES[self.player.frame]
+            x, y = PLAYER_IDLE_FRAMES[self.player.frame]
 
         view_x, view_y = camera.world_to_view(self.player.x, self.player.y)
-        draw_w, draw_h = camera.get_draw_size(w, h)
+        draw_w, draw_h = camera.get_draw_size(PLAYER_WIDTH, PLAYER_HEIGHT)
 
-        image.clip_draw(x, image.h - 40 - y, w, h, view_x, view_y, draw_w, draw_h)
+        image.clip_draw(x, image.h - PLAYER_HEIGHT - y, PLAYER_WIDTH, PLAYER_HEIGHT, view_x, view_y, draw_w, draw_h)
 
 class Move:
     key_push_count = int()
@@ -132,16 +119,24 @@ class Move:
 
     def draw(self):
         camera = get_camera()
-        x, y, w, h = PLAYER_MOVE_FRAMES[self.player.frame]
+        x, y = PLAYER_MOVE_FRAMES[self.player.frame]
         view_x, view_y = camera.world_to_view(self.player.x, self.player.y)
-        draw_w, draw_h = camera.get_draw_size(w, h)
+        draw_w, draw_h = camera.get_draw_size(PLAYER_WIDTH, PLAYER_HEIGHT)
+
+        # 좌우
         if self.player.move_x != 0:
-            self.player.image_move_right.clip_composite_draw(x, self.player.image_move_right.h - 40 - y, w, h, 0,
-            'h' if self.player.face_dir < 0 else 'x', view_x, view_y, draw_w, draw_h)
+            self.player.image_move_right.clip_composite_draw(x, self.player.image_move_right.h -
+                                                             PLAYER_HEIGHT - y, PLAYER_WIDTH, PLAYER_HEIGHT,
+                                                             0, 'h' if self.player.face_dir < 0 else 'x',
+                                                             view_x, view_y, draw_w, draw_h)
+
+        # 상하
         elif self.player.move_y > 0:
-            self.player.image_move_up.clip_draw(x, self.player.image_move_up.h - 40 - y, w, h, view_x, view_y, draw_w, draw_h)
+            self.player.image_move_up.clip_draw(x, self.player.image_move_up.h - PLAYER_HEIGHT - y,
+                                                PLAYER_WIDTH, PLAYER_HEIGHT, view_x, view_y, draw_w, draw_h)
         elif self.player.move_y < 0:
-            self.player.image_move_down.clip_draw(x, self.player.image_move_down.h - 40 - y, w, h, view_x, view_y, draw_w, draw_h)
+            self.player.image_move_down.clip_draw(x, self.player.image_move_down.h - PLAYER_HEIGHT - y,
+                                                  PLAYER_WIDTH, PLAYER_HEIGHT, view_x, view_y, draw_w, draw_h)
 
 class Player:
     def __init__(self, robo_spider):
@@ -168,8 +163,8 @@ class Player:
             self.DOCKED,
             {
                 self.DOCKED: { e_pressed : self.IDLE },
-                self.IDLE: { signal_not_empty : self.MOVE },
-                self.MOVE: { signal_empty : self.IDLE },
+                self.IDLE: { signal_not_empty : self.MOVE, signal_in_range : self.DOCKED },
+                self.MOVE: { signal_empty : self.IDLE, signal_in_range : self.DOCKED }
             })
 
 
@@ -184,7 +179,12 @@ class Player:
 
         # IDLE과 MOVE 상태 변환을 위해 Player가 직접 키 입력을 처리
         if event.type == SDL_KEYDOWN:
-            if event.key == SDLK_d:
+            if event.key == SDLK_e and not self.is_docked:
+                if math.sqrt(math.pow((self.x - self.robo_spider.inner.docker_x), 2) +
+                             math.pow((self.y - self.robo_spider.inner.docker_y), 2)) < 30:
+                    self.stateMachine.handle_state_event(('IN_RANGE', None))
+                    return
+            elif event.key == SDLK_d:
                 self.move_x += 1
                 self.face_dir += 1
             elif event.key == SDLK_a:
@@ -194,6 +194,7 @@ class Player:
                 self.move_y += 1
             elif event.key == SDLK_s:
                 self.move_y -= 1
+
 
         elif event.type == SDL_KEYUP:
             if event.key == SDLK_d:

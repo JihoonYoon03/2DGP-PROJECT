@@ -41,6 +41,11 @@ SPIDER_UNDOCK_FRAMES = (
     (890, 140, 178, 440), (1068, 140, 178, 440)
 )
 
+SPIDER_INNER_DOCKER_FRAMES = (
+    (0, 0), (40, 0), (80, 0),
+    (0, 40), (40, 40), (80, 40)
+)
+
 class SpIdle:
     def __init__(self, sp):
         self.sp = sp
@@ -164,8 +169,8 @@ class RoboSpider:
         self.image_dock = load_image('Assets/Sprites/Spider/Spider_Docking.png')
         self.image_undock = load_image('Assets/Sprites/Spider/Spider_Undocking.png')
 
-        self.inner = RoboSpiderIn(self)
-        self.x = x
+        # 스파이더 중앙과 스프라이트 중앙 매칭 필요
+        self.x = x - 178 // 2
         self.y = y
         self.speed = 5
         self.is_moving = False
@@ -175,8 +180,8 @@ class RoboSpider:
         self.frame = 0
         self.w = 178
         self.h = 440
-        self.x -= 178 // 2
 
+        self.inner = RoboSpiderIn(self)
         self.player = Player(self)
 
         self.IDLE = SpIdle(self)
@@ -195,9 +200,9 @@ class RoboSpider:
 
     def update(self):
         self.stateMachine.update()
+        self.inner.update()
         if self.is_docking:
             self.player.update()
-            self.inner.update()
 
     def draw(self):
         self.stateMachine.draw()
@@ -249,7 +254,11 @@ class SpInIdle:
         return True
 
     def do(self):
-        pass
+        if self.sp_in.robo_spider.is_docking:
+            self.sp_in.docker_frame = (self.sp_in.docker_frame + 1) % len(SPIDER_INNER_DOCKER_FRAMES)
+        else:
+            self.sp_in.docker_x = self.sp_in.robo_spider.x - 16
+            self.sp_in.docker_y = self.sp_in.robo_spider.y + 16
 
     def draw(self):
         camera = get_camera()
@@ -268,13 +277,27 @@ class SpInIdle:
         self.sp_in.image_frame.clip_draw(0, 0, self.sp_in.image_frame.w, self.sp_in.image_frame.h,
                                          view_x, view_y, draw_w, draw_h)
 
+        # 도킹 모듈 그리기
+        x, y = SPIDER_INNER_DOCKER_FRAMES[self.sp_in.docker_frame]
+        docker_view_x, docker_view_y = camera.world_to_view(self.sp_in.docker_x, self.sp_in.docker_y)
+        draw_w, draw_h = camera.get_draw_size(40, 40)
+        self.sp_in.image_docker.clip_draw(x, self.sp_in.image_docker.h - 40 - y,
+                                          40, 40, docker_view_x, docker_view_y, draw_w, draw_h)
+
 # 스파이더 내부
 class RoboSpiderIn:
     def __init__(self, robo_spider):
         self.image_room = load_image('Assets/Sprites/Spider/Spider_Inner_Back.png')
         self.image_frame = load_image('Assets/Sprites/Spider/Spider_Inner_Frame.png')
         self.image_background = load_image('Assets/Sprites/Spider/Spider_Inner_Opened.png')
+        self.image_docker = load_image('Assets/Sprites/Spider/Spider_DockingModule.png')
+
         self.robo_spider = robo_spider
+
+        self.docker_x = robo_spider.x - 16
+        self.docker_y = robo_spider.y + 16
+        self.docker_frame = 0
+
         self.IDLE = SpInIdle(self)
         self.stateMachine = StateMachine(self.IDLE, {})
 
