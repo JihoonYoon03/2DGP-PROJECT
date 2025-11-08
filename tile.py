@@ -192,10 +192,10 @@ class Idle:
                                       round(self.tile.w * camera.zoom), round(self.tile.h * camera.zoom))
 
             # 땅 내부 그리기
-            view_x, view_y = camera.world_to_view(self.tile.x + self.tile.w * 10, self.tile.y + dy * self.tile.h)
-            self.tile.image.clip_draw(Idle.deep_x, Idle.deep_y, self.tile.w, self.tile.h,
-                                      round(view_x), round(view_y),
-                                      round(self.tile.w * 19 * camera.zoom), round(self.tile.h * camera.zoom))
+            # view_x, view_y = camera.world_to_view(self.tile.x + self.tile.w * 10, self.tile.y + dy * self.tile.h)
+            # self.tile.image.clip_draw(Idle.deep_x, Idle.deep_y, self.tile.w, self.tile.h,
+            #                           round(view_x), round(view_y),
+            #                           round(self.tile.w * 19 * camera.zoom), round(self.tile.h * camera.zoom))
 
 
 class Ground:
@@ -226,13 +226,13 @@ class Ground:
 
 
 class TileSet:
-    def __init__(self, image_path, map_type):
+    def __init__(self, image_path, tile_info, entrance_x=0, entrance_y=0):
         self.image = load_image(image_path)
         self.tiles = list()
-        for i in range(20):
-            for j in range(20):
-                if map_type['location'][i][j] is False: continue
-                self.tiles.append(Tile(self, j, i, map_type['flag'][i][j]))
+        for y in range(20):
+            for x in range(20):
+                if tile_info['location'][y][x] is False: continue
+                self.tiles.append(Tile(self, entrance_x, entrance_y, x, y, tile_info['flag'][y][x]))
         self.camera = None
 
     def update(self):
@@ -240,7 +240,8 @@ class TileSet:
 
     def draw(self, camera):
         self.camera = camera
-        pass
+        for tile in self.tiles:
+            tile.draw(camera)
 
     def handle_event(self, event):
         pass
@@ -248,32 +249,36 @@ class TileSet:
 class Tile:
     # tile_data: 타일 데이터 튜플
     image_bedrock = None
-    def __init__(self, tile_set, x, y, flags):
+    def __init__(self, tile_set, entrance_x, entrance_y, x, y, flags):
         if Tile.image_bedrock is None:
             Tile.image_bedrock = load_image('Assets/Sprites/Tile/Tex_Bedrock.png')
 
+        # 단일 타일 크기
         self.w = 40
         self.h = 40
-        self.x = x * self.w
-        self.y = y * self.h
-        self.raw_flags = flags # 원본 비트 플래그 (이어진 면에 대한 모서리 플래그 제외 없음)
-        self.flags = normalize_tile_flags(flags)  # 정규화된 플래그
-        self.tileset = tile_set
 
-    def get_tile_coord(self):
-        index = tile_index_from_flags(self.flags) # 인덱스화된 플래그
-        return self.tileset.tiles[index]
+        # 타일 월드 좌표
+        self.x = x * self.w + entrance_x
+        self.y = y * self.h + entrance_y
+
+        # 타일 플래그 및 인덱스화
+        self.raw_flags = flags # 원본 비트 플래그 (이어진 면에 대한 모서리 플래그 제외 없음)
+        self.TILES_index = tile_index_from_flags(normalize_tile_flags(flags))  # 인덱스화된 플래그
+
+        # 타일 이미지 클리핑 좌표
+        self.image_x, self.image_y = TILES[self.TILES_index]
+
+        self.tileset = tile_set
 
     def update_flags(self, flags):
         self.raw_flags = flags
-        self.flags = normalize_tile_flags(flags)
+        self.TILES_index = tile_index_from_flags(normalize_tile_flags(flags))
 
     def draw(self, camera):
-        tile_x, tile_y = self.get_tile_coord()
         view_x, view_y = camera.world_to_view(self.x, self.y)
 
         self.tileset.image.clip_draw(
-            tile_x, tile_y, self.w, self.h,
+            self.image_x, self.image_y, self.w, self.h,
             round(view_x), round(view_y),
             round(self.w * camera.zoom), round(self.h * camera.zoom)
         )

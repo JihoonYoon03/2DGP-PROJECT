@@ -3,16 +3,16 @@ from pico2d import *
 from background import Background
 from robo_spider import RoboSpider
 from tile import Ground
+from mine import Mine
 from camera import Camera
 import game_world
 import game_framework
 
-ground = None
-
 def init():
     global spider
-    global camera
+    global cam
     global ground
+    global mines
 
     background = Background()
     game_world.add_object(background, 0)
@@ -23,8 +23,11 @@ def init():
     ground = Ground()
     game_world.add_object(ground, 2)
 
-    camera = Camera(800, 600)
-    camera.cam_lock(spider)
+    cam = Camera(800, 600)
+    cam.cam_lock(spider)
+
+    mines = Mine(1)
+    game_world.add_object(mines, 2)
 
 
 def handle_events():
@@ -36,19 +39,19 @@ def handle_events():
             game_framework.quit()
         else:
             game_world.handle_event(event)
-            camera.handle_event(event)
+            cam.handle_event(event)
 
 
 def update():
     game_world.update()
-    camera.update()
+    cam.update()
     delay(0.05)
 
 
 def draw():
-    global camera
+    global cam
     clear_canvas()
-    game_world.render(camera)
+    game_world.render(cam)
     update_canvas()
 
 def pause():
