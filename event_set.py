@@ -1,5 +1,4 @@
 import sdl2
-from camera import Camera
 
 signal_time_out = lambda e: e[0] == 'TIME_OUT'
 signal_empty = lambda e: e[0] == 'EMPTY'

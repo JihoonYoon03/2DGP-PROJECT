@@ -38,6 +38,12 @@ PLAYER_IDLE_FRAMES = (
     (120, 80, 40, 40)    # 프레임 15
 )
 
+PLAYER_MOVE_FRAMES = (
+    (0, 0, 40, 40),      # 프레임 0
+    (40, 0, 40, 40),     # 프레임 1
+    (80, 0, 40, 40)     # 프레임 2
+)
+
 class Dock:
     def __init__(self, player):
         self.player = player
@@ -73,17 +79,19 @@ class Idle:
             self.player.frame = 0
 
     def exit(self, e):
-        if self.frame_delta == -1:
+        if self.player.is_docked:
             return False # 도킹 애니메이션이 끝나지 않았으면 상태 전환 불가
         return True
 
     def do(self):
         if self.player.move_x != 0 or self.player.move_y != 0:
-            self.player.stateMachine.handle_state_event((signal_not_empty, None))
+            self.player.stateMachine.handle_state_event(('!EMPTY', None))
+            print('Player start moving')
 
-        if self.player.is_docked and self.player.frame == 0: # 도킹 애니메이션이 끝났을 때
+        if self.player.is_docked and self.player.frame <= 0: # 도킹 애니메이션이 끝났을 때
             self.player.is_docked = False
             self.frame_delta = 1
+            print('Player undocked')
 
         self.player.frame = (self.player.frame + self.frame_delta) % len(PLAYER_IDLE_FRAMES)
 
@@ -107,19 +115,32 @@ class Move:
         self.player = player
 
     def enter(self, e):
-        # 키 입력 개수 확인용
-        Move.key_push_count += 1
-        pass
+        self.player.frame = 0
 
     def exit(self, e):
         return True
 
     def do(self):
         if self.player.move_x == 0 and self.player.move_y == 0:
-            self.player.stateMachine.handle_state_event((signal_empty, None))
+            self.player.stateMachine.handle_state_event(('EMPTY', None))
+
+        self.player.x += self.player.move_x * 4
+        self.player.y += self.player.move_y * 4
+
+        self.player.frame = (self.player.frame + 1) % len(PLAYER_MOVE_FRAMES)
 
     def draw(self):
         camera = get_camera()
+        x, y, w, h = PLAYER_MOVE_FRAMES[self.player.frame]
+        view_x, view_y = camera.world_to_view(self.player.x, self.player.y)
+        draw_w, draw_h = camera.get_draw_size(w, h)
+        if self.player.move_x != 0:
+            self.player.image_move_right.clip_composite_draw(x, self.player.image_move_right.h - 40 - y, w, h, 0,
+            'h' if self.player.face_dir < 0 else 'x', view_x, view_y, draw_w, draw_h)
+        elif self.player.move_y > 0:
+            self.player.image_move_up.clip_draw(x, self.player.image_move_up.h - 40 - y, w, h, view_x, view_y, draw_w, draw_h)
+        elif self.player.move_y < 0:
+            self.player.image_move_down.clip_draw(x, self.player.image_move_down.h - 40 - y, w, h, view_x, view_y, draw_w, draw_h)
 
 class Player:
     def __init__(self, robo_spider):
@@ -160,27 +181,29 @@ class Player:
     def handle_event(self, event):
         # IDLE과 MOVE 상태 변환을 위해 Player가 직접 키 입력을 처리
         if event.type == SDL_KEYDOWN:
-            if event.key == SDLK_RIGHT:
+            if event.key == SDLK_d:
                 self.move_x += 1
                 self.face_dir += 1
-            elif event.key == SDLK_LEFT:
+            elif event.key == SDLK_a:
                 self.move_x -= 1
                 self.face_dir -= 1
-            elif event.key == SDLK_UP:
+            elif event.key == SDLK_w:
                 self.move_y += 1
-            elif event.key == SDLK_DOWN:
+            elif event.key == SDLK_s:
                 self.move_y -= 1
 
         elif event.type == SDL_KEYUP:
-            if event.key == SDLK_RIGHT:
+            if event.key == SDLK_d:
                 self.move_x -= 1
                 self.face_dir -= 1
-            elif event.key == SDLK_LEFT:
+            elif event.key == SDLK_a:
                 self.move_x += 1
                 self.face_dir += 1
-            elif event.key == SDLK_UP:
+            elif event.key == SDLK_w:
                 self.move_y -= 1
-            elif event.key == SDLK_DOWN:
+            elif event.key == SDLK_s:
                 self.move_y += 1
+
+        print(f'Player handle_event: move_x={self.move_x}, move_y={self.move_y}, face_dir={self.face_dir}')
 
         self.stateMachine.handle_state_event(('INPUT', event))
