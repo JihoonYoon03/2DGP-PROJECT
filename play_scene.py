@@ -12,15 +12,16 @@ def init():
     background = Background()
     game_world.add_object(background, 0)
 
+    cam = Camera(800, 600)
+    game_world.set_camera(cam)
+
     spider = RoboSpider()
     game_world.add_object(spider, 2)
 
     ground = Ground()
     game_world.add_object(ground, 1)
 
-    cam = Camera(800, 600)
     cam.cam_lock(spider)
-    game_world.set_camera(cam)
 
     mines = Mine(1)
     game_world.add_object(mines, 1)
@@ -39,7 +40,6 @@ def handle_events():
 
 def update():
     game_world.update()
-    delay(0.05)
 
 
 def draw():
