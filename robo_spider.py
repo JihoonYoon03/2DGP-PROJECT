@@ -133,7 +133,7 @@ class SpDock:
         self.sp.action_per_time = 1.0 / self.sp.time_per_action
 
     def exit(self, e):
-        if self.sp.frame < 34: return False # 도킹 모션이 끝나지 않았을 때는 상태 전환 불가
+        if self.sp.frame < 34 or not self.sp.player.is_docked: return False # 도킹 모션이 끝나지 않았을 때는 상태 전환 불가
         return True
 
     def do(self):

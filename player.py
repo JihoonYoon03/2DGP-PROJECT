@@ -76,7 +76,7 @@ class Idle:
 
     def enter(self, e):
         self.player.frames_per_action = len(PLAYER_IDLE_FRAMES)
-        self.player.time_per_action = 0.5
+        self.player.time_per_action = 1.0
         self.player.action_per_time = 1.0 / self.player.time_per_action
         if self.player.is_docked:  # Dock 상태에서 온 경우
             self.frame_delta = -1  # 도킹 애니메이션 역재생
@@ -189,7 +189,7 @@ class Player:
         self.move_y = 0
 
         self.frames_per_action = len(PLAYER_DOCK_FRAMES)
-        self.time_per_action = 0.5
+        self.time_per_action = 1.0
         self.action_per_time = 1.0 / self.time_per_action
 
         self.DOCKED = Dock(self)
