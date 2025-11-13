@@ -1,12 +1,11 @@
 from pico2d import *
 
 import game_world
-from state_machine import StateMachine
-import event_set
-from event_set import signal_empty, signal_not_empty, r_pressed, signal_time_out
-from game_world import get_camera
-from player import Player
 import game_framework
+import event_set
+from state_machine import StateMachine
+from event_set import signal_empty, signal_not_empty, r_pressed, signal_time_out
+from player import Player
 from physics_data import *
 
 # 스프라이트 프레임 정보 (x, y, w, h)
@@ -67,6 +66,11 @@ class SpIdle:
             self.sp.frame = 0
 
     def exit(self, e):
+        if r_pressed(e):
+            for location in self.sp.mine_locations:
+                if location - 100 <= self.sp.y <= location + 100: # 광산 입구 근처에 있을 때
+                    self.sp.current_docked_mine_location = location
+                    break
         return True
 
     def do(self):
@@ -107,6 +111,11 @@ class SpMove:
         self.sp.is_moving = True
 
     def exit(self, e):
+        if r_pressed(e):
+            for location in self.sp.mine_locations:
+                if location - 40 <= self.sp.y <= location + 40: # 광산 입구 근처에 있을 때
+                    self.sp.current_docked_mine_location = location
+                    break
         return True
 
     def do(self):
@@ -132,16 +141,18 @@ class SpDock:
 
     def __init__(self, sp):
         self.sp = sp
+        self.dist_to_mine = 0
+        self.aligning = False
         if SpDock.frames_per_action is None:
             SpDock.frames_per_action = len(SPIDER_DOCK_FRAMES)
         if SpDock.action_per_time is None:
             SpDock.action_per_time = get_spider_action_per_time(SpDock.frames_per_action)
 
     def enter(self, e):
-        self.sp.is_moving = False
-        self.sp.move_dir = 0
+        self.aligning = True
+        self.dist_to_mine = self.sp.current_docked_mine_location - self.sp.y
+        self.sp.move_dir = self.dist_to_mine / abs(self.dist_to_mine) if self.dist_to_mine != 0 else 0
         self.sp.last_move_dir = 0
-        self.sp.frame = 0
         event_set.reset_all_flags()
 
     def exit(self, e):
@@ -149,19 +160,48 @@ class SpDock:
         return True
 
     def do(self):
-        self.sp.frame = self.sp.frame + SpDock.frames_per_action * SpDock.action_per_time * game_framework.frame_time
-        if self.sp.frame >= 34:
-            self.sp.frame = 34
-            camera = get_camera()
-            camera.zoom = 2.0
-            self.sp.is_docking = True
+        # 광산 바로 위까지 위치 조정
+        if self.aligning:
+            move_amount = self.sp.speed * SPIDER_RUN_SPEED_PPS * game_framework.frame_time * self.sp.move_dir
+
+            # 광산 위치에 매우 근접
+            if abs(self.sp.current_docked_mine_location - (self.sp.y + move_amount)) <= 8:
+                self.sp.y = self.sp.current_docked_mine_location
+                self.aligning = False
+                self.sp.is_moving = False
+                self.sp.move_dir = 0
+                self.sp.last_move_dir = 0
+                self.sp.frame = 0
+
+            # 아닌 경우
+            else:
+                self.sp.y += move_amount
+                self.sp.frame = ((self.sp.frame
+                                 + SpMove.frames_per_action * SpMove.action_per_time * game_framework.frame_time * self.sp.move_dir)
+                                 % len(SPIDER_MOVE_FRAMES))
+
+        else:
+            self.sp.frame = self.sp.frame + SpDock.frames_per_action * SpDock.action_per_time * game_framework.frame_time
+            if self.sp.frame >= 34:
+                self.sp.frame = 34
+                camera = get_camera()
+                camera.zoom = 2.0
+                self.sp.is_docking = True
+
+
 
     def draw(self):
         camera = get_camera()
-        x, y, w, h = SPIDER_DOCK_FRAMES[int(self.sp.frame)]
         view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y)
-        draw_w, draw_h = camera.get_draw_size(178, 440)
-        self.sp.image_dock.clip_draw(x, y, w, h, view_x, view_y, draw_w, draw_h)
+        draw_w, draw_h = camera.get_draw_size(SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL)
+        if self.aligning:
+            x, y = SPIDER_MOVE_FRAMES[int(self.sp.frame)]
+            self.sp.image_move.clip_draw(x, self.sp.image_move.h - SPIDER_HEIGHT_SMALL - y,
+                                         SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL, view_x, view_y, draw_w, draw_h)
+            return
+        else:
+            x, y, w, h = SPIDER_DOCK_FRAMES[int(self.sp.frame)]
+            self.sp.image_dock.clip_draw(x, y, w, h, view_x, view_y, draw_w, draw_h)
 
 class SpUndock:
     frames_per_action = None
@@ -218,6 +258,9 @@ class RoboSpider:
         self.w = 178
         self.h = 440
 
+        self.mine_locations = list()
+        self.current_docked_mine_location = 0
+
         self.inner = RoboSpiderIn(self)
         self.player = Player(self)
         game_world.add_collision_pair('player:tile', self.player, None)
@@ -248,7 +291,7 @@ class RoboSpider:
             self.player.draw()
 
     def handle_event(self, event):
-        if not self.is_docking:
+        if not self.is_docking or self.stateMachine.cur_state != self.DOCK:
             prev_moving = self.move_dir != 0
 
             if event.type == SDL_KEYDOWN:

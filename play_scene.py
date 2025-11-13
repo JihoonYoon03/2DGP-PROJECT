@@ -1,5 +1,6 @@
 from pico2d import *
 
+import mine
 from background import Background
 from robo_spider import RoboSpider
 from tile import Ground
@@ -15,18 +16,19 @@ def init():
     cam = Camera(800, 600)
     game_world.set_camera(cam)
 
-    spider = RoboSpider()
-    game_world.add_object(spider, 2)
+    mines = [Mine(1)]
+    game_world.add_objects(mines, 1)
 
     ground = Ground()
     game_world.add_object(ground, 1)
 
-    cam.cam_lock(spider)
-
-    mines = [Mine(1)]
-    game_world.add_objects(mines, 1)
-
     ground.add_mine_locations(mines)
+
+    spider = RoboSpider()
+    game_world.add_object(spider, 2)
+
+    spider.mine_locations = ground.get_mine_locations()
+    cam.cam_lock(spider)
 
 
 def handle_events():

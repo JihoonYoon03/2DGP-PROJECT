@@ -224,6 +224,9 @@ class Ground:
             self.mine_location_y.append(mine.entrance_y)
             self.mine_height.append((mine.mine_upper, mine.mine_lower)) # 상하 타일 개수
 
+    def get_mine_locations(self):
+        return self.mine_location_y
+
 
 class TileSet:
     def __init__(self, image_path, mine_size, tile_info, begin_x, begin_y):
