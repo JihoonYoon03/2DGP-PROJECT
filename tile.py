@@ -161,51 +161,6 @@ def tile_index_from_flags(flags: int) -> int:
     normalized = normalize_tile_flags(flags)
     return TILE_FLAG_MAP.get(normalized, 0)  # 매핑에 없으면 0번 타일
 
-
-class Idle:
-    deep_x = -1
-    deep_y = -1
-
-    def __init__(self, tile):
-        self.tile = tile
-        if Idle.deep_x and Idle.deep_y == -1:
-            Idle.deep_x, Idle.deep_y = TILES[0]
-
-    def enter(self, e):
-        pass
-
-    def exit(self, e):
-        return True
-
-    def do(self):
-        camera = get_camera()
-        if self.tile.y - camera.world_y > 300:
-            self.tile.y = self.tile.y - 300
-        elif self.tile.y - camera.world_y < -300:
-            self.tile.y = self.tile.y + 300
-
-    def draw(self):
-        camera = get_camera()
-        tile_x, tile_y = TILES[2]
-        draw_w, draw_h = camera.get_draw_size(self.tile.w, self.tile.h)
-
-        for dy in range(-30, 31):
-            view_x, view_y = camera.world_to_view(self.tile.x, self.tile.y + dy * self.tile.h)
-
-            world_y = self.tile.y + dy * self.tile.h
-            if world_y in self.tile.mine_location_y:
-                continue # 광산 위치면 건너뜀
-
-            self.tile.image.clip_draw(tile_x, tile_y, self.tile.w, self.tile.h,
-                                      view_x, view_y, draw_w, draw_h)
-
-            # 땅 내부 그리기
-            # view_x, view_y = camera.world_to_view(self.tile.x + self.tile.w * 10, self.tile.y + dy * self.tile.h)
-            # self.tile.image.clip_draw(Idle.deep_x, Idle.deep_y, self.tile.w, self.tile.h,
-            #                           round(view_x), round(view_y),
-            #                           round(self.tile.w * 19 * camera.zoom), round(self.tile.h * camera.zoom))
-
-
 class Ground:
     image = None
 
@@ -219,15 +174,39 @@ class Ground:
         self.mine_location_y = list()
         self.mine_height = list()
 
-        self.IDLE = Idle(self)
+        self.deep_x, self.deep_y = TILES[0]
 
-        self.stateMachine = StateMachine(self.IDLE, {})
+        # self.IDLE = Idle(self)
+        #
+        # self.stateMachine = StateMachine(self.IDLE, {})
 
     def update(self):
-        self.stateMachine.update()
+        camera = get_camera()
+        if self.y - camera.world_y > 300:
+            self.y = self.y - 300
+        elif self.y - camera.world_y < -300:
+            self.y = self.y + 300
 
     def draw(self):
-        self.stateMachine.draw()
+        camera = get_camera()
+        tile_x, tile_y = TILES[2]
+        draw_w, draw_h = camera.get_draw_size(self.w, self.h)
+
+        for dy in range(-30, 31):
+            view_x, view_y = camera.world_to_view(self.x, self.y + dy * self.h)
+
+            world_y = self.y + dy * self.h
+            if world_y in self.mine_location_y:
+                continue # 광산 위치면 건너뜀
+
+            self.image.clip_draw(tile_x, tile_y, self.w, self.h,
+                                      view_x, view_y, draw_w, draw_h)
+
+            # 땅 내부 그리기
+            # view_x, view_y = camera.world_to_view(self.tile.x + self.tile.w * 10, self.tile.y + dy * self.tile.h)
+            # self.tile.image.clip_draw(Idle.deep_x, Idle.deep_y, self.tile.w, self.tile.h,
+            #                           round(view_x), round(view_y),
+            #                           round(self.tile.w * 19 * camera.zoom), round(self.tile.h * camera.zoom))
 
     def handle_event(self, event):
         pass
