@@ -1,13 +1,11 @@
 from pico2d import *
 from state_machine import StateMachine
-from event_set import *
+import event_set
+from event_set import signal_empty, signal_not_empty, r_pressed, signal_time_out
 from game_world import get_camera
 from player import Player
 import game_framework
-
-PIXEL_PER_METER = 10.0 / 0.5  # 10 pixel 50 cm
-RUN_SPEED_KMPH = 6.0  # Km / Hour
-RUN_SPEED_PPS = (RUN_SPEED_KMPH * 1000.0 / 3600.0) * PIXEL_PER_METER
+from physics_data import *
 
 # 스프라이트 프레임 정보 (x, y, w, h)
 # 1행 1열부터 시작 (좌상단 기준)
@@ -52,15 +50,19 @@ SPIDER_INNER_DOCKER_FRAMES = (
 )
 
 class SpIdle:
+    frames_per_action = None
+    action_per_time = None
+
     def __init__(self, sp):
         self.sp = sp
+        if SpIdle.frames_per_action is None:
+            SpIdle.frames_per_action = len(SPIDER_MOVE_FRAMES)
+        if SpIdle.action_per_time is None:
+            SpIdle.action_per_time = get_spider_action_per_time(SpIdle.frames_per_action)
 
     def enter(self, e):
         if not self.sp.is_moving:
             self.sp.frame = 0
-        self.sp.frames_per_action = len(SPIDER_MOVE_FRAMES)
-        self.sp.time_per_action = 0.8
-        self.sp.action_per_time = 1.0 / self.sp.time_per_action
 
     def exit(self, e):
         return True
@@ -71,8 +73,8 @@ class SpIdle:
             return
 
         if self.sp.is_moving:
-            self.sp.frame = self.sp.frame + self.sp.frames_per_action * self.sp.action_per_time * game_framework.frame_time * self.sp.last_move_dir
-            self.sp.y += self.sp.speed * RUN_SPEED_PPS * game_framework.frame_time * self.sp.last_move_dir
+            self.sp.frame = self.sp.frame + SpIdle.frames_per_action * SpIdle.action_per_time * game_framework.frame_time * self.sp.last_move_dir
+            self.sp.y += self.sp.speed * SPIDER_RUN_SPEED_PPS * game_framework.frame_time * self.sp.last_move_dir
             if self.sp.frame <= 0 or self.sp.frame >= 16: # 이동 모션이 끝났을 때
                 self.sp.is_moving = False
                 self.sp.frame = 0
@@ -89,14 +91,18 @@ class SpIdle:
                                      SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL, view_x, view_y, draw_w, draw_h)
 
 class SpMove:
+    frames_per_action = None
+    action_per_time = None
+
     def __init__(self, sp):
         self.sp = sp
+        if SpMove.frames_per_action is None:
+            SpMove.frames_per_action = len(SPIDER_MOVE_FRAMES)
+        if SpMove.action_per_time is None:
+            SpMove.action_per_time = get_spider_action_per_time(SpMove.frames_per_action)
 
     def enter(self, e):
         self.sp.is_moving = True
-        self.sp.frames_per_action = len(SPIDER_MOVE_FRAMES)
-        self.sp.time_per_action = 0.8
-        self.sp.action_per_time = 1.0 / self.sp.time_per_action
 
     def exit(self, e):
         return True
@@ -107,9 +113,9 @@ class SpMove:
             return
         print(game_framework.frame_time)
         self.sp.frame = ((self.sp.frame
-                         + self.sp.frames_per_action * self.sp.action_per_time * game_framework.frame_time * self.sp.move_dir)
+                         + SpMove.frames_per_action * SpMove.action_per_time * game_framework.frame_time * self.sp.move_dir)
                          % len(SPIDER_MOVE_FRAMES))
-        self.sp.y += self.sp.speed * RUN_SPEED_PPS * game_framework.frame_time * self.sp.move_dir
+        self.sp.y += self.sp.speed * SPIDER_RUN_SPEED_PPS * game_framework.frame_time * self.sp.move_dir
 
     def draw(self):
         camera = get_camera()
@@ -120,24 +126,29 @@ class SpMove:
                                      SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL, view_x, view_y, draw_w, draw_h)
 
 class SpDock:
+    frames_per_action = None
+    action_per_time = None
+
     def __init__(self, sp):
         self.sp = sp
+        if SpDock.frames_per_action is None:
+            SpDock.frames_per_action = len(SPIDER_DOCK_FRAMES)
+        if SpDock.action_per_time is None:
+            SpDock.action_per_time = get_spider_action_per_time(SpDock.frames_per_action)
 
     def enter(self, e):
         self.sp.is_moving = False
         self.sp.move_dir = 0
         self.sp.last_move_dir = 0
         self.sp.frame = 0
-        self.sp.frames_per_action = len(SPIDER_DOCK_FRAMES)
-        self.sp.time_per_action = 1.5
-        self.sp.action_per_time = 1.0 / self.sp.time_per_action
+        event_set.reset_all_flags()
 
     def exit(self, e):
         if self.sp.frame < 34 or not self.sp.player.is_docked: return False # 도킹 모션이 끝나지 않았을 때는 상태 전환 불가
         return True
 
     def do(self):
-        self.sp.frame = self.sp.frame + self.sp.frames_per_action * self.sp.action_per_time * game_framework.frame_time
+        self.sp.frame = self.sp.frame + SpDock.frames_per_action * SpDock.action_per_time * game_framework.frame_time
         if self.sp.frame >= 34:
             self.sp.frame = 34
             camera = get_camera()
@@ -152,8 +163,15 @@ class SpDock:
         self.sp.image_dock.clip_draw(x, y, w, h, view_x, view_y, draw_w, draw_h)
 
 class SpUndock:
+    frames_per_action = None
+    action_per_time = None
+
     def __init__(self, sp):
         self.sp = sp
+        if SpUndock.frames_per_action is None:
+            SpUndock.frames_per_action = len(SPIDER_UNDOCK_FRAMES)
+        if SpUndock.action_per_time is None:
+            SpUndock.action_per_time = get_spider_action_per_time(SpUndock.frames_per_action)
 
     def enter(self, e):
         camera = get_camera()
@@ -162,16 +180,14 @@ class SpUndock:
         self.sp.move_dir = 0
         self.sp.last_move_dir = 0
         self.sp.frame = 0
-        self.sp.frames_per_action = len(SPIDER_DOCK_FRAMES)
-        self.sp.time_per_action = 1.5
-        self.sp.action_per_time = 1.0 / self.sp.time_per_action
+        event_set.reset_all_flags()
 
     def exit(self, e):
         return True
 
     def do(self):
         if self.sp.frame < 17:
-            self.sp.frame = self.sp.frame + self.sp.frames_per_action * self.sp.action_per_time * game_framework.frame_time
+            self.sp.frame = self.sp.frame + SpUndock.frames_per_action * SpUndock.action_per_time * game_framework.frame_time
         else:
             self.sp.stateMachine.handle_state_event(('TIME_OUT', None))
 
@@ -191,16 +207,12 @@ class RoboSpider:
         # 스파이더 중앙과 스프라이트 중앙 매칭 필요
         self.x = x - 178 // 2
         self.y = y
-        self.speed = 5
+        self.speed = 1
         self.is_moving = False
         self.is_docking = False
         self.move_dir = 0
         self.last_move_dir = 0
         self.frame = 0
-
-        self.frames_per_action = len(SPIDER_MOVE_FRAMES)
-        self.time_per_action = 0.8
-        self.action_per_time = 1.0 / self.time_per_action
 
         self.w = 178
         self.h = 440
@@ -210,7 +222,6 @@ class RoboSpider:
 
         self.IDLE = SpIdle(self)
         self.UP = SpMove(self)
-        # self.DOWN = SpDown(self)
         self.DOCK = SpDock(self)
         self.UNDOCK = SpUndock(self)
         self.stateMachine = StateMachine(
@@ -240,17 +251,21 @@ class RoboSpider:
 
             if event.type == SDL_KEYDOWN:
                 if event.key == SDLK_w:
+                    event_set.flag_w = True
                     self.move_dir += 1
                     self.last_move_dir = 1
                 elif event.key == SDLK_s:
+                    event_set.flag_s = True
                     self.move_dir -= 1
                     self.last_move_dir = -1
 
             # 도킹 상태에서 키 홀딩 후, 도킹 해제 뒤 키업 처리 방지 필요
             elif event.type == SDL_KEYUP:
-                if event.key == SDLK_w:
+                if event.key == SDLK_w and event_set.flag_w:
+                    event_set.flag_w = False
                     self.move_dir -= 1
-                elif event.key == SDLK_s:
+                elif event.key == SDLK_s and event_set.flag_s:
+                    event_set.flag_s = False
                     self.move_dir += 1
 
             now_moving = self.move_dir != 0
@@ -268,8 +283,15 @@ class RoboSpider:
             self.player.handle_event(event)
 
 class SpInIdle:
+    frames_per_action = None
+    action_per_time = None
+
     def __init__(self, sp_in):
         self.sp_in = sp_in
+        if SpInIdle.frames_per_action is None:
+            SpInIdle.frames_per_action = len(SPIDER_INNER_DOCKER_FRAMES)
+        if SpInIdle.action_per_time is None:
+            SpInIdle.action_per_time = get_player_action_per_time(SpInIdle.frames_per_action)
 
     def enter(self, e):
         pass
@@ -280,8 +302,8 @@ class SpInIdle:
     def do(self):
         if self.sp_in.robo_spider.is_docking:
             self.sp_in.docker_frame = ((self.sp_in.docker_frame
-                                       + self.sp_in.frames_per_action * self.sp_in.action_per_time * game_framework.frame_time)
-                                       % len(SPIDER_INNER_DOCKER_FRAMES))
+                                       + SpInIdle.frames_per_action * SpInIdle.action_per_time * game_framework.frame_time)
+                                       % SpInIdle.frames_per_action)
         else:
             self.sp_in.docker_x = self.sp_in.robo_spider.x - 16
             self.sp_in.docker_y = self.sp_in.robo_spider.y + 16
@@ -323,9 +345,6 @@ class RoboSpiderIn:
         self.docker_x = robo_spider.x - 16
         self.docker_y = robo_spider.y + 16
         self.docker_frame = 0
-        self.frames_per_action = len(SPIDER_INNER_DOCKER_FRAMES)
-        self.time_per_action = 0.4
-        self.action_per_time = 1.0 / self.time_per_action
 
         self.IDLE = SpInIdle(self)
         self.stateMachine = StateMachine(self.IDLE, {})

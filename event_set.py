@@ -1,5 +1,17 @@
 import sdl2
 
+flag_w = False
+flag_a = False
+flag_s = False
+flag_d = False
+
+def reset_all_flags():
+    global flag_w, flag_a, flag_s, flag_d
+    flag_w = False
+    flag_a = False
+    flag_s = False
+    flag_d = False
+
 signal_time_out = lambda e: e[0] == 'TIME_OUT'
 signal_empty = lambda e: e[0] == 'EMPTY'
 signal_not_empty = lambda e: e[0] == '!EMPTY'

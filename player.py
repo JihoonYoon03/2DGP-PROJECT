@@ -1,13 +1,11 @@
 from pico2d import *
-from event_set import *
+import event_set
+from event_set import signal_empty, signal_not_empty, signal_in_range, e_pressed
 from game_world import get_camera
 from state_machine import StateMachine
+from physics_data import *
 import math
 import game_framework
-
-PIXEL_PER_METER = 10.0 / 0.5  # 10 pixel 50 cm
-RUN_SPEED_KMPH = 16.0  # Km / Hour
-RUN_SPEED_PPS = (RUN_SPEED_KMPH * 1000.0 / 3600.0) * PIXEL_PER_METER
 
 PLAYER_WIDTH = 40
 PLAYER_HEIGHT = 40
@@ -30,13 +28,16 @@ PLAYER_MOVE_FRAMES = (
 
 
 class Dock:
+    frames_per_action = None
+    action_per_time = None
     def __init__(self, player):
         self.player = player
+        if Dock.frames_per_action is None:
+            Dock.frames_per_action = len(PLAYER_DOCK_FRAMES)
+        if Dock.action_per_time is None:
+            Dock.action_per_time = get_player_action_per_time(Dock.frames_per_action)
 
     def enter(self, e):
-        self.player.frames_per_action = len(PLAYER_DOCK_FRAMES)
-        self.player.time_per_action = 0.5
-        self.player.action_per_time = 1.0 / self.player.time_per_action
         if e[0] == 'START':
             self.player.is_docked = True
             self.player.frame = 12
@@ -45,6 +46,9 @@ class Dock:
             self.player.x = self.player.robo_spider.inner.docker_x
             self.player.y = self.player.robo_spider.inner.docker_y
             self.player.frame = 0
+            self.player.move_x = 0
+            self.player.move_y = 0
+            event_set.reset_all_flags()
 
     def exit(self, e):
         return True
@@ -53,12 +57,12 @@ class Dock:
         if self.player.is_docked:
             self.player.x = self.player.robo_spider.inner.docker_x
             self.player.y = self.player.robo_spider.inner.docker_y
-        if self.player.frame < len(PLAYER_DOCK_FRAMES) - 1:
+        if self.player.frame < Dock.frames_per_action - 1:
             self.player.frame = ((self.player.frame
-                                  + self.player.frames_per_action * self.player.action_per_time * game_framework.frame_time)
-                                 % len(PLAYER_DOCK_FRAMES))
-        if self.player.frame >= len(PLAYER_DOCK_FRAMES):
-            self.player.frame = len(PLAYER_DOCK_FRAMES) - 1
+                                  + Dock.frames_per_action * Dock.action_per_time * game_framework.frame_time)
+                                 % Dock.frames_per_action)
+        if self.player.frame >= Dock.frames_per_action:
+            self.player.frame = Dock.frames_per_action - 1
 
     def draw(self):
         camera = get_camera()
@@ -66,18 +70,21 @@ class Dock:
         view_x, view_y = camera.world_to_view(self.player.x, self.player.y)
         draw_w, draw_h = camera.get_draw_size(PLAYER_WIDTH, PLAYER_HEIGHT)
         self.player.image_dock.clip_draw(x, self.player.image_dock.h - PLAYER_HEIGHT - y, PLAYER_WIDTH, PLAYER_HEIGHT,
-                                         view_x, view_y, draw_w, draw_h);
+                                         view_x, view_y, draw_w, draw_h)
 
 
 class Idle:
+    frames_per_action = None
+    action_per_time = None
     def __init__(self, player):
         self.player = player
         self.frame_delta = 1
+        if Idle.frames_per_action is None:
+            Idle.frames_per_action = len(PLAYER_IDLE_FRAMES)
+        if Idle.action_per_time is None:
+            Idle.action_per_time = get_player_action_per_time(Idle.frames_per_action)
 
     def enter(self, e):
-        self.player.frames_per_action = len(PLAYER_IDLE_FRAMES)
-        self.player.time_per_action = 1.0
-        self.player.action_per_time = 1.0 / self.player.time_per_action
         if self.player.is_docked:  # Dock 상태에서 온 경우
             self.frame_delta = -1  # 도킹 애니메이션 역재생
         else:
@@ -92,11 +99,11 @@ class Idle:
     def do(self):
         if self.player.is_docked:
             self.player.frame = (self.player.frame
-                                  + self.player.frames_per_action * self.player.action_per_time * game_framework.frame_time * self.frame_delta)
+                                  + Idle.frames_per_action * Idle.action_per_time * game_framework.frame_time * self.frame_delta)
         else:
             self.player.frame = ((self.player.frame
-                                + self.player.frames_per_action * self.player.action_per_time * game_framework.frame_time * self.frame_delta)
-                                % len(PLAYER_IDLE_FRAMES))
+                                + Idle.frames_per_action * Idle.action_per_time * game_framework.frame_time * self.frame_delta)
+                                % Idle.frames_per_action)
 
         if self.player.is_docked and self.player.frame <= 0:  # 도킹 애니메이션이 끝났을 때
             self.player.is_docked = False
@@ -120,14 +127,17 @@ class Idle:
 
 class Move:
     key_push_count = int()
+    frames_per_action = None
+    action_per_time = None
 
     def __init__(self, player):
         self.player = player
+        if Move.frames_per_action is None:
+            Move.frames_per_action = len(PLAYER_MOVE_FRAMES)
+        if Move.action_per_time is None:
+            Move.action_per_time = get_player_action_per_time(Move.frames_per_action)
 
     def enter(self, e):
-        self.player.frames_per_action = len(PLAYER_MOVE_FRAMES)
-        self.player.time_per_action = 0.25
-        self.player.action_per_time = 1.0 / self.player.time_per_action
         if e[0] == '!EMPTY':
             self.player.frame = 0
 
@@ -135,12 +145,12 @@ class Move:
         return True
 
     def do(self):
-        self.player.x += self.player.move_x * RUN_SPEED_PPS * game_framework.frame_time
-        self.player.y += self.player.move_y * RUN_SPEED_PPS * game_framework.frame_time
+        self.player.x += self.player.move_x * PLAYER_RUN_SPEED_PPS * game_framework.frame_time
+        self.player.y += self.player.move_y * PLAYER_RUN_SPEED_PPS * game_framework.frame_time
 
         self.player.frame = ((self.player.frame
-                              + self.player.frames_per_action * self.player.action_per_time * game_framework.frame_time)
-                             % len(PLAYER_MOVE_FRAMES))
+                              + Move.frames_per_action * Move.action_per_time * game_framework.frame_time)
+                             % Move.frames_per_action)
 
         if self.player.x > self.player.robo_spider.x + 100:
             camera = get_camera()
@@ -188,10 +198,6 @@ class Player:
         self.move_x = 0
         self.move_y = 0
 
-        self.frames_per_action = len(PLAYER_DOCK_FRAMES)
-        self.time_per_action = 1.0
-        self.action_per_time = 1.0 / self.time_per_action
-
         self.DOCKED = Dock(self)
         self.IDLE = Idle(self)
         self.MOVE = Move(self)
@@ -221,27 +227,35 @@ class Player:
                     self.stateMachine.handle_state_event(('IN_RANGE', None))
                     return
             elif event.key == SDLK_d:
+                event_set.flag_d = True
                 self.move_x += 1
                 self.face_dir += 1
             elif event.key == SDLK_a:
+                event_set.flag_a = True
                 self.move_x -= 1
                 self.face_dir -= 1
             elif event.key == SDLK_w:
+                event_set.flag_w = True
                 self.move_y += 1
             elif event.key == SDLK_s:
+                event_set.flag_s = True
                 self.move_y -= 1
 
 
         elif event.type == SDL_KEYUP:
-            if event.key == SDLK_d:
+            if event.key == SDLK_d and event_set.flag_d:
+                event_set.flag_d = False
                 self.move_x -= 1
                 self.face_dir -= 1
-            elif event.key == SDLK_a:
+            elif event.key == SDLK_a and event_set.flag_a:
+                event_set.flag_a = False
                 self.move_x += 1
                 self.face_dir += 1
-            elif event.key == SDLK_w:
+            elif event.key == SDLK_w and event_set.flag_w:
+                event_set.flag_w = False
                 self.move_y -= 1
-            elif event.key == SDLK_s:
+            elif event.key == SDLK_s and event_set.flag_s:
+                event_set.flag_s = False
                 self.move_y += 1
 
         now_moving = (self.move_x != 0 or self.move_y != 0)
