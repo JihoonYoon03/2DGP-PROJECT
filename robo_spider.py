@@ -282,6 +282,12 @@ class RoboSpider:
         if self.is_docking:
             self.player.handle_event(event)
 
+    def get_bb(self):
+        pass
+
+    def handle_collision(self, group, other):
+        pass
+
 class SpInIdle:
     frames_per_action = None
     action_per_time = None

@@ -283,3 +283,14 @@ class Tile:
             self.image_x, self.image_y, self.w, self.h,
             view_x, view_y, draw_w, draw_h
         )
+
+        x1, y1, x2, y2 = self.get_bb()
+        view_x1, view_y1 = camera.world_to_view(x1, y1)
+        view_x2, view_y2 = camera.world_to_view(x2, y2)
+        draw_rectangle(view_x1, view_y1, view_x2, view_y2)
+
+    def get_bb(self):
+        return self.x - self.w // 2, self.y - self.h // 2, self.x + self.w // 2, self.y + self.h // 2
+
+    def handle_collision(self, group, other):
+        pass

@@ -216,6 +216,12 @@ class Player:
     def draw(self):
         self.stateMachine.draw()
 
+        camera = get_camera()
+        x1, y1, x2, y2 = self.get_bb()
+        view_x1, view_y1 = camera.world_to_view(x1, y1)
+        view_x2, view_y2 = camera.world_to_view(x2, y2)
+        draw_rectangle(view_x1, view_y1, view_x2, view_y2)
+
     def handle_event(self, event):
         prev_moving = (self.move_x != 0 or self.move_y != 0)
 
@@ -271,3 +277,10 @@ class Player:
         # 만약 이동 -> 이동 (방향 전환 등)이면 IDLE 상태를 거치지 않게됨
 
         self.stateMachine.handle_state_event(('INPUT', event))
+
+    def get_bb(self):
+        return self.x - PLAYER_WIDTH // 3, self.y - PLAYER_HEIGHT // 2.5, \
+               self.x + PLAYER_WIDTH // 3, self.y + PLAYER_HEIGHT // 2.5
+
+    def handle_collision(self, group, other):
+        pass
