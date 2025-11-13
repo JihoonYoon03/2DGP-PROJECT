@@ -178,11 +178,11 @@ class Idle:
         return True
 
     def do(self):
-        if self.tile.camera is not None:
-            if self.tile.y - self.tile.camera.world_y > 300:
-                self.tile.y = self.tile.y - 300
-            elif self.tile.y - self.tile.camera.world_y < -300:
-                self.tile.y = self.tile.y + 300
+        camera = get_camera()
+        if self.tile.y - camera.world_y > 300:
+            self.tile.y = self.tile.y - 300
+        elif self.tile.y - camera.world_y < -300:
+            self.tile.y = self.tile.y + 300
 
     def draw(self):
         camera = get_camera()
@@ -191,6 +191,10 @@ class Idle:
 
         for dy in range(-30, 31):
             view_x, view_y = camera.world_to_view(self.tile.x, self.tile.y + dy * self.tile.h)
+
+            world_y = self.tile.y + dy * self.tile.h
+            if world_y in self.tile.mine_location_y:
+                continue # 광산 위치면 건너뜀
 
             self.tile.image.clip_draw(tile_x, tile_y, self.tile.w, self.tile.h,
                                       view_x, view_y, draw_w, draw_h)
@@ -212,8 +216,7 @@ class Ground:
             Ground.image = load_image('Assets/Sprites/Tile/Tex_Bedrock.png')
         self.w = 40
         self.h = 40
-        self.camera = None
-        self.mine_view_location = list()
+        self.mine_location_y = list()
         self.mine_height = list()
 
         self.IDLE = Idle(self)
@@ -231,8 +234,7 @@ class Ground:
 
     def add_mine_locations(self, mine_list):
         for mine in mine_list:
-            mine_x, mine_y = get_camera().world_to_view(mine.x, mine.y)
-            self.mine_view_location.append(mine.y) # 뷰 좌표값
+            self.mine_location_y.append(mine.entrance_y)
             self.mine_height.append((mine.mine_upper, mine.mine_lower)) # 상하 타일 개수
 
 

@@ -16,6 +16,13 @@ def add_object(obj, layer = 0):
             world.append([])
     world[layer].append(obj)
 
+def add_objects(objs, layer = 0):
+    if layer >= len(world):
+        # 레이어 부족할 시 추가
+        for _ in range(layer - len(world) + 1):
+            world.append([])
+    world[layer] += objs
+
 def update():
     global camera
     if camera:

@@ -23,8 +23,10 @@ def init():
 
     cam.cam_lock(spider)
 
-    mines = Mine(1)
-    game_world.add_object(mines, 1)
+    mines = [Mine(1)]
+    game_world.add_objects(mines, 1)
+
+    ground.add_mine_locations(mines)
 
 
 def handle_events():
