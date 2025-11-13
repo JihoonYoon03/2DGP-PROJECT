@@ -1,0 +1,21 @@
+from game_world import get_camera
+
+PIXEL_PER_METER = 20.0  # 20 pixel / 1m
+
+SPIDER_RUN_SPEED_KMPH = 20.0 # Km / Hour
+SPIDER_RUN_SPEED_PPS = (SPIDER_RUN_SPEED_KMPH * 1000.0 / 3600.0) * PIXEL_PER_METER
+
+SPIDER_BASE_FRAMES = 16
+SPIDER_BASE_ACTION_PER_TIME = 1.0
+
+PLAYER_RUN_SPEED_KMPH = 12.0  # Km / Hour
+PLAYER_RUN_SPEED_PPS = (PLAYER_RUN_SPEED_KMPH * 1000.0 / 3600.0) * PIXEL_PER_METER
+
+PLAYER_BASE_FRAMES = 13
+PLAYER_BASE_ACTION_PER_TIME = 1.0
+
+def get_spider_action_per_time(frame_count):
+    return (SPIDER_BASE_FRAMES / frame_count) * SPIDER_BASE_ACTION_PER_TIME
+
+def get_player_action_per_time(frame_count):
+    return (PLAYER_BASE_FRAMES / frame_count) * PLAYER_BASE_ACTION_PER_TIME
