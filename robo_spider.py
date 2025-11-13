@@ -113,7 +113,6 @@ class SpMove:
         if self.sp.move_dir == 0:
             self.sp.stateMachine.handle_state_event(('EMPTY', None))
             return
-        print(game_framework.frame_time)
         self.sp.frame = ((self.sp.frame
                          + SpMove.frames_per_action * SpMove.action_per_time * game_framework.frame_time * self.sp.move_dir)
                          % len(SPIDER_MOVE_FRAMES))

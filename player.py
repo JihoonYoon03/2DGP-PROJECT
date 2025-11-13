@@ -1,11 +1,12 @@
 from pico2d import *
 import event_set
 from event_set import signal_empty, signal_not_empty, signal_in_range, e_pressed
-from game_world import get_camera
+from game_world import get_camera, collide_bb
 from state_machine import StateMachine
 from physics_data import *
 import math
 import game_framework
+import game_world
 
 PLAYER_WIDTH = 40
 PLAYER_HEIGHT = 40
@@ -288,5 +289,24 @@ class Player:
 
     def handle_collision(self, group, other):
         if group == 'player:tile':
+            # 충돌 취소 후, 다시 계산
+            origin_x = self.x
+            origin_y = self.y
             self.x -= self.delta_x
             self.y -= self.delta_y
+
+            # x만 증가시킬 때 충돌 검사
+            self.x = origin_x
+            x_collide = collide_bb(self, other)
+
+            # y만 증가시킬 때 충돌 검사
+            self.x -= self.delta_x  # 복구
+            self.y = origin_y
+            y_collide = collide_bb(self, other)
+
+            self.y -= self.delta_y
+
+            if not x_collide:
+                self.x += self.delta_x * 0.5
+            if not y_collide:
+                self.y += self.delta_y * 0.5
