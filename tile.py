@@ -3,6 +3,7 @@ from contextlib import nullcontext
 from pico2d import *
 from state_machine import StateMachine
 from enum import IntFlag
+import game_world
 from game_world import get_camera
 
 # Tex_Bedrock.png 타일 좌표 (x, y)
@@ -269,6 +270,8 @@ class Tile:
         self.image_x, self.image_y = TILES[self.TILES_index]
 
         self.tileset = tile_set
+
+        game_world.add_collision_pair('player:tile', None, self)
 
     def update_flags(self, flags):
         self.raw_flags = flags

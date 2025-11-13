@@ -145,8 +145,10 @@ class Move:
         return True
 
     def do(self):
-        self.player.x += self.player.move_x * PLAYER_RUN_SPEED_PPS * game_framework.frame_time
-        self.player.y += self.player.move_y * PLAYER_RUN_SPEED_PPS * game_framework.frame_time
+        self.player.delta_x = self.player.move_x * PLAYER_RUN_SPEED_PPS * game_framework.frame_time
+        self.player.delta_y = self.player.move_y * PLAYER_RUN_SPEED_PPS * game_framework.frame_time
+        self.player.x += self.player.delta_x
+        self.player.y += self.player.delta_y
 
         self.player.frame = ((self.player.frame
                               + Move.frames_per_action * Move.action_per_time * game_framework.frame_time)
@@ -197,6 +199,8 @@ class Player:
         self.face_dir = 0  # 1: right, -1: left, 2: up, -2: down
         self.move_x = 0
         self.move_y = 0
+        self.delta_x = 0
+        self.delta_y = 0
 
         self.DOCKED = Dock(self)
         self.IDLE = Idle(self)
@@ -283,4 +287,6 @@ class Player:
                self.x + PLAYER_WIDTH // 3, self.y + PLAYER_HEIGHT // 2.5
 
     def handle_collision(self, group, other):
-        pass
+        if group == 'player:tile':
+            self.x -= self.delta_x
+            self.y -= self.delta_y

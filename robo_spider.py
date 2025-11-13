@@ -1,4 +1,6 @@
 from pico2d import *
+
+import game_world
 from state_machine import StateMachine
 import event_set
 from event_set import signal_empty, signal_not_empty, r_pressed, signal_time_out
@@ -219,6 +221,7 @@ class RoboSpider:
 
         self.inner = RoboSpiderIn(self)
         self.player = Player(self)
+        game_world.add_collision_pair('player:tile', self.player, None)
 
         self.IDLE = SpIdle(self)
         self.UP = SpMove(self)
