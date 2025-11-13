@@ -191,6 +191,7 @@ class Idle:
 
         for dy in range(-30, 31):
             view_x, view_y = camera.world_to_view(self.tile.x, self.tile.y + dy * self.tile.h)
+
             self.tile.image.clip_draw(tile_x, tile_y, self.tile.w, self.tile.h,
                                       view_x, view_y, draw_w, draw_h)
 
@@ -212,6 +213,8 @@ class Ground:
         self.w = 40
         self.h = 40
         self.camera = None
+        self.mine_view_location = list()
+        self.mine_height = list()
 
         self.IDLE = Idle(self)
 
@@ -226,15 +229,21 @@ class Ground:
     def handle_event(self, event):
         pass
 
+    def add_mine_locations(self, mine_list):
+        for mine in mine_list:
+            mine_x, mine_y = get_camera().world_to_view(mine.x, mine.y)
+            self.mine_view_location.append(mine.y) # 뷰 좌표값
+            self.mine_height.append((mine.mine_upper, mine.mine_lower)) # 상하 타일 개수
+
 
 class TileSet:
-    def __init__(self, image_path, tile_info, entrance_x=0, entrance_y=0):
+    def __init__(self, image_path, mine_size, tile_info, entrance_x=0, entrance_y=0):
         self.image = load_image(image_path)
         self.tiles = list()
-        for y in range(22):
-            for x in range(22):
+        for y in range(mine_size[1]):
+            for x in range(mine_size[0]):
                 if tile_info['location'][y][x] is False: continue
-                self.tiles.append(Tile(self, entrance_x, entrance_y, x, y, tile_info['flag'][y][x], tile_info['entrance']))
+                self.tiles.append(Tile(self, entrance_x, entrance_y, x, y, tile_info['flag'][y][x], tile_info['entrance'], tile_info['bedrock'][y][x]))
         self.camera = None
 
     def update(self):
@@ -250,7 +259,7 @@ class TileSet:
 class Tile:
     # tile_data: 타일 데이터 튜플
     image_bedrock = None
-    def __init__(self, tile_set, entrance_x, entrance_y, x, y, flags, entrance_index):
+    def __init__(self, tile_set, entrance_x, entrance_y, x, y, flags, entrance_index, is_bedrock):
         if Tile.image_bedrock is None:
             Tile.image_bedrock = load_image('Assets/Sprites/Tile/Tex_Bedrock.png')
 
@@ -270,6 +279,7 @@ class Tile:
         self.image_x, self.image_y = TILES[self.TILES_index]
 
         self.tileset = tile_set
+        self.is_bedrock = is_bedrock
 
         game_world.add_collision_pair('player:tile', None, self)
 
@@ -282,10 +292,16 @@ class Tile:
         view_x, view_y = camera.world_to_view(self.x, self.y)
         draw_w, draw_h = camera.get_draw_size(self.w, self.h)
 
-        self.tileset.image.clip_draw(
-            self.image_x, self.image_y, self.w, self.h,
-            view_x, view_y, draw_w, draw_h
-        )
+        if self.is_bedrock:
+            Tile.image_bedrock.clip_draw(
+                self.image_x, self.image_y, self.w, self.h,
+                view_x, view_y, draw_w, draw_h
+            )
+        else:
+            self.tileset.image.clip_draw(
+                self.image_x, self.image_y, self.w, self.h,
+                view_x, view_y, draw_w, draw_h
+            )
 
         x1, y1, x2, y2 = self.get_bb()
         view_x1, view_y1 = camera.world_to_view(x1, y1)
