@@ -239,13 +239,13 @@ class Ground:
 
 
 class TileSet:
-    def __init__(self, image_path, mine_size, tile_info, entrance_x=0, entrance_y=0):
+    def __init__(self, image_path, mine_size, tile_info, begin_x, begin_y):
         self.image = load_image(image_path)
         self.tiles = list()
-        for y in range(mine_size[1]):
-            for x in range(mine_size[0]):
-                if tile_info['location'][y][x] is False: continue
-                self.tiles.append(Tile(self, entrance_x, entrance_y, x, y, tile_info['flag'][y][x], tile_info['entrance'], tile_info['bedrock'][y][x]))
+        for row in range(mine_size[1]):
+            for col in range(mine_size[0]):
+                if tile_info['location'][row][col] is False: continue
+                self.tiles.append(Tile(self, begin_x, begin_y, col, row, tile_info['flag'][row][col], tile_info['entrance'], tile_info['bedrock'][row][col]))
         self.camera = None
 
     def update(self):
@@ -261,7 +261,7 @@ class TileSet:
 class Tile:
     # tile_data: 타일 데이터 튜플
     image_bedrock = None
-    def __init__(self, tile_set, entrance_x, entrance_y, x, y, flags, entrance_index, is_bedrock):
+    def __init__(self, tile_set, begin_x, begin_y, col, row, flags, entrance_index, is_bedrock):
         if Tile.image_bedrock is None:
             Tile.image_bedrock = load_image('Assets/Sprites/Tile/Tex_Bedrock.png')
 
@@ -270,8 +270,8 @@ class Tile:
         self.h = 40
 
         # 타일 월드 좌표
-        self.x = x * self.w + entrance_x
-        self.y = (entrance_index[1] - y) * self.h + entrance_y # 출입구 인덱스 기준 좌표 보정
+        self.x = col * self.w + begin_x
+        self.y = (entrance_index[1] - row) * self.h + begin_y # 출입구 인덱스 기준 좌표 보정
 
         # 타일 플래그 및 인덱스화
         self.raw_flags = flags # 원본 비트 플래그 (이어진 면에 대한 모서리 플래그 제외 없음)

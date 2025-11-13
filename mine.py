@@ -1,15 +1,27 @@
 from mine_data import data_set
 from tile import TileSet
+from pico2d import *
+from game_world import get_camera
 
 class Mine:
+    entrance_image = None
     def __init__(self, mine_id, x = 1920 / 2, y = 1080 / 2):
+        if Mine.entrance_image is None:
+            Mine.entrance_image = load_image('Assets/Sprites/Tile/Enter_Biome.png')
+
+        self.revealed = False
+
         mine_data = data_set[mine_id]
         # 광산 데이터 구조
         # 타일 타입, 타일 배치, 광물 배치, 광산 크기
 
         # 광산 입구 좌표
-        self.entrance_x = x + 20 + 40
+        self.entrance_x = x + 20
         self.entrance_y = y
+
+        # 지표면 1칸 제외 광산 입구 위치
+        self.begin_x = x + 20 + 40
+        self.begin_y = y
 
         # 광산 입구 타일 인덱스
         self.entrance_tile_x = mine_data['tiles']['entrance'][0]
@@ -19,12 +31,17 @@ class Mine:
         self.mine_upper = abs(self.entrance_y - 1)
         self.mine_lower = mine_data['size'][1] - self.mine_upper - 1 # 입구 타일 포함 안함
 
-        self.tile_set = TileSet(mine_data['image'], mine_data['size'], mine_data['tiles'], self.entrance_x, self.entrance_y)
+        self.tile_set = TileSet(mine_data['image'], mine_data['size'], mine_data['tiles'], self.begin_x, self.begin_y)
 
     def update(self):
         pass
 
     def draw(self):
+        camera = get_camera()
+        if not self.revealed:
+            view_x, view_y = camera.world_to_view(self.entrance_x, self.entrance_y)
+            draw_w, draw_h = camera.get_draw_size(40, 40)
+            Mine.entrance_image.clip_composite_draw(0, 0, 40, 40, 0, '', view_x, view_y, draw_w, draw_h)
         self.tile_set.draw()
 
     def handle_event(self, event):
