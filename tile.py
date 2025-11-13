@@ -193,11 +193,19 @@ class Ground:
         draw_w, draw_h = camera.get_draw_size(self.w, self.h)
 
         for dy in range(-30, 31):
-            view_x, view_y = camera.world_to_view(self.x, self.y + dy * self.h)
-
             world_y = self.y + dy * self.h
-            if world_y in self.mine_location_y:
-                continue # 광산 위치면 건너뜀
+
+            # 광산 입구 + 위아래 1칸 건너뛰기
+            skip = False
+            for mine_y in self.mine_location_y:
+                if abs(world_y - mine_y) <= self.h:
+                    skip = True
+                    break
+
+            if skip:
+                continue
+
+            view_x, view_y = camera.world_to_view(self.x, self.y + dy * self.h)
 
             self.image.clip_draw(tile_x, tile_y, self.w, self.h,
                                       view_x, view_y, draw_w, draw_h)

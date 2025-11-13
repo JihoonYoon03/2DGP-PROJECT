@@ -1,13 +1,16 @@
 from mine_data import data_set
-from tile import TileSet
+from tile import *
 from pico2d import *
 from game_world import get_camera
 
 class Mine:
-    entrance_image = None
+    image_entrance = None
+    image_bedrock = None
     def __init__(self, mine_id, x = 1920 / 2, y = 1080 / 2):
-        if Mine.entrance_image is None:
-            Mine.entrance_image = load_image('Assets/Sprites/Tile/Enter_Biome.png')
+        if Mine.image_entrance is None:
+            Mine.image_entrance = load_image('Assets/Sprites/Tile/Enter_Biome.png')
+        if Mine.image_bedrock is None:
+            Mine.image_bedrock = load_image('Assets/Sprites/Tile/Tex_Bedrock.png')
 
         self.revealed = False
 
@@ -39,9 +42,15 @@ class Mine:
     def draw(self):
         camera = get_camera()
         if not self.revealed:
-            view_x, view_y = camera.world_to_view(self.entrance_x, self.entrance_y)
+            x_, y_ = TILES[tile_index_from_flags(normalize_tile_flags(F_L))]
+            view_x_up, view_y_up = camera.world_to_view(self.entrance_x, self.entrance_y + 40)
+            view_x_down, view_y_down = camera.world_to_view(self.entrance_x, self.entrance_y - 40)
             draw_w, draw_h = camera.get_draw_size(40, 40)
-            Mine.entrance_image.clip_composite_draw(0, 0, 40, 40, 0, '', view_x, view_y, draw_w, draw_h)
+            Mine.image_bedrock.clip_composite_draw(x_, y_, 40, 40, 0, '', view_x_up, view_y_up, draw_w, draw_h)
+            Mine.image_bedrock.clip_composite_draw(x_, y_, 40, 40, 0, '', view_x_down, view_y_down, draw_w, draw_h)
+
+            view_x, view_y = camera.world_to_view(self.entrance_x, self.entrance_y)
+            Mine.image_entrance.clip_composite_draw(0, 0, 40, 40, 0, '', view_x, view_y, draw_w, draw_h)
         self.tile_set.draw()
 
     def handle_event(self, event):
