@@ -113,7 +113,7 @@ class SpMove:
     def exit(self, e):
         if r_pressed(e):
             for location in self.sp.mine_locations:
-                if location - 40 <= self.sp.y <= location + 40: # 광산 입구 근처에 있을 때
+                if location - 100 <= self.sp.y <= location + 100: # 광산 입구 근처에 있을 때
                     self.sp.current_docked_mine_location = location
                     break
         return True
@@ -185,7 +185,7 @@ class SpDock:
             if self.sp.frame >= 34:
                 self.sp.frame = 34
                 camera = get_camera()
-                camera.zoom = 2.0
+                camera.zoom = 2.2
                 self.sp.is_docking = True
 
 
