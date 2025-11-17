@@ -44,6 +44,9 @@ class Camera:
         view_y = (world_y - self.world_y) * self.zoom + self.view_y + self.offset_y
         return view_x, view_y
 
+    def value_to_view(self, value):
+        return value * self.zoom
+
     def coord_x_to_view(self, value):
         return (value - self.world_x) * self.zoom + self.view_x
 
@@ -62,7 +65,7 @@ class Camera:
                 self.zoom = 0.2
 
     def camera_enter_mine(self):
-        self.zoom = 2.2
+        self.zoom = 2.0
         self.offset_x = 0
         self.offset_y = 0
 

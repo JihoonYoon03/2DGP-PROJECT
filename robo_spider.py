@@ -1,4 +1,5 @@
 from pico2d import *
+from pygame.draw import circle
 
 import game_world
 import game_framework
@@ -255,6 +256,8 @@ class RoboSpider:
 
         self.w = 178
         self.h = 440
+        self.radius = self.w // 1.7
+        self.collider_offset = (60, 0)
 
         # 광산 레퍼런스 리스트와 현재 도킹된 광산 입구 위치
         self.mine_list = list()
@@ -262,7 +265,8 @@ class RoboSpider:
 
         self.inner = RoboSpiderIn(self)
         self.player = Player(self)
-        game_world.add_collision_pair('player:tile', self.player, None)
+        game_world.add_collision_pair_bb('player:tile', self.player, None)
+        game_world.add_collision_pair_outer_radius('player:spider_inner', self.player, self, 0, 359, self.radius, self.collider_offset)
 
         self.IDLE = SpIdle(self)
         self.UP = SpMove(self)
@@ -288,6 +292,27 @@ class RoboSpider:
         if self.is_docking:
             self.inner.draw()
             self.player.draw()
+
+            # 2, 3사분면 반원 그리기 (디버그용)
+            cam = get_camera()
+            view_x, view_y = cam.world_to_view(self.x + self.collider_offset[0], self.y)
+            radius = cam.value_to_view(self.radius)
+
+            import math
+            segments = 100  # 점의 개수 (많을수록 부드러움)
+
+            # π/2 (90°)부터 3π/2 (270°)까지
+            prev_x, prev_y = None, None
+            for i in range(segments + 1):
+                angle = math.pi / 2 + (math.pi * i / segments)
+                x = view_x + radius * math.cos(angle)
+                y = view_y + radius * math.sin(angle)
+
+                if prev_x is not None:
+                    # 두 점을 잇는 얇은 사각형 그리기
+                    draw_rectangle(prev_x, prev_y, x, y)
+
+                prev_x, prev_y = x, y
 
     def handle_event(self, event):
         if not self.is_docking and self.stateMachine.cur_state != self.DOCK:

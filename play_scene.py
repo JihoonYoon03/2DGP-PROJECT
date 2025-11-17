@@ -44,7 +44,7 @@ def handle_events():
 
 def update():
     game_world.update()
-    game_world.handle_collisions_bb()
+    game_world.handle_collisions()
 
 
 def draw():

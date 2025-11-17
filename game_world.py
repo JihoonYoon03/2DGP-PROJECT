@@ -1,3 +1,5 @@
+import math
+
 world = [[]]
 
 camera = None
@@ -45,7 +47,7 @@ def handle_event(event):
             obj.handle_event(event)
 
 def remove_collision_object(o):
-    for pairs in collision_pairs.values():
+    for pairs in collision_pairs_bb.values():
         if o in pairs[0]:
             pairs[0].remove(o)
         if o in pairs[1]:
@@ -74,21 +76,81 @@ def collide_bb(a, b):
 
     return True
 
-collision_pairs = {}
+# degree_start, degree_end : 충돌 체크 범위 각도
+# rotation : 충돌 체크 범위 회전각
+# 범위 외부로 나가는 충돌 체크
+def collide_outer_radius(a, b, degree_start, degree_end, radius, offset):
+    start = math.radians(degree_start % 360)
+    end = math.radians(degree_end % 360)
+    angle = math.atan2(b.y - a.y, b.x - a.x)
 
-def add_collision_pair(group, a, b):
-    if group not in collision_pairs: # 처음 추가되는 그룹이면
-        collision_pairs[group] = [[], []] # 해당 그룹을 만든다
+    if angle < 0:
+        angle += 2 * math.pi
+
+    if start <= end:
+        # 일반적인 경우 (예: 90 ~ 270)
+        if not (start <= angle <= end):
+            return False
+        if math.sqrt((a.x + offset[0] - b.x) ** 2 + (a.y + offset[1] - b.y) ** 2) >= radius:
+            return True
+    else:
+        # 범위가 0도를 넘어가는 경우 (예: 270 ~ 90)
+        if not (angle >= start or angle <= end):
+            return False
+        if math.sqrt((a.x + offset[0] - b.x) ** 2 + (a.y + offset[1] - b.y) ** 2) >= radius:
+            return True
+
+    return False
+
+collision_pairs_bb = {}
+collision_pairs_outer_radius = {}
+
+def add_collision_pair_bb(group, a, b):
+    if group not in collision_pairs_bb: # 처음 추가되는 그룹이면
+        collision_pairs_bb[group] = [[], []] # 해당 그룹을 만든다
     if a:
-        collision_pairs[group][0].append(a)
+        collision_pairs_bb[group][0].append(a)
     if b:
-        collision_pairs[group][1].append(b)
+        collision_pairs_bb[group][1].append(b)
 
+
+def add_collision_pair_outer_radius(group, a, b, degree_start=0, degree_end=0, radius=0, offset=(0,0)):
+    if group not in collision_pairs_outer_radius:
+        collision_pairs_outer_radius[group] = [[], [], degree_start, degree_end, radius, offset]
+    if a:
+        collision_pairs_outer_radius[group][0].append(a)
+    if b:
+        collision_pairs_outer_radius[group][1].append(b)
+    # 그룹당 하나의 설정값만 사용
+    collision_pairs_outer_radius[group][2] = degree_start
+    collision_pairs_outer_radius[group][3] = degree_end
+    collision_pairs_outer_radius[group][4] = radius
+    collision_pairs_outer_radius[group][5] = offset
+
+def handle_collisions():
+    handle_collisions_bb()
+    handle_collisions_outer_radius()
 
 def handle_collisions_bb():
-    for group, pairs in collision_pairs.items():
+    for group, pairs in collision_pairs_bb.items():
         for a in pairs[0]:
             for b in pairs[1]:
                 if collide_bb(a, b):
+                    a.handle_collision(group, b)
+                    b.handle_collision(group, a)
+
+
+def handle_collisions_outer_radius():
+    for group, data in collision_pairs_outer_radius.items():
+        a_list = data[0]
+        b_list = data[1]
+        degree_start = data[2]
+        degree_end = data[3]
+        radius = data[4]
+        offset = data[5]
+
+        for a in a_list:
+            for b in b_list:
+                if collide_outer_radius(a, b, degree_start, degree_end, radius, offset):
                     a.handle_collision(group, b)
                     b.handle_collision(group, a)

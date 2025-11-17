@@ -288,7 +288,7 @@ class Tile:
         self.tileset = tile_set
         self.is_bedrock = is_bedrock
 
-        game_world.add_collision_pair('player:tile', None, self)
+        game_world.add_collision_pair_bb('player:tile', None, self)
 
     def update_flags(self, flags):
         self.raw_flags = flags

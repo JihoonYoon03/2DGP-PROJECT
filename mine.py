@@ -43,8 +43,8 @@ class Mine:
         self.entrance_tile_bottom = Tile(self.tile_set, self.begin_x, self.begin_y, -1, self.entrance_tile_y + 1, F_L,
                                       mine_data['tiles']['entrance'], True)
 
-        game_world.add_collision_pair('player:tile', None, self.entrance_tile_top)
-        game_world.add_collision_pair('player:tile', None, self.entrance_tile_bottom)
+        game_world.add_collision_pair_bb('player:tile', None, self.entrance_tile_top)
+        game_world.add_collision_pair_bb('player:tile', None, self.entrance_tile_bottom)
     def update(self):
         pass
 

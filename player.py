@@ -309,3 +309,6 @@ class Player:
                 self.x += self.delta_x * 0.5
             if not y_collide:
                 self.y += self.delta_y * 0.5
+
+        elif group == 'player:spider_inner':
+            print('player out of range : spider')
