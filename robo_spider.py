@@ -189,7 +189,6 @@ class SpDock:
                 camera.zoom = 2.2
                 self.sp.is_docking = True
 
-    # SpDock 클래스의 draw 메서드
     def draw(self):
         camera = get_camera()
         view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y - 18)
@@ -303,24 +302,25 @@ class RoboSpider:
         if not self.is_docking and self.stateMachine.cur_state != self.DOCK:
             prev_moving = self.move_dir != 0
 
-            if event.type == SDL_KEYDOWN:
-                if event.key == SDLK_w:
-                    event_set.flag_w = True
-                    self.move_dir += 1
-                    self.last_move_dir = 1
-                elif event.key == SDLK_s:
-                    event_set.flag_s = True
-                    self.move_dir -= 1
-                    self.last_move_dir = -1
+            event_tuple = ('INPUT', event)
+
+            if event_set.w_pressed(event_tuple):
+                event_set.flag_w = True
+                self.move_dir += 1
+                self.last_move_dir = 1
+            elif event_set.s_pressed(event_tuple):
+                event_set.flag_s = True
+                self.move_dir -= 1
+                self.last_move_dir = -1
 
             # 도킹 상태에서 키 홀딩 후, 도킹 해제 뒤 키업 처리 방지 필요
-            elif event.type == SDL_KEYUP:
-                if event.key == SDLK_w and event_set.flag_w:
-                    event_set.flag_w = False
-                    self.move_dir -= 1
-                elif event.key == SDLK_s and event_set.flag_s:
-                    event_set.flag_s = False
-                    self.move_dir += 1
+
+            elif event_set.w_released(event_tuple) and event_set.flag_w:
+                event_set.flag_w = False
+                self.move_dir -= 1
+            elif event_set.s_released(event_tuple) and event_set.flag_s:
+                event_set.flag_s = False
+                self.move_dir += 1
 
             now_moving = self.move_dir != 0
 

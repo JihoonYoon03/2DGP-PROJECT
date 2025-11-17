@@ -230,44 +230,43 @@ class Player:
     def handle_event(self, event):
         prev_moving = (self.move_x != 0 or self.move_y != 0)
 
+        event_tuple = ('INPUT', event)
+
         # IDLE과 MOVE 상태 변환을 위해 Player가 직접 키 입력을 처리
-        if event.type == SDL_KEYDOWN:
-            if event.key == SDLK_e and not self.is_docked:
-                if math.sqrt(math.pow((self.x - self.robo_spider.inner.docker_x), 2) +
-                             math.pow((self.y - self.robo_spider.inner.docker_y), 2)) < 30:
-                    self.stateMachine.handle_state_event(('IN_RANGE', None))
-                    return
-            elif event.key == SDLK_d:
-                event_set.flag_d = True
-                self.move_x += 1
-                self.face_dir += 1
-            elif event.key == SDLK_a:
-                event_set.flag_a = True
-                self.move_x -= 1
-                self.face_dir -= 1
-            elif event.key == SDLK_w:
-                event_set.flag_w = True
-                self.move_y += 1
-            elif event.key == SDLK_s:
-                event_set.flag_s = True
-                self.move_y -= 1
+        if event_set.e_pressed(event_tuple) and not self.is_docked:
+            if math.sqrt(math.pow((self.x - self.robo_spider.inner.docker_x), 2) +
+                         math.pow((self.y - self.robo_spider.inner.docker_y), 2)) < 30:
+                self.stateMachine.handle_state_event(('IN_RANGE', None))
+                return
+        elif event_set.d_pressed(event_tuple):
+            event_set.flag_d = True
+            self.move_x += 1
+            self.face_dir += 1
+        elif event_set.a_pressed(event_tuple):
+            event_set.flag_a = True
+            self.move_x -= 1
+            self.face_dir -= 1
+        elif event_set.w_pressed(event_tuple):
+            event_set.flag_w = True
+            self.move_y += 1
+        elif event_set.s_pressed(event_tuple):
+            event_set.flag_s = True
+            self.move_y -= 1
 
-
-        elif event.type == SDL_KEYUP:
-            if event.key == SDLK_d and event_set.flag_d:
-                event_set.flag_d = False
-                self.move_x -= 1
-                self.face_dir -= 1
-            elif event.key == SDLK_a and event_set.flag_a:
-                event_set.flag_a = False
-                self.move_x += 1
-                self.face_dir += 1
-            elif event.key == SDLK_w and event_set.flag_w:
-                event_set.flag_w = False
-                self.move_y -= 1
-            elif event.key == SDLK_s and event_set.flag_s:
-                event_set.flag_s = False
-                self.move_y += 1
+        elif event_set.d_released(event_tuple) and event_set.flag_d:
+            event_set.flag_d = False
+            self.move_x -= 1
+            self.face_dir -= 1
+        elif event_set.a_released(event_tuple) and event_set.flag_a:
+            event_set.flag_a = False
+            self.move_x += 1
+            self.face_dir += 1
+        elif event_set.w_released(event_tuple) and event_set.flag_w:
+            event_set.flag_w = False
+            self.move_y -= 1
+        elif event_set.s_released(event_tuple) and event_set.flag_s:
+            event_set.flag_s = False
+            self.move_y += 1
 
         now_moving = (self.move_x != 0 or self.move_y != 0)
 

@@ -1,3 +1,6 @@
+import event_set
+
+
 class Camera:
     def __init__(self, win_width, win_height):
         # 월드 좌표계에서 카메라의 중심 위치
@@ -43,4 +46,9 @@ class Camera:
         return round(width * self.zoom) + 1, round(height * self.zoom) + 1
 
     def handle_event(self, event):
-        pass
+        if event_set.equals_pressed(('INPUT', event)):
+            self.zoom += 0.02
+        elif event_set.minus_pressed(('INPUT', event)):
+            self.zoom -= 0.02
+            if self.zoom < 0.2:
+                self.zoom = 0.2
