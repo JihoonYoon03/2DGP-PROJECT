@@ -13,36 +13,36 @@ from physics_data import *
 # 178 * 444
 
 SPIDER_WIDTH_SMALL = 178
-SPIDER_HEIGHT_SMALL = 444
+SPIDER_HEIGHT_SMALL = 442
 
 SPIDER_MOVE_FRAMES = [
     # 1행 (11개)
     (0, 0), (178, 0), (356, 0), (534, 0), (712, 0), (890, 0), (1068, 0), (1246, 0), (1424, 0), (1602, 0), (1780, 0),
     # 2행 (5개)
-    (0, 444), (178, 444), (356, 444), (534, 444), (712, 444)
+    (0, 442), (178, 442), (356, 442), (534, 442), (712, 442)
 ]
 
 SPIDER_DOCK_FRAMES = (
-    # 1행 (y=1608, h=440)
-    (0, 1608, 178, 440), (178, 1608, 178, 440), (356, 1608, 178, 440), (534, 1608, 178, 440), (712, 1608, 178, 440),
-    (890, 1608, 178, 440), (1068, 1608, 178, 440), (1246, 1608, 178, 440), (1424, 1608, 178, 440), (1602, 1608, 178, 440), (1780, 1608, 178, 440),
-    # 2행 (y=1164, h=440)
-    (0, 1164, 178, 440), (178, 1164, 178, 440), (356, 1164, 178, 440), (534, 1164, 178, 440), (712, 1164, 178, 440),
-    (890, 1164, 178, 440), (1068, 1164, 178, 440), (1246, 1164, 178, 440), (1424, 1164, 178, 440), (1602, 1164, 178, 440), (1780, 1164, 178, 440),
-    # 3행 (y=720, h=440)
-    (0, 720, 178, 440), (178, 720, 178, 440), (356, 720, 178, 440), (534, 720, 178, 440), (712, 720, 178, 440),
-    (890, 720, 178, 440), (1068, 720, 178, 440), (1246, 720, 178, 440), (1424, 720, 178, 440), (1602, 720, 178, 440), (1780, 720, 178, 440),
-    # 4행 (y=276, h=440)
-    (0, 276, 178, 440), (178, 276, 178, 440)
+    # 1행 (11개)
+    (0, 0), (178, 0), (356, 0), (534, 0), (712, 0),
+    (890, 0), (1068, 0), (1246, 0), (1424, 0), (1602, 0), (1780, 0),
+    # 2행 (11개)
+    (0, 444), (178, 444), (356, 444), (534, 444), (712, 444),
+    (890, 444), (1068, 444), (1246, 444), (1424, 444), (1602, 444), (1780, 444),
+    # 3행 (11개)
+    (0, 888), (178, 888), (356, 888), (534, 888), (712, 888),
+    (890, 888), (1068, 888), (1246, 888), (1424, 888), (1602, 888), (1780, 888),
+    # 4행 (2개)
+    (0, 1332), (178, 1332)
 )
 
 SPIDER_UNDOCK_FRAMES = (
-    # 1행 (y=584, h=440)
-    (0, 584, 178, 440), (178, 584, 178, 440), (356, 584, 178, 440), (534, 584, 178, 440), (712, 584, 178, 440),
-    (890, 584, 178, 440), (1068, 584, 178, 440), (1246, 584, 178, 440), (1424, 584, 178, 440), (1602, 584, 178, 440), (1780, 584, 178, 440),
-    # 2행 (y=140, h=440) - 7개만 사용
-    (0, 140, 178, 440), (178, 140, 178, 440), (356, 140, 178, 440), (534, 140, 178, 440), (712, 140, 178, 440),
-    (890, 140, 178, 440), (1068, 140, 178, 440)
+    # 1행 (11개)
+    (0, 0), (178, 0), (356, 0), (534, 0), (712, 0),
+    (890, 0), (1068, 0), (1246, 0), (1424, 0), (1602, 0), (1780, 0),
+    # 2행 (7개)
+    (0, 444), (178, 444), (356, 444), (534, 444), (712, 444),
+    (890, 444), (1068, 444)
 )
 
 SPIDER_INNER_DOCKER_FRAMES = (
@@ -67,10 +67,8 @@ class SpIdle:
 
     def exit(self, e):
         if r_pressed(e):
-            for location in self.sp.mine_locations:
-                if location - 100 <= self.sp.y <= location + 100: # 광산 입구 근처에 있을 때
-                    self.sp.current_docked_mine_location = location
-                    break
+            # 도킹 시도 시 근처 광산이 없으면 도킹 불가
+            return self.sp.find_nearby_mine()
         return True
 
     def do(self):
@@ -91,10 +89,13 @@ class SpIdle:
     def draw(self):
         camera = get_camera()
         x, y = SPIDER_MOVE_FRAMES[int(self.sp.frame)]
-        view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y)
+        view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y - 18)
         draw_w, draw_h = camera.get_draw_size(SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL)
         self.sp.image_move.clip_draw(x, self.sp.image_move.h - SPIDER_HEIGHT_SMALL - y,
                                      SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL, view_x, view_y, draw_w, draw_h)
+        x2, y2 = camera.world_to_view(self.sp.x, self.sp.y)
+        draw_rectangle(view_x, view_y, view_x, view_y)
+        draw_rectangle(x2, y2, x2, y2)
 
 class SpMove:
     frames_per_action = None
@@ -112,10 +113,7 @@ class SpMove:
 
     def exit(self, e):
         if r_pressed(e):
-            for location in self.sp.mine_locations:
-                if location - 100 <= self.sp.y <= location + 100: # 광산 입구 근처에 있을 때
-                    self.sp.current_docked_mine_location = location
-                    break
+            return self.sp.find_nearby_mine()
         return True
 
     def do(self):
@@ -130,10 +128,13 @@ class SpMove:
     def draw(self):
         camera = get_camera()
         x, y = SPIDER_MOVE_FRAMES[int(self.sp.frame)]
-        view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y)
+        view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y - 18)
         draw_w, draw_h = camera.get_draw_size(SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL)
         self.sp.image_move.clip_draw(x, self.sp.image_move.h - SPIDER_HEIGHT_SMALL - y,
                                      SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL, view_x, view_y, draw_w, draw_h)
+        x2, y2 = camera.world_to_view(self.sp.x, self.sp.y)
+        draw_rectangle(view_x, view_y, view_x, view_y)
+        draw_rectangle(x2, y2, x2, y2)
 
 class SpDock:
     frames_per_action = None
@@ -188,20 +189,23 @@ class SpDock:
                 camera.zoom = 2.2
                 self.sp.is_docking = True
 
-
-
+    # SpDock 클래스의 draw 메서드
     def draw(self):
         camera = get_camera()
-        view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y)
+        view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y - 18)
         draw_w, draw_h = camera.get_draw_size(SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL)
         if self.aligning:
             x, y = SPIDER_MOVE_FRAMES[int(self.sp.frame)]
             self.sp.image_move.clip_draw(x, self.sp.image_move.h - SPIDER_HEIGHT_SMALL - y,
                                          SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL, view_x, view_y, draw_w, draw_h)
-            return
         else:
-            x, y, w, h = SPIDER_DOCK_FRAMES[int(self.sp.frame)]
-            self.sp.image_dock.clip_draw(x, y, w, h, view_x, view_y, draw_w, draw_h)
+            x, y = SPIDER_DOCK_FRAMES[int(self.sp.frame)]
+            self.sp.image_dock.clip_draw(x, self.sp.image_dock.h - SPIDER_HEIGHT_SMALL - y,
+                                         SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL, view_x, view_y, draw_w, draw_h)
+        x2, y2 = camera.world_to_view(self.sp.x, self.sp.y)
+        draw_rectangle(view_x, view_y, view_x, view_y)
+        draw_rectangle(x2, y2, x2, y2)
+
 
 class SpUndock:
     frames_per_action = None
@@ -234,10 +238,14 @@ class SpUndock:
 
     def draw(self):
         camera = get_camera()
-        x, y, w, h = SPIDER_UNDOCK_FRAMES[int(self.sp.frame)]
-        view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y)
-        draw_w, draw_h = camera.get_draw_size(178, 440)
-        self.sp.image_undock.clip_draw(x, y, w, h, view_x, view_y, draw_w, draw_h)
+        x, y = SPIDER_UNDOCK_FRAMES[int(self.sp.frame)]
+        view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y - 18)
+        draw_w, draw_h = camera.get_draw_size(SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL)
+        self.sp.image_undock.clip_draw(x, self.sp.image_undock.h - SPIDER_HEIGHT_SMALL - y,
+                                       SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL, view_x, view_y, draw_w, draw_h)
+        x2, y2 = camera.world_to_view(self.sp.x, self.sp.y)
+        draw_rectangle(view_x, view_y, view_x, view_y)
+        draw_rectangle(x2, y2, x2, y2)
 
 class RoboSpider:
     def __init__(self, x = 960, y = 540):
@@ -258,6 +266,7 @@ class RoboSpider:
         self.w = 178
         self.h = 440
 
+        # 광산 입구 위치와 현재 도킹된 광산 입구 위치
         self.mine_locations = list()
         self.current_docked_mine_location = 0
 
@@ -291,7 +300,7 @@ class RoboSpider:
             self.player.draw()
 
     def handle_event(self, event):
-        if not self.is_docking or self.stateMachine.cur_state != self.DOCK:
+        if not self.is_docking and self.stateMachine.cur_state != self.DOCK:
             prev_moving = self.move_dir != 0
 
             if event.type == SDL_KEYDOWN:
@@ -332,6 +341,17 @@ class RoboSpider:
 
     def handle_collision(self, group, other):
         pass
+
+    # 도킹 시 근처 광산을 찾는 함수
+    def find_nearby_mine(self):
+        cam = get_camera()
+        # 도킹 시 광산 입구와의 최대 거리
+        max_distance = TILE_SIZE_PIXEL * 5
+        for location in self.mine_locations:
+            if abs(location - self.y) <= max_distance:  # 광산 입구 근처에 있을 때
+                self.current_docked_mine_location = location
+                return True
+        return False
 
 class SpInIdle:
     frames_per_action = None

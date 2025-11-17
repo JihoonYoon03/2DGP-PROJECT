@@ -1,12 +1,17 @@
 class Camera:
-    def __init__(self, x_width, y_height):
+    def __init__(self, win_width, win_height):
+        # 월드 좌표계에서 카메라의 중심 위치
         self.world_x = 0
         self.world_y = 0
-        self.screen_width = x_width
-        self.screen_height = y_height
-        self.view_x = x_width // 2
-        self.view_y = y_height // 2
-        self.zoom = x_width / 1920 * 2
+
+        self.screen_width = win_width
+        self.screen_height = win_height
+
+        # 뷰 좌표계에서 카메라의 중심 위치(= 윈도우의 중심 위치)
+        self.view_x = win_width // 2
+        self.view_y = win_height // 2
+
+        self.zoom = win_width / 1920 * 2
         self.lock = False
         self.lock_target = None
 
@@ -27,6 +32,12 @@ class Camera:
         view_x = (world_x - self.world_x) * self.zoom + self.view_x
         view_y = (world_y - self.world_y) * self.zoom + self.view_y
         return view_x, view_y
+
+    def coord_x_to_view(self, value):
+        return (value - self.world_x) * self.zoom + self.view_x
+
+    def coord_y_to_view(self, value):
+        return (value - self.world_y) * self.zoom + self.view_y
 
     def get_draw_size(self, width, height):
         return round(width * self.zoom) + 1, round(height * self.zoom) + 1

@@ -1,10 +1,9 @@
-from contextlib import nullcontext
-
 from pico2d import *
-from state_machine import StateMachine
 from enum import IntFlag
+import physics_data
 import game_world
 from game_world import get_camera
+from physics_data import TILE_SIZE_PIXEL
 
 # Tex_Bedrock.png 타일 좌표 (x, y)
 # 타일 크기: 40x40, 패딩: 20칸, 좌측/상단 패딩: 10칸
@@ -169,8 +168,6 @@ class Ground:
         self.y = y
         if Ground.image is None:
             Ground.image = load_image('Assets/Sprites/Tile/Tex_Bedrock.png')
-        self.w = 40
-        self.h = 40
         self.mine_location_y = list()
         self.mine_height = list()
 
@@ -190,24 +187,24 @@ class Ground:
     def draw(self):
         camera = get_camera()
         tile_x, tile_y = TILES[2]
-        draw_w, draw_h = camera.get_draw_size(self.w, self.h)
+        draw_w, draw_h = camera.get_draw_size(TILE_SIZE_PIXEL, TILE_SIZE_PIXEL)
 
         for dy in range(-30, 31):
-            world_y = self.y + dy * self.h
+            world_y = self.y + dy * TILE_SIZE_PIXEL
 
             # 광산 입구 + 위아래 1칸 건너뛰기
             skip = False
             for mine_y in self.mine_location_y:
-                if abs(world_y - mine_y) <= self.h:
+                if abs(world_y - mine_y) <= TILE_SIZE_PIXEL:
                     skip = True
                     break
 
             if skip:
                 continue
 
-            view_x, view_y = camera.world_to_view(self.x, self.y + dy * self.h)
+            view_x, view_y = camera.world_to_view(self.x, self.y + dy * TILE_SIZE_PIXEL)
 
-            self.image.clip_draw(tile_x, tile_y, self.w, self.h,
+            self.image.clip_draw(tile_x, tile_y, TILE_SIZE_PIXEL, TILE_SIZE_PIXEL,
                                       view_x, view_y, draw_w, draw_h)
 
             # 땅 내부 그리기
@@ -255,13 +252,9 @@ class Tile:
         if Tile.image_bedrock is None:
             Tile.image_bedrock = load_image('Assets/Sprites/Tile/Tex_Bedrock.png')
 
-        # 단일 타일 크기
-        self.w = 40
-        self.h = 40
-
         # 타일 월드 좌표
-        self.x = col * self.w + begin_x
-        self.y = (entrance_index[1] - row) * self.h + begin_y # 출입구 인덱스 기준 좌표 보정
+        self.x = col * TILE_SIZE_PIXEL + begin_x
+        self.y = (entrance_index[1] - row) * TILE_SIZE_PIXEL + begin_y # 출입구 인덱스 기준 좌표 보정
 
         # 타일 플래그 및 인덱스화
         self.raw_flags = flags # 원본 비트 플래그 (이어진 면에 대한 모서리 플래그 제외 없음)
@@ -282,16 +275,16 @@ class Tile:
     def draw(self):
         camera = get_camera()
         view_x, view_y = camera.world_to_view(self.x, self.y)
-        draw_w, draw_h = camera.get_draw_size(self.w, self.h)
+        draw_w, draw_h = camera.get_draw_size(TILE_SIZE_PIXEL, TILE_SIZE_PIXEL)
 
         if self.is_bedrock:
             Tile.image_bedrock.clip_draw(
-                self.image_x, self.image_y, self.w, self.h,
+                self.image_x, self.image_y, TILE_SIZE_PIXEL, TILE_SIZE_PIXEL,
                 view_x, view_y, draw_w, draw_h
             )
         else:
             self.tileset.image.clip_draw(
-                self.image_x, self.image_y, self.w, self.h,
+                self.image_x, self.image_y, TILE_SIZE_PIXEL, TILE_SIZE_PIXEL,
                 view_x, view_y, draw_w, draw_h
             )
 
@@ -301,7 +294,8 @@ class Tile:
         draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
     def get_bb(self):
-        return self.x - self.w // 2, self.y - self.h // 2, self.x + self.w // 2, self.y + self.h // 2
+        return (self.x - TILE_SIZE_PIXEL // 2, self.y - TILE_SIZE_PIXEL // 2,
+                self.x + TILE_SIZE_PIXEL // 2, self.y + TILE_SIZE_PIXEL // 2)
 
     def handle_collision(self, group, other):
         pass
