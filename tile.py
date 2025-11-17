@@ -3,28 +3,28 @@ from enum import IntFlag
 import physics_data
 import game_world
 from game_world import get_camera
-from physics_data import TILE_SIZE_PIXEL
+from physics_data import TILE_SIZE_PIXEL, TILE_W_H
 
 # Tex_Bedrock.png 타일 좌표 (x, y)
 # 타일 크기: 40x40, 패딩: 20칸, 좌측/상단 패딩: 10칸
 # 이미지 상단이 0행
 TILES = (
     # 0행
-    (10, 462), (70, 462), (130, 462), (190, 462), (250, 462), (310, 462),
+    (0, 452), (60, 452), (120, 452), (180, 452), (240, 452), (300, 452),
     # 1행
-    (10, 402), (70, 402), (130, 402), (190, 402), (250, 402), (310, 402),
+    (0, 392), (60, 392), (120, 392), (180, 392), (240, 392), (300, 392),
     # 2행
-    (10, 342), (70, 342), (130, 342), (190, 342), (250, 342), (310, 342),
+    (0, 332), (60, 332), (120, 332), (180, 332), (240, 332), (300, 332),
     # 3행
-    (10, 282), (70, 282), (130, 282), (190, 282), (250, 282), (310, 282),
+    (0, 272), (60, 272), (120, 272), (180, 272), (240, 272), (300, 272),
     # 4행
-    (10, 222), (70, 222), (130, 222), (190, 222), (250, 222), (310, 222),
+    (0, 212), (60, 212), (120, 212), (180, 212), (240, 212), (300, 212),
     # 5행
-    (10, 162), (70, 162), (130, 162), (190, 162), (250, 162), (310, 162),
+    (0, 152), (60, 152), (120, 152), (180, 152), (240, 152), (300, 152),
     # 6행
-    (10, 102), (70, 102), (130, 102), (190, 102), (250, 102), (310, 102),
+    (0, 92), (60, 92), (120, 92), (180, 92), (240, 92), (300, 92),
     # 7행
-    (10, 42), (70, 42), (130, 42), (190, 42), (250, 42), (310, 42),
+    (0, 32), (60, 32), (120, 32), (180, 32), (240, 32), (300, 32),
 )
 
 
@@ -123,32 +123,51 @@ TILE_FLAG_MAP = {
 def normalize_tile_flags(flags: int) -> int:
     """
     규칙:
-    1. 모든 면이 오픈되면 모든 모서리도 오픈
-    2. 인접한 두 면이 오픈되면 사이 모서리도 오픈
-       ex- 상단+우측 -> 우상단 모서리 오픈
+    1. 모든 면이 오픈되면 모든 모서리도 오픈 (자동 처리되므로 모서리 플래그 제거)
+    2. 인접한 두 면이 오픈되면 사이 모서리도 오픈 (자동 처리되므로 모서리 플래그 제거)
+       ex- 상단+우측 -> 우상단 모서리 오픈 (C_RU 제거)
+    3. 모서리 플래그의 방향이 하나라도 면 플래그와 겹치면 해당 모서리 플래그 제거
+       ex- F_R | C_RU -> C_RU는 F_R과 겹치므로 제거 -> F_R
     """
     faces = flags & 0b11110000
     corners = flags & 0b00001111
 
-    # 모든 면이 오픈되면 모든 모서리도 오픈
+    # 모든 면이 오픈되면 모든 모서리도 오픈 (모서리 플래그 제거)
     if faces == 0b11110000:
-        return flags | 0b00001111
+        return faces  # 모서리 플래그 모두 제거
 
-    # 인접한 두 면이 오픈되면 사이 모서리 오픈
-    # 상단+우측 -> 우상단
+    # 인접한 두 면이 오픈되면 사이 모서리 플래그 제거
+    # 상단+우측 -> 우상단 모서리 플래그 제거
     if (flags & TileFlag.F_U) and (flags & TileFlag.F_R):
         corners &= ~TileFlag.C_RU
 
-    # 우측+하단 -> 우하단
+    # 우측+하단 -> 우하단 모서리 플래그 제거
     if (flags & TileFlag.F_R) and (flags & TileFlag.F_D):
         corners &= ~TileFlag.C_RD
 
-    # 하단+좌측 -> 좌하단
+    # 하단+좌측 -> 좌하단 모서리 플래그 제거
     if (flags & TileFlag.F_D) and (flags & TileFlag.F_L):
         corners &= ~TileFlag.C_LD
 
-    # 좌측+상단 -> 좌상단
+    # 좌측+상단 -> 좌상단 모서리 플래그 제거
     if (flags & TileFlag.F_L) and (flags & TileFlag.F_U):
+        corners &= ~TileFlag.C_LU
+
+    # 모서리 플래그가 면 플래그와 방향이 하나라도 겹치면 제거
+    # C_RU (우상단): F_R 또는 F_U와 겹침
+    if (flags & TileFlag.F_R) or (flags & TileFlag.F_U):
+        corners &= ~TileFlag.C_RU
+
+    # C_RD (우하단): F_R 또는 F_D와 겹침
+    if (flags & TileFlag.F_R) or (flags & TileFlag.F_D):
+        corners &= ~TileFlag.C_RD
+
+    # C_LD (좌하단): F_L 또는 F_D와 겹침
+    if (flags & TileFlag.F_L) or (flags & TileFlag.F_D):
+        corners &= ~TileFlag.C_LD
+
+    # C_LU (좌상단): F_L 또는 F_U와 겹침
+    if (flags & TileFlag.F_L) or (flags & TileFlag.F_U):
         corners &= ~TileFlag.C_LU
 
     return faces | corners
@@ -189,7 +208,7 @@ class Ground:
     def draw(self):
         camera = get_camera()
         tile_x, tile_y = TILES[2]
-        draw_w, draw_h = camera.get_draw_size(TILE_SIZE_PIXEL, TILE_SIZE_PIXEL)
+        draw_w, draw_h = camera.get_draw_size(TILE_W_H, TILE_W_H)
 
         for dy in range(-30, 31):
             world_y = self.y + dy * TILE_SIZE_PIXEL
@@ -206,7 +225,7 @@ class Ground:
 
             view_x, view_y = camera.world_to_view(self.x, self.y + dy * TILE_SIZE_PIXEL)
 
-            self.image.clip_draw(tile_x, tile_y, TILE_SIZE_PIXEL, TILE_SIZE_PIXEL,
+            self.image.clip_draw(tile_x, tile_y, TILE_W_H, TILE_W_H,
                                       view_x, view_y, draw_w, draw_h)
 
             # 땅 내부 그리기
@@ -279,16 +298,16 @@ class Tile:
     def draw(self):
         camera = get_camera()
         view_x, view_y = camera.world_to_view(self.x, self.y)
-        draw_w, draw_h = camera.get_draw_size(TILE_SIZE_PIXEL, TILE_SIZE_PIXEL)
+        draw_w, draw_h = camera.get_draw_size(TILE_W_H, TILE_W_H)
 
         if self.is_bedrock:
             Tile.image_bedrock.clip_draw(
-                self.image_x, self.image_y, TILE_SIZE_PIXEL, TILE_SIZE_PIXEL,
+                self.image_x, self.image_y, TILE_W_H, TILE_W_H,
                 view_x, view_y, draw_w, draw_h
             )
         else:
             self.tileset.image.clip_draw(
-                self.image_x, self.image_y, TILE_SIZE_PIXEL, TILE_SIZE_PIXEL,
+                self.image_x, self.image_y, TILE_W_H, TILE_W_H,
                 view_x, view_y, draw_w, draw_h
             )
 
