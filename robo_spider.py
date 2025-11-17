@@ -182,9 +182,9 @@ class SpDock:
             elif not self.sp.is_docking:
                 self.sp.frame = 34
                 camera = get_camera()
-                camera.zoom = 2.2
-                self.sp.is_docking = True
+                camera.camera_enter_mine()
                 self.sp.docked_mine.reveal()
+                self.sp.is_docking = True
                 self.sp.player.is_docked = True
 
     def draw(self):
@@ -212,8 +212,6 @@ class SpUndock:
             SpUndock.action_per_time = get_spider_action_per_time(SpUndock.frames_per_action)
 
     def enter(self, e):
-        camera = get_camera()
-        camera.zoom = camera.screen_width / 1920 * 2
         self.sp.is_docking = False
         self.sp.move_dir = 0
         self.sp.last_move_dir = 0
@@ -221,6 +219,8 @@ class SpUndock:
         event_set.reset_all_flags()
 
     def exit(self, e):
+        camera = get_camera()
+        camera.camera_exit_mine()
         return True
 
     def do(self):

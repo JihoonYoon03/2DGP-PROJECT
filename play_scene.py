@@ -28,7 +28,7 @@ def init():
     game_world.add_object(spider, 2)
 
     spider.mine_list = ground.get_mine_list()
-    cam.cam_lock(spider)
+    cam.cam_lock(spider, WIN_WIDTH // 3)
 
 
 def handle_events():
