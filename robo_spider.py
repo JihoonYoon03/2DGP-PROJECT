@@ -145,7 +145,7 @@ class SpDock:
 
     def enter(self, e):
         self.aligning = True
-        self.dist_to_mine = self.sp.current_docked_mine_location - self.sp.y
+        self.dist_to_mine = self.sp.docked_mine.entrance_y - self.sp.y
         self.sp.move_dir = self.dist_to_mine / abs(self.dist_to_mine) if self.dist_to_mine != 0 else 0
         self.sp.last_move_dir = 0
         event_set.reset_all_flags()
@@ -160,29 +160,32 @@ class SpDock:
             move_amount = self.sp.speed * SPIDER_RUN_SPEED_PPS * game_framework.frame_time * self.sp.move_dir
 
             # 광산 위치에 매우 근접
-            if abs(self.sp.current_docked_mine_location - (self.sp.y + move_amount)) <= 8:
-                self.sp.y = self.sp.current_docked_mine_location
+            if abs(self.sp.docked_mine.entrance_y - (self.sp.y + move_amount)) <= 8:
+                self.sp.y = self.sp.docked_mine.entrance_y
                 self.aligning = False
                 self.sp.is_moving = False
                 self.sp.move_dir = 0
                 self.sp.last_move_dir = 0
                 self.sp.frame = 0
 
-            # 아닌 경우
+            # 아닌 경우 계속 이동하여 위치 조정
             else:
                 self.sp.y += move_amount
                 self.sp.frame = ((self.sp.frame
                                  + SpMove.frames_per_action * SpMove.action_per_time * game_framework.frame_time * self.sp.move_dir)
                                  % len(SPIDER_MOVE_FRAMES))
 
+        # 정확히 광산 위일 때 도킹
         else:
             if self.sp.frame < 34:
                 self.sp.frame = self.sp.frame + SpDock.frames_per_action * SpDock.action_per_time * game_framework.frame_time
-            elif self.sp.is_docking == False:
+            elif not self.sp.is_docking:
                 self.sp.frame = 34
                 camera = get_camera()
                 camera.zoom = 2.2
                 self.sp.is_docking = True
+                self.sp.docked_mine.reveal()
+                self.sp.player.is_docked = True
 
     def draw(self):
         camera = get_camera()
@@ -253,9 +256,9 @@ class RoboSpider:
         self.w = 178
         self.h = 440
 
-        # 광산 입구 위치와 현재 도킹된 광산 입구 위치
-        self.mine_locations = list()
-        self.current_docked_mine_location = 0
+        # 광산 레퍼런스 리스트와 현재 도킹된 광산 입구 위치
+        self.mine_list = list()
+        self.docked_mine = 0
 
         self.inner = RoboSpiderIn(self)
         self.player = Player(self)
@@ -335,9 +338,9 @@ class RoboSpider:
         cam = get_camera()
         # 도킹 시 광산 입구와의 최대 거리
         max_distance = TILE_SIZE_PIXEL * 5
-        for location in self.mine_locations:
-            if abs(location - self.y) <= max_distance:  # 광산 입구 근처에 있을 때
-                self.current_docked_mine_location = location
+        for mine in self.mine_list:
+            if abs(mine.entrance_y - self.y) <= max_distance:  # 광산 입구 근처에 있을 때
+                self.docked_mine = mine
                 return True
         return False
 

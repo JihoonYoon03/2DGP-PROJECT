@@ -1,6 +1,6 @@
 from pico2d import *
+from physics_data import WIN_WIDTH, WIN_HEIGHT
 
-import mine
 from background import Background
 from robo_spider import RoboSpider
 from tile import Ground
@@ -13,7 +13,7 @@ def init():
     background = Background()
     game_world.add_object(background, 0)
 
-    cam = Camera(800, 600)
+    cam = Camera(WIN_WIDTH, WIN_HEIGHT)
     game_world.set_camera(cam)
 
     mines = [Mine(1)]
@@ -22,12 +22,12 @@ def init():
     ground = Ground()
     game_world.add_object(ground, 1)
 
-    ground.add_mine_locations(mines)
+    ground.add_mines(mines)
 
     spider = RoboSpider()
     game_world.add_object(spider, 2)
 
-    spider.mine_locations = ground.get_mine_locations()
+    spider.mine_list = ground.get_mine_list()
     cam.cam_lock(spider)
 
 

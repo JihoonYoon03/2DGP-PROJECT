@@ -2,6 +2,7 @@ from mine_data import data_set
 from tile import *
 from pico2d import *
 from game_world import get_camera
+from physics_data import *
 
 class Mine:
     image_entrance = None
@@ -36,22 +37,36 @@ class Mine:
 
         self.tile_set = TileSet(mine_data['image'], mine_data['size'], mine_data['tiles'], self.begin_x, self.begin_y)
 
+        # 입구 위아래 타일
+        self.entrance_tile_top = Tile(self.tile_set, self.begin_x, self.begin_y, -1,  self.entrance_tile_y - 1, F_L,
+                                      mine_data['tiles']['entrance'], True)
+        self.entrance_tile_bottom = Tile(self.tile_set, self.begin_x, self.begin_y, -1, self.entrance_tile_y + 1, F_L,
+                                      mine_data['tiles']['entrance'], True)
+
+        game_world.add_collision_pair('player:tile', None, self.entrance_tile_top)
+        game_world.add_collision_pair('player:tile', None, self.entrance_tile_bottom)
     def update(self):
         pass
 
     def draw(self):
         camera = get_camera()
-        if not self.revealed:
-            x_, y_ = TILES[tile_index_from_flags(normalize_tile_flags(F_L))]
-            view_x_up, view_y_up = camera.world_to_view(self.entrance_x, self.entrance_y + 40)
-            view_x_down, view_y_down = camera.world_to_view(self.entrance_x, self.entrance_y - 40)
-            draw_w, draw_h = camera.get_draw_size(40, 40)
-            Mine.image_bedrock.clip_composite_draw(x_, y_, 40, 40, 0, '', view_x_up, view_y_up, draw_w, draw_h)
-            Mine.image_bedrock.clip_composite_draw(x_, y_, 40, 40, 0, '', view_x_down, view_y_down, draw_w, draw_h)
 
+        if not self.revealed:
+            # 입구 타일
             view_x, view_y = camera.world_to_view(self.entrance_x, self.entrance_y)
-            Mine.image_entrance.clip_composite_draw(0, 0, 40, 40, 0, '', view_x, view_y, draw_w, draw_h)
+            draw_w, draw_h = camera.get_draw_size(TILE_SIZE_PIXEL, TILE_SIZE_PIXEL)
+            Mine.image_entrance.clip_composite_draw(0, 0, TILE_SIZE_PIXEL, TILE_SIZE_PIXEL, 0, '', view_x, view_y, draw_w, draw_h)
+
+        # 입구 위아래 기반암
+        self.entrance_tile_top.draw()
+        self.entrance_tile_bottom.draw()
+
         self.tile_set.draw()
 
     def handle_event(self, event):
         pass
+
+    def reveal(self):
+        self.revealed = True
+        self.entrance_tile_top.update_flags(F_L | F_D)
+        self.entrance_tile_bottom.update_flags(F_L | F_U)

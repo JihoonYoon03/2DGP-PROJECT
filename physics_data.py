@@ -16,6 +16,9 @@ PLAYER_BASE_ACTION_PER_TIME = 1.0
 
 TILE_SIZE_PIXEL = 40
 
+WIN_WIDTH = 1920
+WIN_HEIGHT = 1080
+
 def get_spider_action_per_time(frame_count):
     return (SPIDER_BASE_FRAMES / frame_count) * SPIDER_BASE_ACTION_PER_TIME
 

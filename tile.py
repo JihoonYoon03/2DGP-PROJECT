@@ -160,6 +160,7 @@ def tile_index_from_flags(flags: int) -> int:
     normalized = normalize_tile_flags(flags)
     return TILE_FLAG_MAP.get(normalized, 0)  # 매핑에 없으면 0번 타일
 
+# 지표면 클래스
 class Ground:
     image = None
 
@@ -168,7 +169,8 @@ class Ground:
         self.y = y
         if Ground.image is None:
             Ground.image = load_image('Assets/Sprites/Tile/Tex_Bedrock.png')
-        self.mine_location_y = list()
+
+        self.mines = list()
         self.mine_height = list()
 
         self.deep_x, self.deep_y = TILES[0]
@@ -194,8 +196,8 @@ class Ground:
 
             # 광산 입구 + 위아래 1칸 건너뛰기
             skip = False
-            for mine_y in self.mine_location_y:
-                if abs(world_y - mine_y) <= TILE_SIZE_PIXEL:
+            for mine in self.mines:
+                if abs(world_y - mine.entrance_y) <= TILE_SIZE_PIXEL:
                     skip = True
                     break
 
@@ -216,13 +218,14 @@ class Ground:
     def handle_event(self, event):
         pass
 
-    def add_mine_locations(self, mine_list):
+    # 광산 위치 정보 추가
+    def add_mines(self, mine_list):
         for mine in mine_list:
-            self.mine_location_y.append(mine.entrance_y)
+            self.mines.append(mine)
             self.mine_height.append((mine.mine_upper, mine.mine_lower)) # 상하 타일 개수
 
-    def get_mine_locations(self):
-        return self.mine_location_y
+    def get_mine_list(self):
+        return self.mines
 
 
 class TileSet:
@@ -254,7 +257,7 @@ class Tile:
 
         # 타일 월드 좌표
         self.x = col * TILE_SIZE_PIXEL + begin_x
-        self.y = (entrance_index[1] - row) * TILE_SIZE_PIXEL + begin_y # 출입구 인덱스 기준 좌표 보정
+        self.y = (entrance_index[1] - row) * TILE_SIZE_PIXEL + begin_y # 출입구 인덱스 중심 좌표 보정
 
         # 타일 플래그 및 인덱스화
         self.raw_flags = flags # 원본 비트 플래그 (이어진 면에 대한 모서리 플래그 제외 없음)
@@ -271,6 +274,7 @@ class Tile:
     def update_flags(self, flags):
         self.raw_flags = flags
         self.TILES_index = tile_index_from_flags(normalize_tile_flags(flags))
+        self.image_x, self.image_y = TILES[self.TILES_index]
 
     def draw(self):
         camera = get_camera()
