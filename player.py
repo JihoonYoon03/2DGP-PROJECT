@@ -195,7 +195,7 @@ class Player:
         self.robo_spider = robo_spider
         self.is_docked = True  # 스파이더에 도킹 여부
         self.x = robo_spider.x - 16
-        self.y = robo_spider.y + 16
+        self.y = robo_spider.y
         self.frame = 0
         self.face_dir = 0  # 1: right, -1: left, 2: up, -2: down
         self.move_x = 0

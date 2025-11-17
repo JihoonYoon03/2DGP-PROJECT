@@ -89,13 +89,10 @@ class SpIdle:
     def draw(self):
         camera = get_camera()
         x, y = SPIDER_MOVE_FRAMES[int(self.sp.frame)]
-        view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y - 18)
+        view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y - 14) # 14는 이미지 크기 보정용
         draw_w, draw_h = camera.get_draw_size(SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL)
         self.sp.image_move.clip_draw(x, self.sp.image_move.h - SPIDER_HEIGHT_SMALL - y,
                                      SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL, view_x, view_y, draw_w, draw_h)
-        x2, y2 = camera.world_to_view(self.sp.x, self.sp.y)
-        draw_rectangle(view_x, view_y, view_x, view_y)
-        draw_rectangle(x2, y2, x2, y2)
 
 class SpMove:
     frames_per_action = None
@@ -128,13 +125,10 @@ class SpMove:
     def draw(self):
         camera = get_camera()
         x, y = SPIDER_MOVE_FRAMES[int(self.sp.frame)]
-        view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y - 18)
+        view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y - 14)
         draw_w, draw_h = camera.get_draw_size(SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL)
         self.sp.image_move.clip_draw(x, self.sp.image_move.h - SPIDER_HEIGHT_SMALL - y,
                                      SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL, view_x, view_y, draw_w, draw_h)
-        x2, y2 = camera.world_to_view(self.sp.x, self.sp.y)
-        draw_rectangle(view_x, view_y, view_x, view_y)
-        draw_rectangle(x2, y2, x2, y2)
 
 class SpDock:
     frames_per_action = None
@@ -182,8 +176,9 @@ class SpDock:
                                  % len(SPIDER_MOVE_FRAMES))
 
         else:
-            self.sp.frame = self.sp.frame + SpDock.frames_per_action * SpDock.action_per_time * game_framework.frame_time
-            if self.sp.frame >= 34:
+            if self.sp.frame < 34:
+                self.sp.frame = self.sp.frame + SpDock.frames_per_action * SpDock.action_per_time * game_framework.frame_time
+            elif self.sp.is_docking == False:
                 self.sp.frame = 34
                 camera = get_camera()
                 camera.zoom = 2.2
@@ -191,7 +186,7 @@ class SpDock:
 
     def draw(self):
         camera = get_camera()
-        view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y - 18)
+        view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y - 14)
         draw_w, draw_h = camera.get_draw_size(SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL)
         if self.aligning:
             x, y = SPIDER_MOVE_FRAMES[int(self.sp.frame)]
@@ -201,10 +196,6 @@ class SpDock:
             x, y = SPIDER_DOCK_FRAMES[int(self.sp.frame)]
             self.sp.image_dock.clip_draw(x, self.sp.image_dock.h - SPIDER_HEIGHT_SMALL - y,
                                          SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL, view_x, view_y, draw_w, draw_h)
-        x2, y2 = camera.world_to_view(self.sp.x, self.sp.y)
-        draw_rectangle(view_x, view_y, view_x, view_y)
-        draw_rectangle(x2, y2, x2, y2)
-
 
 class SpUndock:
     frames_per_action = None
@@ -238,13 +229,10 @@ class SpUndock:
     def draw(self):
         camera = get_camera()
         x, y = SPIDER_UNDOCK_FRAMES[int(self.sp.frame)]
-        view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y - 18)
+        view_x, view_y = camera.world_to_view(self.sp.x, self.sp.y - 14)
         draw_w, draw_h = camera.get_draw_size(SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL)
         self.sp.image_undock.clip_draw(x, self.sp.image_undock.h - SPIDER_HEIGHT_SMALL - y,
                                        SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL, view_x, view_y, draw_w, draw_h)
-        x2, y2 = camera.world_to_view(self.sp.x, self.sp.y)
-        draw_rectangle(view_x, view_y, view_x, view_y)
-        draw_rectangle(x2, y2, x2, y2)
 
 class RoboSpider:
     def __init__(self, x = 960, y = 540):
@@ -377,12 +365,12 @@ class SpInIdle:
                                        % SpInIdle.frames_per_action)
         else:
             self.sp_in.docker_x = self.sp_in.robo_spider.x - 16
-            self.sp_in.docker_y = self.sp_in.robo_spider.y + 16
+            self.sp_in.docker_y = self.sp_in.robo_spider.y
 
     def draw(self):
         camera = get_camera()
         # 배경 그리기
-        view_x, view_y = camera.world_to_view(self.sp_in.robo_spider.x, self.sp_in.robo_spider.y - 2) # 2는 이미지 크기 보정용
+        view_x, view_y = camera.world_to_view(self.sp_in.robo_spider.x, self.sp_in.robo_spider.y - 16) # 이미지 크기 보정용 -2 추가
         draw_w, draw_h = camera.get_draw_size(self.sp_in.image_background.w, self.sp_in.image_background.h)
         self.sp_in.image_background.clip_draw(0, 0, self.sp_in.image_background.w, self.sp_in.image_background.h,
                                               view_x, view_y, draw_w, draw_h)
@@ -414,7 +402,7 @@ class RoboSpiderIn:
         self.robo_spider = robo_spider
 
         self.docker_x = robo_spider.x - 16
-        self.docker_y = robo_spider.y + 16
+        self.docker_y = robo_spider.y
         self.docker_frame = 0
 
         self.IDLE = SpInIdle(self)
