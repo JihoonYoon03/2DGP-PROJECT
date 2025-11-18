@@ -256,8 +256,12 @@ class RoboSpider:
 
         self.w = 178
         self.h = 440
-        self.radius = self.w // 1.7
+        self.radius = self.w // 2.0
         self.collider_offset = (60, 0)
+        self.additional_collider_upper = Collider_bb(self, 74, 60, 30, 60)
+        self.additional_collider_lower = Collider_bb(self, 74, -60, 30, 60)
+        game_world.add_collision_pair_bb('player:spider', None, self.additional_collider_upper)
+        game_world.add_collision_pair_bb('player:spider', None, self.additional_collider_lower)
 
         # 광산 레퍼런스 리스트와 현재 도킹된 광산 입구 위치
         self.mine_list = list()
@@ -266,7 +270,7 @@ class RoboSpider:
         self.inner = RoboSpiderIn(self)
         self.player = Player(self)
         game_world.add_collision_pair_bb('player:tile', self.player, None)
-        game_world.add_collision_pair_outer_radius('player:spider_inner', self.player, self, 0, 359, self.radius, self.collider_offset)
+        game_world.add_collision_pair_outer_radius('player:spider_inner', self.player, self, 90, 270, self.radius, self.collider_offset)
 
         self.IDLE = SpIdle(self)
         self.UP = SpMove(self)
@@ -293,8 +297,18 @@ class RoboSpider:
             self.inner.draw()
             self.player.draw()
 
-            # 2, 3사분면 반원 그리기 (디버그용)
             cam = get_camera()
+            x1, y1, x2, y2 = self.additional_collider_upper.get_bb()
+            view_x1, view_y1 = cam.world_to_view(x1, y1)
+            view_x2, view_y2 = cam.world_to_view(x2, y2)
+            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
+
+            x1, y1, x2, y2 = self.additional_collider_lower.get_bb()
+            view_x1, view_y1 = cam.world_to_view(x1, y1)
+            view_x2, view_y2 = cam.world_to_view(x2, y2)
+            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
+
+            # 2, 3사분면 반원 그리기 (디버그용)
             view_x, view_y = cam.world_to_view(self.x + self.collider_offset[0], self.y)
             radius = cam.value_to_view(self.radius)
 

@@ -80,27 +80,31 @@ def collide_bb(a, b):
 # rotation : 충돌 체크 범위 회전각
 # 범위 외부로 나가는 충돌 체크
 def collide_outer_radius(a, b, degree_start, degree_end, radius, offset):
+    # 중심점(부채꼴 기준점) 정의
+    cx = b.x + offset[0]
+    cy = b.y + offset[1]
+
+    # 각도/거리 계산
     start = math.radians(degree_start % 360)
     end = math.radians(degree_end % 360)
-    angle = math.atan2(b.y - a.y, b.x - a.x)
 
+    angle = math.atan2(a.y - cy, a.x - cx)
     if angle < 0:
         angle += 2 * math.pi
 
+    dx = a.x - cx
+    dy = a.y - cy
+    dist = math.sqrt(dx * dx + dy * dy)
+
+    # 각도 범위 체크
     if start <= end:
-        # 일반적인 경우 (예: 90 ~ 270)
         if not (start <= angle <= end):
             return False
-        if math.sqrt((a.x + offset[0] - b.x) ** 2 + (a.y + offset[1] - b.y) ** 2) >= radius:
-            return True
     else:
-        # 범위가 0도를 넘어가는 경우 (예: 270 ~ 90)
         if not (angle >= start or angle <= end):
             return False
-        if math.sqrt((a.x + offset[0] - b.x) ** 2 + (a.y + offset[1] - b.y) ** 2) >= radius:
-            return True
 
-    return False
+    return dist >= radius
 
 collision_pairs_bb = {}
 collision_pairs_outer_radius = {}

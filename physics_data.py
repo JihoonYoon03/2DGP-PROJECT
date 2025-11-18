@@ -25,3 +25,21 @@ def get_spider_action_per_time(frame_count):
 
 def get_player_action_per_time(frame_count):
     return (PLAYER_BASE_FRAMES / frame_count) * PLAYER_BASE_ACTION_PER_TIME
+
+class Collider_bb:
+    def __init__(self, owner, offset_x, offset_y, width, height):
+        self.owner = owner
+        self.offset_x = offset_x
+        self.offset_y = offset_y
+        self.width = width
+        self.height = height
+
+    def get_bb(self):
+        x, y = self.owner.x, self.owner.y
+        return (x + self.offset_x - self.width // 2,
+                y + self.offset_y - self.height // 2,
+                x + self.offset_x + self.width // 2,
+                y + self.offset_y + self.height // 2)
+
+    def handle_collision(self, group, other):
+        self.owner.handle_collision(group, other)
