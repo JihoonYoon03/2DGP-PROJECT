@@ -258,10 +258,10 @@ class RoboSpider:
         self.h = 440
         self.radius = self.w // 2.0
         self.collider_offset = (60, 0)
-        self.additional_collider_upper = Collider_bb(self, 74, 60, 30, 60)
-        self.additional_collider_lower = Collider_bb(self, 74, -60, 30, 60)
-        game_world.add_collision_pair_bb('player:spider', None, self.additional_collider_upper)
-        game_world.add_collision_pair_bb('player:spider', None, self.additional_collider_lower)
+        self.additional_collider_upper = Collider_bb(self, 74, 60, 30, 70)
+        self.additional_collider_lower = Collider_bb(self, 74, -60, 30, 70)
+        game_world.add_collision_pair_bb('player:spider_inner_bb', None, self.additional_collider_upper)
+        game_world.add_collision_pair_bb('player:spider_inner_bb', None, self.additional_collider_lower)
 
         # 광산 레퍼런스 리스트와 현재 도킹된 광산 입구 위치
         self.mine_list = list()
@@ -270,7 +270,8 @@ class RoboSpider:
         self.inner = RoboSpiderIn(self)
         self.player = Player(self)
         game_world.add_collision_pair_bb('player:tile', self.player, None)
-        game_world.add_collision_pair_outer_radius('player:spider_inner', self.player, self, 90, 270, self.radius, self.collider_offset)
+        game_world.add_collision_pair_bb('player:spider_inner_bb', self.player, None)
+        game_world.add_collision_pair_outer_radius('player:spider_inner_dome', self.player, self, 90, 270, self.radius, self.collider_offset)
 
         self.IDLE = SpIdle(self)
         self.UP = SpMove(self)

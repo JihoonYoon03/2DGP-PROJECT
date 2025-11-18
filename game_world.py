@@ -156,5 +156,5 @@ def handle_collisions_outer_radius():
         for a in a_list:
             for b in b_list:
                 if collide_outer_radius(a, b, degree_start, degree_end, radius, offset):
-                    a.handle_collision(group, b)
-                    b.handle_collision(group, a)
+                    a.handle_collision(group, (b, degree_start, degree_end, radius, offset))
+                    b.handle_collision(group, (a, degree_start, degree_end, radius, offset))

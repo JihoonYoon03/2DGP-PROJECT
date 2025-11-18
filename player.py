@@ -1,7 +1,7 @@
 from pico2d import *
 import event_set
 from event_set import signal_empty, signal_not_empty, signal_in_range, e_pressed
-from game_world import get_camera, collide_bb
+from game_world import get_camera, collide_bb, collide_outer_radius
 from hoover import Hoover
 from state_machine import StateMachine
 from physics_data import *
@@ -293,7 +293,7 @@ class Player:
                self.x + PLAYER_WIDTH // 3, self.y + PLAYER_HEIGHT // 2.5
 
     def handle_collision(self, group, other):
-        if group == 'player:tile':
+        if group == 'player:tile' or group == 'player:spider_inner_bb':
             # 충돌 취소 후, 다시 계산
             origin_x = self.x
             origin_y = self.y
@@ -316,7 +316,26 @@ class Player:
             if not y_collide:
                 self.y += self.delta_y * 0.5
 
-        elif group == 'player:spider_inner':
-            print('player out of range : spider')
+        elif group == 'player:spider_inner_dome':
+            origin_x = self.x
+            origin_y = self.y
+            self.x -= self.delta_x
+            self.y -= self.delta_y
+
+            # x만 증가시킬 때 충돌 검사
+            self.x = origin_x
+            x_collide = collide_outer_radius(self, *other)
+
+            # y만 증가시킬 때 충돌 검사
+            self.x -= self.delta_x  # 복구
+            self.y = origin_y
+            y_collide = collide_outer_radius(self, *other)
+
+            self.y -= self.delta_y
+
+            if not x_collide:
+                self.x += self.delta_x * 0.5
+            if not y_collide:
+                self.y += self.delta_y * 0.5
 
         self.hoover.handle_collision(group, other)
