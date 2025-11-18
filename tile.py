@@ -190,9 +190,6 @@ class Ground:
             Ground.image = load_image('Assets/Sprites/Tile/Tex_Bedrock.png')
 
         self.mines = list()
-        self.mine_height = list()
-
-        self.deep_x, self.deep_y = TILES[0]
 
         # self.IDLE = Idle(self)
         #
@@ -228,12 +225,6 @@ class Ground:
             self.image.clip_draw(tile_x, tile_y, TILE_W_H, TILE_W_H,
                                       view_x, view_y, draw_w, draw_h)
 
-            # 땅 내부 그리기
-            # view_x, view_y = camera.world_to_view(self.tile.x + self.tile.w * 10, self.tile.y + dy * self.tile.h)
-            # self.tile.image.clip_draw(Idle.deep_x, Idle.deep_y, self.tile.w, self.tile.h,
-            #                           round(view_x), round(view_y),
-            #                           round(self.tile.w * 19 * camera.zoom), round(self.tile.h * camera.zoom))
-
     def handle_event(self, event):
         pass
 
@@ -241,7 +232,6 @@ class Ground:
     def add_mines(self, mine_list):
         for mine in mine_list:
             self.mines.append(mine)
-            self.mine_height.append((mine.mine_upper, mine.mine_lower)) # 상하 타일 개수
 
     def get_mine_list(self):
         return self.mines
@@ -314,7 +304,10 @@ class Tile:
         x1, y1, x2, y2 = self.get_bb()
         view_x1, view_y1 = camera.world_to_view(x1, y1)
         view_x2, view_y2 = camera.world_to_view(x2, y2)
-        draw_rectangle(view_x1, view_y1, view_x2, view_y2)
+        if self.is_bedrock:
+            draw_rectangle(view_x1, view_y1, view_x2, view_y2, 0, 255, 0)
+        else:
+            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
     def get_bb(self):
         return (self.x - TILE_SIZE_PIXEL // 2, self.y - TILE_SIZE_PIXEL // 2,
