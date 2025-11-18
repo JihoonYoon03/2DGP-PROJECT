@@ -1,4 +1,5 @@
 import sdl2
+from physics_data import WIN_HEIGHT
 
 flag_w = False
 flag_a = False
@@ -62,3 +63,9 @@ def minus_pressed(e):
 
 def minus_released(e):
     return e[0] == 'INPUT' and e[1].type == sdl2.SDL_KEYUP and e[1].key == sdl2.SDLK_MINUS
+
+def mouse_motion(e):
+    return e[0] == 'INPUT' and e[1].type == sdl2.SDL_MOUSEMOTION
+
+def mouse_coordinate(e):
+    return e[1].x, WIN_HEIGHT - e[1].y

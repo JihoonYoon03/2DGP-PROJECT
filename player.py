@@ -2,6 +2,7 @@ from pico2d import *
 import event_set
 from event_set import signal_empty, signal_not_empty, signal_in_range, e_pressed
 from game_world import get_camera, collide_bb
+from hoover import Hoover
 from state_machine import StateMachine
 from physics_data import *
 import math
@@ -203,6 +204,8 @@ class Player:
         self.delta_x = 0
         self.delta_y = 0
 
+        self.hoover = Hoover(self)
+
         self.DOCKED = Dock(self)
         self.IDLE = Idle(self)
         self.MOVE = Move(self)
@@ -217,9 +220,11 @@ class Player:
 
     def update(self):
         self.stateMachine.update()
+        self.hoover.update()
 
     def draw(self):
         self.stateMachine.draw()
+        self.hoover.draw()
 
         camera = get_camera()
         x1, y1, x2, y2 = self.get_bb()
@@ -281,6 +286,7 @@ class Player:
         # 만약 이동 -> 이동 (방향 전환 등)이면 IDLE 상태를 거치지 않게됨
 
         self.stateMachine.handle_state_event(('INPUT', event))
+        self.hoover.handle_event(event)
 
     def get_bb(self):
         return self.x - PLAYER_WIDTH // 3, self.y - PLAYER_HEIGHT // 2.5, \
@@ -312,3 +318,5 @@ class Player:
 
         elif group == 'player:spider_inner':
             print('player out of range : spider')
+
+        self.hoover.handle_collision(group, other)
