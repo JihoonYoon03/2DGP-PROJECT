@@ -131,17 +131,42 @@ class Shooting:
 
     def draw(self):
         camera = get_camera()
-        draw_w, draw_h = camera.get_draw_size(RAY_W_H, RAY_W_H)
+        mid_w, mid_h = camera.get_draw_size(RAY_W_H // 2, RAY_W_H)
+        end_w, end_h = camera.get_draw_size(RAY_W_H * (3 / 4), RAY_W_H)
 
-        for dr in range(self.laser.radius_min, self.laser.radius_max, RAY_W_H - RAY_W_H // 2):
-            x = (self.laser.radius_min + dr) * math.cos(self.laser.hoover.angle)
-            y = (self.laser.radius_min + dr) * math.sin(self.laser.hoover.angle)
+        for dr in range(self.laser.radius_min, self.laser.radius_max, RAY_W_H // 2):
+            x = dr * math.cos(self.laser.hoover.angle)
+            y = dr * math.sin(self.laser.hoover.angle)
 
             view_x, view_y = camera.world_to_view(self.laser.hoover.player.x + x,
                                                   self.laser.hoover.player.y + y)
-            self.laser.image_ray.clip_composite_draw(RAY_W_H * int(self.laser.frame), 0, RAY_W_H, RAY_W_H,
+
+            if dr == self.laser.radius_min:
+                # 첫 조각
+                # 처음부터 3/4 지점까지 그리기
+                clip_x = RAY_W_H * int(self.laser.frame)
+                clip_w = int(RAY_W_H * 3 / 4)
+                self.laser.image_ray.clip_composite_draw(clip_x, 0, clip_w, RAY_W_H,
                                                      self.laser.hoover.angle, '',
-                                                     view_x, view_y, draw_w, draw_h)
+                                                     view_x, view_y, end_w, end_h)
+
+            elif (dr + RAY_W_H - RAY_W_H // 2) < self.laser.radius_max:
+                # 중간 조각
+                # 1/4 지점부터 3/4 지점까지 그리기
+                clip_x = RAY_W_H * int(self.laser.frame) + RAY_W_H // 4
+                clip_w = RAY_W_H // 2
+                self.laser.image_ray.clip_composite_draw(clip_x, 0, clip_w, RAY_W_H,
+                                                     self.laser.hoover.angle, '',
+                                                     view_x, view_y, mid_w, mid_h)
+
+            else:
+                # 마지막 조각
+                # 1/4 지점부터 끝까지 그리기
+                clip_x = RAY_W_H * int(self.laser.frame) + RAY_W_H // 4
+                clip_w = int(RAY_W_H * 3 / 4)
+                self.laser.image_ray.clip_composite_draw(clip_x, 0, clip_w, RAY_W_H,
+                                                     self.laser.hoover.angle, '',
+                                                     view_x, view_y, end_w, end_h)
 
 
 class HooverLaser:
@@ -149,7 +174,7 @@ class HooverLaser:
         self.image_ray = load_image('Assets/Sprites/Bullets/DrillingRay.png')
         self.image_ray_spark = load_image('Assets/Sprites/VFX/DrillingFlash.png')
         self.hoover = hoover
-        self.radius_min = self.hoover.image_back.w // 3
+        self.radius_min = self.hoover.image_back.w // 2
         self.radius_max = self.radius_min + self.hoover.laser_range
 
         self.frame = 0
