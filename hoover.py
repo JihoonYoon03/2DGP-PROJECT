@@ -17,7 +17,7 @@ class Idle:
         if mouse_motion(e):
             mouse_x, mouse_y = mouse_coordinate(e)
             camera = get_camera()
-            view_x, view_y = camera.world_to_view(self.hoover.x, self.hoover.y)
+            view_x, view_y = camera.world_to_view(self.hoover.player.x, self.hoover.player.y)
             dx = mouse_x - view_x
             dy = mouse_y - view_y
             self.hoover.angle = math.atan2(dy, dx)
@@ -31,8 +31,7 @@ class Idle:
         return True
 
     def do(self):
-        self.hoover.x = self.hoover.player.x
-        self.hoover.y = self.hoover.player.y
+        pass
 
     def draw(self):
         if self.hoover.player.is_docked:
@@ -40,7 +39,7 @@ class Idle:
 
         camera = get_camera()
         draw_w, draw_h = camera.get_draw_size(self.hoover.image_back.w, self.hoover.image_back.h)
-        view_x, view_y = camera.world_to_view(self.hoover.x, self.hoover.y)
+        view_x, view_y = camera.world_to_view(self.hoover.player.x, self.hoover.player.y)
         self.hoover.image_back.clip_composite_draw(0, 0, self.hoover.image_back.w, self.hoover.image_back.h,
                                                    self.hoover.angle, self.is_flip,
                                                   view_x, view_y, draw_w, draw_h)
@@ -55,9 +54,9 @@ class Hoover:
         self.image_front = load_image('Assets/Sprites/Hoover/ResourceHoover_lvl1_Front.png')
 
         self.player = player
-        self.x = player.x
-        self.y = player.y
         self.angle = 0
+        self.shooting = False
+        self.laser_range = TILE_SIZE_PIXEL * 2
 
         self.IDLE = Idle(self)
 
@@ -66,6 +65,70 @@ class Hoover:
                                              self.IDLE: { mouse_motion : self.IDLE }
                                           })
 
+    def update(self):
+        self.stateMachine.update()
+
+    def draw(self):
+        self.stateMachine.draw()
+
+    def handle_event(self, event):
+        self.stateMachine.handle_state_event(('INPUT', event))
+
+    def get_bb(self):
+        pass
+
+    def handle_collision(self, group, other):
+        pass
+
+class ReadyToShoot:
+    def __init__(self, laser):
+        self.laser = laser
+
+    def enter(self, e):
+        pass
+
+    def exit(self, e):
+        return True
+
+    def do(self):
+        pass
+
+    def draw(self):
+        pass
+
+class Shooting:
+    def __init__(self, laser):
+        self.laser = laser
+
+    def enter(self, e):
+        pass
+
+    def exit(self, e):
+        return True
+
+    def do(self):
+        pass
+
+    def draw(self):
+        pass
+
+
+class HooverLaser:
+    def __init__(self, hoover):
+        self.image_ray = load_image('Assets/Sprites/Bullets/DrillingRay')
+        self.image_ray_spark = load_image('Assets/Sprites/VFX/DrillingFlash.png')
+        self.hoover = hoover
+
+        self.frame = 0
+
+        self.IDLE = ReadyToShoot(self)
+        self.SHOOT = Shooting(self)
+
+        self.stateMachine = StateMachine(self.IDLE,
+                                         {
+                                             self.IDLE: { lambda e: self.hoover.shooting : self.SHOOT },
+                                             self.SHOOT: { lambda e: not self.hoover.shooting : self.IDLE }
+                                          })
     def update(self):
         self.stateMachine.update()
 
