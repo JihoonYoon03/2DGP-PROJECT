@@ -14,6 +14,9 @@ PLAYER_RUN_SPEED_PPS = (PLAYER_RUN_SPEED_KMPH * 1000.0 / 3600.0) * PIXEL_PER_MET
 PLAYER_BASE_FRAMES = 13
 PLAYER_BASE_ACTION_PER_TIME = 1.0
 
+HOOVER_LASER_BASE_FRAMES = 5
+HOOVER_LASER_BASE_ACTION_PER_TIME = 2.0
+
 TILE_SIZE_PIXEL = 40
 TILE_W_H = 60
 
@@ -25,6 +28,9 @@ def get_spider_action_per_time(frame_count):
 
 def get_player_action_per_time(frame_count):
     return (PLAYER_BASE_FRAMES / frame_count) * PLAYER_BASE_ACTION_PER_TIME
+
+def get_hoover_laser_action_per_time(frame_count):
+    return (HOOVER_LASER_BASE_FRAMES / frame_count) * HOOVER_LASER_BASE_ACTION_PER_TIME
 
 class Collider_bb:
     def __init__(self, owner, offset_x, offset_y, width, height):
