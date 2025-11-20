@@ -279,8 +279,7 @@ class Tile:
         self.is_bedrock = is_bedrock
 
         game_world.add_collision_pair_bb('player:tile', None, self)
-        if not self.is_bedrock:
-            game_world.add_collision_pair_ray_cast('hoover_laser:tile', None, self)
+        game_world.add_collision_pair_ray_cast('hoover_laser:tile', None, self)
 
     def update_flags(self, flags):
         self.raw_flags = flags

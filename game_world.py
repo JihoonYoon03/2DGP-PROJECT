@@ -1,4 +1,5 @@
 import math
+import heapq
 
 world = [[]]
 
@@ -186,11 +187,27 @@ def handle_collisions_ray_cast():
     for group, pairs in collision_pairs_ray_cast.items():
         # 일단 레이저 하나만 체크
         laser = pairs[0][0]
-        start_x = laser.hoover.player.x
-        start_y = laser.hoover.player.y
-        angle = laser.hoover.angle
+        if not laser.shooting:
+            continue
+        start_x = laser.x
+        start_y = laser.y
+        angle = laser.angle
         max_range = laser.radius_max
+
+        # 최근접 객체 순으로 충돌처리 하도록 최소 힙 저장
+        nearest_heap = []
         for b in pairs[1]:
             if collide_ray_cast(b, start_x, start_y, angle, max_range):
-                laser.handle_collision(group, b)
-                b.handle_collision(group, laser)
+                distance = math.sqrt((b.x - start_x) ** 2 + (b.y - start_y) ** 2)
+                heapq.heappush(nearest_heap, (distance, b))
+
+        for nearest in nearest_heap:
+            obj = nearest[1]
+            laser.handle_collision(group, obj)
+            obj.handle_collision(group, laser)
+
+            # 추후에 레이저 관통 기능 구현 시 사용
+            if laser.penetration <= 0:
+                break
+            else:
+                laser.penetration -= 1

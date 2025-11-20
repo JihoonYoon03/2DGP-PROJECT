@@ -60,7 +60,6 @@ class Hoover:
 
         self.player = player
         self.angle = 0
-        self.shooting = False
         self.laser_range = TILE_SIZE_PIXEL * 2
         self.laser = HooverLaser(self)
 
@@ -82,9 +81,9 @@ class Hoover:
         self.stateMachine.handle_state_event(('INPUT', event))
 
         if event.type == SDL_MOUSEBUTTONDOWN and event.button == SDL_BUTTON_LEFT:
-            self.shooting = True
+            self.laser.shooting = True
         elif event.type == SDL_MOUSEBUTTONUP and event.button == SDL_BUTTON_LEFT:
-            self.shooting = False
+            self.laser.shooting = False
 
         self.laser.handle_event(event)
 
@@ -93,6 +92,7 @@ class Hoover:
 
     def handle_collision(self, group, other):
         pass
+
 
 class ReadyToShoot:
     def __init__(self, laser):
@@ -128,6 +128,9 @@ class Shooting:
     def do(self):
         self.laser.frame = ((self.laser.frame + Shooting.frames_per_action * Shooting.action_per_time * game_framework.frame_time)
                             % Shooting.frames_per_action)
+        self.laser.x = self.laser.hoover.player.x
+        self.laser.y = self.laser.hoover.player.y
+        self.laser.angle = self.laser.hoover.angle
 
     def draw(self):
         camera = get_camera()
@@ -135,11 +138,10 @@ class Shooting:
         end_w, end_h = camera.get_draw_size(RAY_W_H * (3 / 4), RAY_W_H)
 
         for dr in range(self.laser.radius_min, self.laser.radius_max, RAY_W_H // 2):
-            x = dr * math.cos(self.laser.hoover.angle)
-            y = dr * math.sin(self.laser.hoover.angle)
+            x = dr * math.cos(self.laser.angle)
+            y = dr * math.sin(self.laser.angle)
 
-            view_x, view_y = camera.world_to_view(self.laser.hoover.player.x + x,
-                                                  self.laser.hoover.player.y + y)
+            view_x, view_y = camera.world_to_view(self.laser.x + x, self.laser.y + y)
 
             if dr == self.laser.radius_min:
                 # 첫 조각
@@ -147,7 +149,7 @@ class Shooting:
                 clip_x = RAY_W_H * int(self.laser.frame)
                 clip_w = int(RAY_W_H * 3 / 4)
                 self.laser.image_ray.clip_composite_draw(clip_x, 0, clip_w, RAY_W_H,
-                                                     self.laser.hoover.angle, '',
+                                                     self.laser.angle, '',
                                                      view_x, view_y, end_w, end_h)
 
             elif (dr + RAY_W_H - RAY_W_H // 2) < self.laser.radius_max:
@@ -156,7 +158,7 @@ class Shooting:
                 clip_x = RAY_W_H * int(self.laser.frame) + RAY_W_H // 4
                 clip_w = RAY_W_H // 2
                 self.laser.image_ray.clip_composite_draw(clip_x, 0, clip_w, RAY_W_H,
-                                                     self.laser.hoover.angle, '',
+                                                     self.laser.angle, '',
                                                      view_x, view_y, mid_w, mid_h)
 
             else:
@@ -165,7 +167,7 @@ class Shooting:
                 clip_x = RAY_W_H * int(self.laser.frame) + RAY_W_H // 4
                 clip_w = int(RAY_W_H * 3 / 4)
                 self.laser.image_ray.clip_composite_draw(clip_x, 0, clip_w, RAY_W_H,
-                                                     self.laser.hoover.angle, '',
+                                                     self.laser.angle, '',
                                                      view_x, view_y, end_w, end_h)
 
 
@@ -174,8 +176,13 @@ class HooverLaser:
         self.image_ray = load_image('Assets/Sprites/Bullets/DrillingRay.png')
         self.image_ray_spark = load_image('Assets/Sprites/VFX/DrillingFlash.png')
         self.hoover = hoover
+        self.x = hoover.player.x
+        self.y = hoover.player.y
+        self.angle = hoover.angle
         self.radius_min = self.hoover.image_back.w // 2 + 2
         self.radius_max = self.radius_min + self.hoover.laser_range
+        self.shooting = False
+        self.penetration = 0
 
         self.frame = 0
 
@@ -184,8 +191,8 @@ class HooverLaser:
 
         self.stateMachine = StateMachine(self.IDLE,
                                          {
-                                             self.IDLE: { lambda e: self.hoover.shooting : self.SHOOT },
-                                             self.SHOOT: { lambda e: not self.hoover.shooting : self.IDLE }
+                                             self.IDLE: { lambda e: self.shooting and self.hoover.player.engage : self.SHOOT },
+                                             self.SHOOT: { lambda e: not self.shooting or not self.hoover.player.engage : self.IDLE }
                                           })
 
         game_world.add_collision_pair_ray_cast('hoover_laser:tile', self, None)

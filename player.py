@@ -159,9 +159,11 @@ class Move:
         if self.player.x > self.player.robo_spider.x + 100:
             camera = get_camera()
             camera.cam_lock(self.player)
+            self.player.engage = True
         else:
             camera = get_camera()
             camera.cam_lock(self.player.robo_spider)
+            self.player.engage = False
 
     def draw(self):
         camera = get_camera()
@@ -195,6 +197,7 @@ class Player:
 
         self.robo_spider = robo_spider
         self.is_docked = True  # 스파이더에 도킹 여부
+        self.engage = False  # 광산 진입여부
         self.x = robo_spider.x - 16
         self.y = robo_spider.y
         self.frame = 0
