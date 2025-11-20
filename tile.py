@@ -1,9 +1,11 @@
 from pico2d import *
 from enum import IntFlag
-import physics_data
+from physics_data import *
 import game_world
+import game_framework
 from game_world import get_camera
 from physics_data import TILE_SIZE_PIXEL, TILE_W_H
+from state_machine import StateMachine
 
 # Tex_Bedrock.png 타일 좌표 (x, y)
 # 타일 크기: 40x40, 패딩: 20칸, 좌측/상단 패딩: 10칸
@@ -25,6 +27,10 @@ TILES = (
     (0, 92), (60, 92), (120, 92), (180, 92), (240, 92), (300, 92),
     # 7행
     (0, 32), (60, 32), (120, 32), (180, 32), (240, 32), (300, 32),
+)
+
+TILE_CRACKS = (
+    (4, 213), (52, 213), (100, 213), (148, 213), (196, 213)
 )
 
 
@@ -257,12 +263,59 @@ class TileSet:
     def handle_event(self, event):
         pass
 
+class TileDefault:
+    def __init__(self, tile):
+        self.tile = tile
+        self.crack_level = 0
+
+    def enter(self, e):
+        pass
+
+    def exit(self, e):
+        return True
+
+    def do(self):
+        if self.tile.hp < self.tile.max_hp:
+            self.crack_level = int((1 - self.tile.hp / self.tile.max_hp) * (len(TILE_CRACKS) - 1))
+
+    def draw(self):
+        camera = get_camera()
+        view_x, view_y = camera.world_to_view(self.tile.x, self.tile.y)
+        draw_w, draw_h = camera.get_draw_size(TILE_W_H, TILE_W_H)
+
+        if self.tile.is_bedrock:
+            image = Tile.image_bedrock
+        else:
+            image = self.tile.tileset.image
+
+        image.clip_draw(
+            self.tile.image_x, self.tile.image_y, TILE_W_H, TILE_W_H,
+            view_x, view_y, draw_w, draw_h
+        )
+
+        if self.tile.hp < self.tile.max_hp:
+            crack_x, crack_y = TILE_CRACKS[self.crack_level]
+            draw_w, draw_h = camera.get_draw_size(TILE_SIZE_PIXEL, TILE_SIZE_PIXEL)
+            Tile.image_crack.clip_draw(
+                crack_x, crack_y, TILE_SIZE_PIXEL, TILE_SIZE_PIXEL,
+                view_x, view_y, draw_w, draw_h
+            )
+
+        x1, y1, x2, y2 = self.tile.get_bb()
+        view_x1, view_y1 = camera.world_to_view(x1, y1)
+        view_x2, view_y2 = camera.world_to_view(x2, y2)
+        draw_rectangle(view_x1, view_y1, view_x2, view_y2)
+
+
 class Tile:
     # tile_data: 타일 데이터 튜플
     image_bedrock = None
+    image_crack = None
     def __init__(self, tile_set, begin_x, begin_y, col, row, flags, entrance_index, is_bedrock):
         if Tile.image_bedrock is None:
             Tile.image_bedrock = load_image('Assets/Sprites/Tile/Tex_Bedrock.png')
+        if Tile.image_crack is None:
+            Tile.image_crack = load_image('Assets/Sprites/Tile/crack_cube_library (1).png')
 
         # 타일 월드 좌표
         self.x = col * TILE_SIZE_PIXEL + begin_x
@@ -278,8 +331,21 @@ class Tile:
         self.tileset = tile_set
         self.is_bedrock = is_bedrock
 
+        # 타일 체력
+        self.max_hp = TILE_HP_MIN
+        self.hp = TILE_HP_MIN
+        self.crack_level = 0
+
         game_world.add_collision_pair_bb('player:tile', None, self)
         game_world.add_collision_pair_ray_cast('hoover_laser:tile', None, self)
+
+        self.IDLE = TileDefault(self)
+
+        self.stateMachine = StateMachine(
+            self.IDLE,
+            {}
+        )
+
 
     def update_flags(self, flags):
         self.raw_flags = flags
@@ -287,31 +353,10 @@ class Tile:
         self.image_x, self.image_y = TILES[self.TILES_index]
 
     def update(self):
-        pass
+        self.stateMachine.update()
 
     def draw(self):
-        camera = get_camera()
-        view_x, view_y = camera.world_to_view(self.x, self.y)
-        draw_w, draw_h = camera.get_draw_size(TILE_W_H, TILE_W_H)
-
-        if self.is_bedrock:
-            Tile.image_bedrock.clip_draw(
-                self.image_x, self.image_y, TILE_W_H, TILE_W_H,
-                view_x, view_y, draw_w, draw_h
-            )
-        else:
-            self.tileset.image.clip_draw(
-                self.image_x, self.image_y, TILE_W_H, TILE_W_H,
-                view_x, view_y, draw_w, draw_h
-            )
-
-        x1, y1, x2, y2 = self.get_bb()
-        view_x1, view_y1 = camera.world_to_view(x1, y1)
-        view_x2, view_y2 = camera.world_to_view(x2, y2)
-        if self.is_bedrock:
-            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
-        else:
-            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
+        self.stateMachine.draw()
 
     def handle_event(self, event):
         pass
@@ -323,4 +368,6 @@ class Tile:
     def handle_collision(self, group, other):
         if group == 'hoover_laser:tile':
             if not self.is_bedrock:
-                game_world.remove_object(self)
+                self.hp -= other.damage * game_framework.frame_time
+                if self.hp <= 0:
+                    game_world.remove_object(self)

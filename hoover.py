@@ -179,12 +179,14 @@ class HooverLaser:
         self.x = hoover.player.x
         self.y = hoover.player.y
         self.angle = hoover.angle
+
+        self.frame = 0
+
         self.radius_min = self.hoover.image_back.w // 2 + 2
         self.radius_max = self.radius_min + self.hoover.laser_range
         self.shooting = False
         self.penetration = 0
-
-        self.frame = 0
+        self.damage = HOOVER_LASER_DAMAGE_PER_TIME
 
         self.IDLE = ReadyToShoot(self)
         self.SHOOT = Shooting(self)

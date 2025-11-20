@@ -295,39 +295,6 @@ class RoboSpider:
 
     def draw(self):
         self.stateMachine.draw()
-        if self.is_docking:
-            # self.inner.draw()
-
-            cam = get_camera()
-            x1, y1, x2, y2 = self.additional_collider_upper.get_bb()
-            view_x1, view_y1 = cam.world_to_view(x1, y1)
-            view_x2, view_y2 = cam.world_to_view(x2, y2)
-            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
-
-            x1, y1, x2, y2 = self.additional_collider_lower.get_bb()
-            view_x1, view_y1 = cam.world_to_view(x1, y1)
-            view_x2, view_y2 = cam.world_to_view(x2, y2)
-            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
-
-            # 2, 3사분면 반원 그리기 (디버그용)
-            view_x, view_y = cam.world_to_view(self.x + self.collider_offset[0], self.y)
-            radius = cam.value_to_view(self.radius)
-
-            import math
-            segments = 100  # 점의 개수 (많을수록 부드러움)
-
-            # π/2 (90°)부터 3π/2 (270°)까지
-            prev_x, prev_y = None, None
-            for i in range(segments + 1):
-                angle = math.pi / 2 + (math.pi * i / segments)
-                x = view_x + radius * math.cos(angle)
-                y = view_y + radius * math.sin(angle)
-
-                if prev_x is not None:
-                    # 두 점을 잇는 얇은 사각형 그리기
-                    draw_rectangle(prev_x, prev_y, x, y)
-
-                prev_x, prev_y = x, y
 
     def handle_event(self, event):
         if not self.is_docking and self.stateMachine.cur_state != self.DOCK:
@@ -400,18 +367,18 @@ class SpInIdle:
         return True
 
     def do(self):
-        if self.sp_in.robo_spider.is_docking:
+        if self.sp_in.sp.is_docking:
             self.sp_in.docker_frame = ((self.sp_in.docker_frame
                                        + SpInIdle.frames_per_action * SpInIdle.action_per_time * game_framework.frame_time)
                                        % SpInIdle.frames_per_action)
         else:
-            self.sp_in.docker_x = self.sp_in.robo_spider.x - 16
-            self.sp_in.docker_y = self.sp_in.robo_spider.y
+            self.sp_in.docker_x = self.sp_in.sp.x - 16
+            self.sp_in.docker_y = self.sp_in.sp.y
 
     def draw(self):
         camera = get_camera()
         # 배경 그리기
-        view_x, view_y = camera.world_to_view(self.sp_in.robo_spider.x, self.sp_in.robo_spider.y - 16) # 이미지 크기 보정용 -2 추가
+        view_x, view_y = camera.world_to_view(self.sp_in.sp.x, self.sp_in.sp.y - 16) # 이미지 크기 보정용 -2 추가
         draw_w, draw_h = camera.get_draw_size(self.sp_in.image_background.w, self.sp_in.image_background.h)
         self.sp_in.image_background.clip_draw(0, 0, self.sp_in.image_background.w, self.sp_in.image_background.h,
                                               view_x, view_y, draw_w, draw_h)
@@ -440,7 +407,7 @@ class RoboSpiderIn:
         self.image_background = load_image('Assets/Sprites/Spider/Spider_Inner_Opened.png')
         self.image_docker = load_image('Assets/Sprites/Spider/Spider_DockingModule.png')
 
-        self.robo_spider = robo_spider
+        self.sp = robo_spider
 
         self.docker_x = robo_spider.x - 16
         self.docker_y = robo_spider.y
@@ -450,12 +417,43 @@ class RoboSpiderIn:
         self.stateMachine = StateMachine(self.IDLE, {})
 
     def update(self):
-        if self.robo_spider.is_docking:
+        if self.sp.is_docking:
             self.stateMachine.update()
 
     def draw(self):
-        if self.robo_spider.is_docking:
+        if self.sp.is_docking:
             self.stateMachine.draw()
+
+            cam = get_camera()
+            x1, y1, x2, y2 = self.sp.additional_collider_upper.get_bb()
+            view_x1, view_y1 = cam.world_to_view(x1, y1)
+            view_x2, view_y2 = cam.world_to_view(x2, y2)
+            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
+
+            x1, y1, x2, y2 = self.sp.additional_collider_lower.get_bb()
+            view_x1, view_y1 = cam.world_to_view(x1, y1)
+            view_x2, view_y2 = cam.world_to_view(x2, y2)
+            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
+
+            # 2, 3사분면 반원 그리기 (디버그용)
+            view_x, view_y = cam.world_to_view(self.sp.x + self.sp.collider_offset[0], self.sp.y)
+            radius = cam.value_to_view(self.sp.radius)
+
+            import math
+            segments = 100  # 점의 개수 (많을수록 부드러움)
+
+            # π/2 (90°)부터 3π/2 (270°)까지
+            prev_x, prev_y = None, None
+            for i in range(segments + 1):
+                angle = math.pi / 2 + (math.pi * i / segments)
+                x = view_x + radius * math.cos(angle)
+                y = view_y + radius * math.sin(angle)
+
+                if prev_x is not None:
+                    # 두 점을 잇는 얇은 사각형 그리기
+                    draw_rectangle(prev_x, prev_y, x, y)
+
+                prev_x, prev_y = x, y
 
     def handle_event(self, event):
         pass
