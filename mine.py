@@ -61,8 +61,6 @@ class Mine:
         self.entrance_tile_top.draw()
         self.entrance_tile_bottom.draw()
 
-        self.tile_set.draw()
-
     def handle_event(self, event):
         pass
 

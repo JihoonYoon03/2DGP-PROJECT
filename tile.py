@@ -245,14 +245,14 @@ class TileSet:
             for col in range(mine_size[0]):
                 if tile_info['location'][row][col] is False: continue
                 self.tiles.append(Tile(self, begin_x, begin_y, col, row, tile_info['flag'][row][col], tile_info['entrance'], tile_info['bedrock'][row][col]))
+        game_world.add_objects(self.tiles, 1)
         self.camera = None
 
     def update(self):
         pass
 
     def draw(self):
-        for tile in self.tiles:
-            tile.draw()
+        pass
 
     def handle_event(self, event):
         pass
@@ -286,6 +286,9 @@ class Tile:
         self.TILES_index = tile_index_from_flags(normalize_tile_flags(flags))
         self.image_x, self.image_y = TILES[self.TILES_index]
 
+    def update(self):
+        pass
+
     def draw(self):
         camera = get_camera()
         view_x, view_y = camera.world_to_view(self.x, self.y)
@@ -310,10 +313,14 @@ class Tile:
         else:
             draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
+    def handle_event(self, event):
+        pass
+
     def get_bb(self):
         return (self.x - TILE_SIZE_PIXEL // 2, self.y - TILE_SIZE_PIXEL // 2,
                 self.x + TILE_SIZE_PIXEL // 2, self.y + TILE_SIZE_PIXEL // 2)
 
     def handle_collision(self, group, other):
         if group == 'hoover_laser:tile':
-            print('Tile hit by Hoover Laser at ({}, {})'.format(self.x, self.y))
+            if not self.is_bedrock:
+                game_world.remove_object(self)

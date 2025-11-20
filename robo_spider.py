@@ -268,7 +268,10 @@ class RoboSpider:
         self.docked_mine = 0
 
         self.inner = RoboSpiderIn(self)
+        game_world.add_object(self.inner, 3)
+
         self.player = Player(self)
+        game_world.add_object(self.player, 3)
         game_world.add_collision_pair_bb('player:tile', self.player, None)
         game_world.add_collision_pair_bb('player:spider_inner_bb', self.player, None)
         game_world.add_collision_pair_outer_radius('player:spider_inner_dome', self.player, self, 90, 270, self.radius, self.collider_offset)
@@ -288,15 +291,12 @@ class RoboSpider:
 
     def update(self):
         self.stateMachine.update()
-        self.inner.update()
-        if self.is_docking:
-            self.player.update()
+        # self.inner.update()
 
     def draw(self):
         self.stateMachine.draw()
         if self.is_docking:
-            self.inner.draw()
-            self.player.draw()
+            # self.inner.draw()
 
             cam = get_camera()
             x1, y1, x2, y2 = self.additional_collider_upper.get_bb()
@@ -364,8 +364,6 @@ class RoboSpider:
                 self.stateMachine.handle_state_event(('EMPTY', None))
 
         self.stateMachine.handle_state_event(('INPUT', event))
-        if self.is_docking:
-            self.player.handle_event(event)
 
     def get_bb(self):
         pass
@@ -452,10 +450,12 @@ class RoboSpiderIn:
         self.stateMachine = StateMachine(self.IDLE, {})
 
     def update(self):
-        self.stateMachine.update()
+        if self.robo_spider.is_docking:
+            self.stateMachine.update()
 
     def draw(self):
-        self.stateMachine.draw()
+        if self.robo_spider.is_docking:
+            self.stateMachine.draw()
 
     def handle_event(self, event):
-        self.stateMachine.handle_state_event(('INPUT', event))
+        pass

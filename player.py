@@ -222,18 +222,20 @@ class Player:
             })
 
     def update(self):
-        self.stateMachine.update()
-        self.hoover.update()
+        if self.robo_spider.is_docking:
+            self.stateMachine.update()
+            self.hoover.update()
 
     def draw(self):
-        self.stateMachine.draw()
-        self.hoover.draw()
+        if self.robo_spider.is_docking:
+            self.stateMachine.draw()
+            self.hoover.draw()
 
-        camera = get_camera()
-        x1, y1, x2, y2 = self.get_bb()
-        view_x1, view_y1 = camera.world_to_view(x1, y1)
-        view_x2, view_y2 = camera.world_to_view(x2, y2)
-        draw_rectangle(view_x1, view_y1, view_x2, view_y2)
+            camera = get_camera()
+            x1, y1, x2, y2 = self.get_bb()
+            view_x1, view_y1 = camera.world_to_view(x1, y1)
+            view_x2, view_y2 = camera.world_to_view(x2, y2)
+            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
     def handle_event(self, event):
         prev_moving = (self.move_x != 0 or self.move_y != 0)
