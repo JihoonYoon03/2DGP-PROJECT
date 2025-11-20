@@ -279,6 +279,8 @@ class Tile:
         self.is_bedrock = is_bedrock
 
         game_world.add_collision_pair_bb('player:tile', None, self)
+        if not self.is_bedrock:
+            game_world.add_collision_pair_ray_cast('hoover_laser:tile', None, self)
 
     def update_flags(self, flags):
         self.raw_flags = flags
@@ -305,7 +307,7 @@ class Tile:
         view_x1, view_y1 = camera.world_to_view(x1, y1)
         view_x2, view_y2 = camera.world_to_view(x2, y2)
         if self.is_bedrock:
-            draw_rectangle(view_x1, view_y1, view_x2, view_y2, 0, 255, 0)
+            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
         else:
             draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
@@ -314,4 +316,5 @@ class Tile:
                 self.x + TILE_SIZE_PIXEL // 2, self.y + TILE_SIZE_PIXEL // 2)
 
     def handle_collision(self, group, other):
-        pass
+        if group == 'hoover_laser:tile':
+            print('Tile hit by Hoover Laser at ({}, {})'.format(self.x, self.y))

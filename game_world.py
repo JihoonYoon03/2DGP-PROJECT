@@ -106,8 +106,22 @@ def collide_outer_radius(a, b, degree_start, degree_end, radius, offset):
 
     return dist >= radius
 
+def collide_ray_cast(target, start_x, start_y, angle, max_range):
+    step_size = 5
+    steps = int(max_range / step_size)
+
+    for step in range(steps):
+        ray_x = start_x + step * step_size * math.cos(angle)
+        ray_y = start_y + step * step_size * math.sin(angle)
+        target_bb = target.get_bb()
+        if target_bb[0] <= ray_x <= target_bb[2] and target_bb[1] <= ray_y <= target_bb[3]:
+            return True
+
+    return False
+
 collision_pairs_bb = {}
 collision_pairs_outer_radius = {}
+collision_pairs_ray_cast = {}
 
 def add_collision_pair_bb(group, a, b):
     if group not in collision_pairs_bb: # 처음 추가되는 그룹이면
@@ -131,9 +145,18 @@ def add_collision_pair_outer_radius(group, a, b, degree_start=0, degree_end=0, r
     collision_pairs_outer_radius[group][4] = radius
     collision_pairs_outer_radius[group][5] = offset
 
+def add_collision_pair_ray_cast(group, a, b):
+    if group not in collision_pairs_ray_cast: # 처음 추가되는 그룹이면
+        collision_pairs_ray_cast[group] = [[], []] # 해당 그룹을 만든다
+    if a:
+        collision_pairs_ray_cast[group][0].append(a)
+    if b:
+        collision_pairs_ray_cast[group][1].append(b)
+
 def handle_collisions():
     handle_collisions_bb()
     handle_collisions_outer_radius()
+    handle_collisions_ray_cast()
 
 def handle_collisions_bb():
     for group, pairs in collision_pairs_bb.items():
@@ -158,3 +181,16 @@ def handle_collisions_outer_radius():
                 if collide_outer_radius(a, b, degree_start, degree_end, radius, offset):
                     a.handle_collision(group, (b, degree_start, degree_end, radius, offset))
                     b.handle_collision(group, (a, degree_start, degree_end, radius, offset))
+
+def handle_collisions_ray_cast():
+    for group, pairs in collision_pairs_ray_cast.items():
+        # 일단 레이저 하나만 체크
+        laser = pairs[0][0]
+        start_x = laser.hoover.player.x
+        start_y = laser.hoover.player.y
+        angle = laser.hoover.angle
+        max_range = laser.radius_max
+        for b in pairs[1]:
+            if collide_ray_cast(b, start_x, start_y, angle, max_range):
+                laser.handle_collision(group, b)
+                b.handle_collision(group, laser)

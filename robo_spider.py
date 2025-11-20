@@ -302,12 +302,12 @@ class RoboSpider:
             x1, y1, x2, y2 = self.additional_collider_upper.get_bb()
             view_x1, view_y1 = cam.world_to_view(x1, y1)
             view_x2, view_y2 = cam.world_to_view(x2, y2)
-            draw_rectangle(view_x1, view_y1, view_x2, view_y2, 0, 255, 0)
+            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
             x1, y1, x2, y2 = self.additional_collider_lower.get_bb()
             view_x1, view_y1 = cam.world_to_view(x1, y1)
             view_x2, view_y2 = cam.world_to_view(x2, y2)
-            draw_rectangle(view_x1, view_y1, view_x2, view_y2, 0, 255, 0)
+            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
             # 2, 3사분면 반원 그리기 (디버그용)
             view_x, view_y = cam.world_to_view(self.x + self.collider_offset[0], self.y)
@@ -325,7 +325,7 @@ class RoboSpider:
 
                 if prev_x is not None:
                     # 두 점을 잇는 얇은 사각형 그리기
-                    draw_rectangle(prev_x, prev_y, x, y, 0, 255, 0)
+                    draw_rectangle(prev_x, prev_y, x, y)
 
                 prev_x, prev_y = x, y
 

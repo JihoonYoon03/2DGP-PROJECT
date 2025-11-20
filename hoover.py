@@ -47,6 +47,7 @@ class Idle:
         self.hoover.image_back.clip_composite_draw(0, 0, self.hoover.image_back.w, self.hoover.image_back.h,
                                                    self.draw_angle, self.is_flip,
                                                   view_x, view_y, draw_w, draw_h)
+        self.hoover.laser.draw()
         self.hoover.image_front.clip_composite_draw(0, 0, self.hoover.image_front.w, self.hoover.image_front.h,
                                                     self.draw_angle, self.is_flip,
                                                   view_x, view_y, draw_w, draw_h)
@@ -76,7 +77,6 @@ class Hoover:
 
     def draw(self):
         self.stateMachine.draw()
-        self.laser.draw()
 
     def handle_event(self, event):
         self.stateMachine.handle_state_event(('INPUT', event))
@@ -174,7 +174,7 @@ class HooverLaser:
         self.image_ray = load_image('Assets/Sprites/Bullets/DrillingRay.png')
         self.image_ray_spark = load_image('Assets/Sprites/VFX/DrillingFlash.png')
         self.hoover = hoover
-        self.radius_min = self.hoover.image_back.w // 2
+        self.radius_min = self.hoover.image_back.w // 2 + 2
         self.radius_max = self.radius_min + self.hoover.laser_range
 
         self.frame = 0
@@ -187,6 +187,9 @@ class HooverLaser:
                                              self.IDLE: { lambda e: self.hoover.shooting : self.SHOOT },
                                              self.SHOOT: { lambda e: not self.hoover.shooting : self.IDLE }
                                           })
+
+        game_world.add_collision_pair_ray_cast('hoover_laser:tile', self, None)
+
     def update(self):
         self.stateMachine.update()
 
