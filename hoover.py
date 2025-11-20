@@ -131,6 +131,7 @@ class Shooting:
         self.laser.x = self.laser.hoover.player.x
         self.laser.y = self.laser.hoover.player.y
         self.laser.angle = self.laser.hoover.angle
+        self.laser.radius_max = self.laser.radius_min + self.laser.hoover.laser_range
 
     def draw(self):
         camera = get_camera()
@@ -212,4 +213,9 @@ class HooverLaser:
         pass
 
     def handle_collision(self, group, other):
-        pass
+        if group == 'hoover_laser:tile':
+            dist_x = abs(other.x - self.x) - TILE_SIZE_PIXEL // 2
+            dist_y = abs(other.y - self.y) - TILE_SIZE_PIXEL // 2
+            distance = math.sqrt(dist_x ** 2 + dist_y ** 2)
+            if distance < self.radius_max:
+                self.radius_max = int(distance)
