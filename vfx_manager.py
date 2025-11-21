@@ -52,7 +52,10 @@ class VFXRunning:
             self.vfx.x, self.vfx.y = self.vfx.get_location()
 
     def exit(self, e):
-        return True
+        if self.vfx.additional_condition(e):
+            return True
+        else:
+            return False
 
     def do(self):
         # VFX 소환자를 지정했을 경우, 위치 동기화. get_location은 VFX 별 구현
@@ -88,7 +91,10 @@ class VFXSleep:
         pass
 
     def exit(self, e):
-        return True
+        if self.vfx.additional_condition(e):
+            return True
+        else:
+            return False
 
     def do(self):
         if not self.vfx.finished:
@@ -128,7 +134,8 @@ class VFX(metaclass=ABCMeta):
         self.stateMachine.draw()
 
     def handle_event(self, event):
-        pass
+        event_tuple = ('INPUT', event)
+        self.stateMachine.handle_state_event(event_tuple)
 
     def reactivate(self, x, y):
         self.x = x
@@ -138,6 +145,10 @@ class VFX(metaclass=ABCMeta):
     # VFX별 구현 필수
     @abstractmethod
     def get_location(self):
+        pass
+
+    @abstractmethod
+    def additional_condition(self, e):
         pass
 
 class VFXHooverLaserHit(VFX):
@@ -167,11 +178,19 @@ class VFXHooverLaserHit(VFX):
         self.SLEEP = VFXSleep(self)
         self.stateMachine = StateMachine(self.IDLE,
                                          {
-                                             self.IDLE : { signal_time_out : self.SLEEP },
-                                             self.SLEEP : { signal_wake_up : self.IDLE }
+                                             self.IDLE : { mouse_left_released : self.SLEEP },
+                                             self.SLEEP : { mouse_left_pressed : self.IDLE}
                                          })
 
     def get_location(self):
         x = self.summoner.x + self.summoner.radius_display * math.cos(self.summoner.angle)
         y = self.summoner.y + self.summoner.radius_display * math.sin(self.summoner.angle)
         return x, y
+
+    def additional_condition(self, e):
+        if mouse_left_pressed(e):
+            if self.summoner.shooting:
+                return True
+            else:
+                return False
+        return True

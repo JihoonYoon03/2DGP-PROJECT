@@ -70,3 +70,9 @@ def mouse_motion(e):
 
 def mouse_coordinate(e):
     return e[1].x, WIN_HEIGHT - e[1].y
+
+def mouse_left_pressed(e):
+    return e[0] == 'INPUT' and e[1].type == sdl2.SDL_MOUSEBUTTONDOWN and e[1].button == sdl2.SDL_BUTTON_LEFT
+
+def mouse_left_released(e):
+    return e[0] == 'INPUT' and e[1].type == sdl2.SDL_MOUSEBUTTONUP and e[1].button == sdl2.SDL_BUTTON_LEFT
