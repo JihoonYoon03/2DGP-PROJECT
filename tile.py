@@ -294,6 +294,16 @@ class TileDefault:
             view_x, view_y, draw_w, draw_h
         )
 
+        if self.tile.has_resource:
+            res_clip_w = self.tile.res_image.w
+            res_clip_h = self.tile.res_image.h
+            res_draw_w, res_draw_h = camera.get_draw_size(res_clip_w, res_clip_h)
+
+            self.tile.res_image.clip_composite_draw(
+                0, 0, res_clip_w, res_clip_h,
+                view_x, view_y, res_draw_w, res_draw_h
+            )
+
         if self.tile.hp < self.tile.max_hp:
             crack_x, crack_y = TILE_CRACKS[self.crack_level]
             draw_w, draw_h = camera.get_draw_size(TILE_SIZE_PIXEL, TILE_SIZE_PIXEL)
@@ -312,11 +322,15 @@ class Tile:
     # tile_data: 타일 데이터 튜플
     image_bedrock = None
     image_crack = None
+    image_resource = list()
     def __init__(self, tile_set, begin_x, begin_y, col, row, flags, entrance_index, is_bedrock):
         if Tile.image_bedrock is None:
             Tile.image_bedrock = load_image('Assets/Sprites/Tile/Tex_Bedrock.png')
         if Tile.image_crack is None:
             Tile.image_crack = load_image('Assets/Sprites/Tile/crack_cube_library (1).png')
+        if len(Tile.image_resource) == 0:
+            Tile.image_resource.append(load_image('Assets/Sprites/Tile/CommonResource_Tile.png'))
+            Tile.image_resource.append(load_image('Assets/Sprites/Tile/RareRes1_Tile.png'))
 
         # 타일 월드 좌표
         self.x = col * TILE_SIZE_PIXEL + begin_x
@@ -336,6 +350,11 @@ class Tile:
         self.max_hp = TILE_HP_MIN
         self.hp = TILE_HP_MIN
         self.crack_level = 0
+
+        # 광물 보유 여부, 전체 광산 타일 생성 후 배정됨
+        self.has_resource = False
+        self.resource_type = None
+        self.res_image = None
 
         game_world.add_collision_pair_bb('player:tile', None, self)
         game_world.add_collision_pair_ray_cast('hoover_laser:tile', None, self)
@@ -372,3 +391,8 @@ class Tile:
                 self.hp -= other.damage * game_framework.frame_time
                 if self.hp <= 0:
                     game_world.remove_object(self)
+
+    def get_resource(self, res_type):
+        self.has_resource = True
+        self.resource_type = res_type
+        self.res_image = Tile.image_resource[res_type]
