@@ -4,6 +4,7 @@ import heapq
 world = [[]]
 
 camera = None
+UI_ResourceData = None
 
 def set_camera(cam):
     global camera

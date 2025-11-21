@@ -460,6 +460,7 @@ class Tile:
             if not self.is_bedrock:
                 self.hp -= other.damage * game_framework.frame_time
                 if self.hp <= 0:
+                    game_world.UI_ResourceData.add_resource_amount(self.resource_type, 1)
                     game_world.remove_object(self)
                     self.tileset.tile_destroyed(self)
 

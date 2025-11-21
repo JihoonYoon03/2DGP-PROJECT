@@ -31,8 +31,8 @@ def init():
     spider.mine_list = ground.get_mine_list()
     cam.cam_lock(spider, WIN_WIDTH // 3)
 
-    ui_resource_data = UIResourceData()
-    game_world.add_object(ui_resource_data, 10)
+    game_world.UI_ResourceData = UIResourceData()
+    game_world.add_object(game_world.UI_ResourceData, 10)
 
 
 def handle_events():

@@ -88,5 +88,6 @@ class UIResourceData:
     def handle_event(self, event):
         pass
 
-    def set_resource_amount(self, index, amount):
-        pass
+    def add_resource_amount(self, index, amount):
+        if index in self.res_amount:
+            self.res_amount[index] += amount
