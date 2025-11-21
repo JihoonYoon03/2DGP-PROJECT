@@ -19,14 +19,16 @@ class Idle:
         self.ore.vx += self.ore.ax * game_framework.frame_time
         self.ore.vy += self.ore.ay * game_framework.frame_time
         self.ore.vy -= GRAVITY * game_framework.frame_time
+        if self.ore.vy > MAX_ORE_FALLING_SPEED:
+            self.ore.vy = MAX_ORE_FALLING_SPEED
         self.ore.x += self.ore.vx * game_framework.frame_time
         self.ore.y += self.ore.vy * game_framework.frame_time
 
     def draw(self):
         camera = get_camera()
         view_x, view_y = camera.world_to_view(self.ore.x, self.ore.y)
-        draw_w, draw_h = camera.get_draw_size(Ore.image_ore[self.ore.ore_type].w, Ore.image_ore[self.ore.ore_type].h)
-        Ore.image_ore[self.ore.ore_type].clip_draw(0, 0, Ore.image_ore[self.ore.ore_type].w, Ore.image_ore[self.ore.ore_type].h,
+        draw_w, draw_h = camera.get_draw_size(self.ore.w, self.ore.h)
+        self.ore.image.clip_draw(0, 0, self.ore.w, self.ore.h,
                                                    view_x, view_y, draw_w, draw_h)
 
 class Ore:
@@ -51,8 +53,12 @@ class Ore:
         self.ax = 0.0
         self.ay = 0.0
         self.vx = 0.0
-        self.vy = 0.0
+        self.vy = -GRAVITY * 0.5  # 약간 떨어지면서 시작
         self.ore_type = ore_type
+
+        self.image = Ore.image_ore[self.ore_type]
+        self.w = Ore.image_ore[self.ore_type].w
+        self.h = Ore.image_ore[self.ore_type].h
 
         self.IDLE = Idle(self)
         self.stateMachine = StateMachine(
@@ -61,11 +67,19 @@ class Ore:
                 self.IDLE: {}
             })
 
+        game_world.add_collision_pair_bb('ore:tile', self, None)
+
     def update(self):
         self.stateMachine.update()
 
     def draw(self):
         self.stateMachine.draw()
+
+        camera = get_camera()
+        x1, y1, x2, y2 = self.get_bb()
+        view_x1, view_y1 = camera.world_to_view(x1, y1)
+        view_x2, view_y2 = camera.world_to_view(x2, y2)
+        draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
     def handle_event(self, event):
         # self.stateMachine.handle_state_event(('INPUT', event))
@@ -77,4 +91,33 @@ class Ore:
         return self.x - half_w, self.y - half_h, self.x + half_w, self.y + half_h
 
     def handle_collision(self, group, other):
-        pass
+        if group == 'ore:tile':
+            tile_left = other.x - TILE_SIZE_PIXEL // 2
+            tile_right = other.x + TILE_SIZE_PIXEL // 2
+            tile_top = other.y + TILE_SIZE_PIXEL // 2
+            tile_bottom = other.y - TILE_SIZE_PIXEL // 2
+
+            half_w = self.w // 2
+            half_h = self.h // 2
+
+            prev_x = self.x - self.vx * game_framework.frame_time
+            prev_y = self.y - self.vy * game_framework.frame_time
+
+            dx = self.x - prev_x
+            dy = self.y - prev_y
+
+            # 충돌 축 결정
+            if abs(dy) > abs(dx):
+                if self.vy < 0:  # 아래로 떨어지는 중
+                    self.y = tile_top + half_h
+                else:  # 위로 올라가는 중
+                    self.y = tile_bottom - half_h
+                self.vy = 0
+                self.ay = 0
+            else:
+                if self.vx > 0:  # 오른쪽 이동 중
+                    self.x = tile_left - half_w
+                else:  # 왼쪽 이동 중
+                    self.x = tile_right + half_w
+                self.vx = 0
+                self.ax = 0

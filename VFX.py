@@ -117,13 +117,13 @@ class VFXHooverLaserHit(VFX):
         super().__init__()
         self.image = load_image('Assets/Sprites/VFX/DrillingFlash.png')
         self.image_clipper = (
-        (0, 0), (64, 0), (0, 64)
+        (0, 0), (60, 0), (0, 60)
         )
 
         self.x = x
         self.y = y
-        self.frame_w = 64
-        self.frame_h = 64
+        self.frame_w = 60
+        self.frame_h = 60
         self.layer = layer
 
         self.summoner = summoner
@@ -147,3 +147,6 @@ class VFXHooverLaserHit(VFX):
         x = self.summoner.x + self.summoner.radius_display * math.cos(self.summoner.angle)
         y = self.summoner.y + self.summoner.radius_display * math.sin(self.summoner.angle)
         return x, y
+
+    def additional_condition(self, e):
+        return True

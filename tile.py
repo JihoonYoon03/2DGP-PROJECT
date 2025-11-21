@@ -436,6 +436,7 @@ class Tile:
 
         if self.is_exposed:
             game_world.add_collision_pair_bb('player:tile', None, self)
+            game_world.add_collision_pair_bb('ore:tile', None, self)
             game_world.add_collision_pair_ray_cast('hoover_laser:tile', None, self)
 
         self.IDLE = TileDefault(self)
@@ -479,6 +480,7 @@ class Tile:
         if not self.is_exposed:
             self.is_exposed = True
             game_world.add_collision_pair_bb('player:tile', None, self)
+            game_world.add_collision_pair_bb('ore:tile', None, self)
             game_world.add_collision_pair_ray_cast('hoover_laser:tile', None, self)
 
     def update_flags(self, flags):
