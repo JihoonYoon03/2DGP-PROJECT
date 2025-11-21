@@ -121,14 +121,19 @@ def collide_outer_radius(a, b, degree_start, degree_end, radius, offset):
 
 def collide_ray_cast(target, start_x, start_y, angle, max_range):
     step_size = 5
-    steps = int(max_range / step_size)
 
-    for step in range(steps):
-        ray_x = start_x + step * step_size * math.cos(angle)
-        ray_y = start_y + step * step_size * math.sin(angle)
+    for step in range(step_size, max_range, step_size):
+        ray_x = start_x + step * math.cos(angle)
+        ray_y = start_y + step * math.sin(angle)
         target_bb = target.get_bb()
         if target_bb[0] <= ray_x <= target_bb[2] and target_bb[1] <= ray_y <= target_bb[3]:
             return True
+
+    ray_x = start_x + max_range * math.cos(angle)
+    ray_y = start_y + max_range * math.sin(angle)
+    target_bb = target.get_bb()
+    if target_bb[0] <= ray_x <= target_bb[2] and target_bb[1] <= ray_y <= target_bb[3]:
+        return True
 
     return False
 

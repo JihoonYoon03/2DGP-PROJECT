@@ -218,17 +218,14 @@ class HooverLaser:
 
     def handle_collision(self, group, other):
         if group == 'hoover_laser:tile':
-            dist_x = abs(other.x - self.x) - TILE_SIZE_PIXEL // 2
-            dist_y = abs(other.y - self.y) - TILE_SIZE_PIXEL // 2
-            distance = math.sqrt(dist_x ** 2 + dist_y ** 2)
-            if distance < self.radius_max:
-                self.radius_display = int(distance)
+            distance = math.sqrt((other.x - self.x) ** 2 + (other.y - self.y) ** 2)
+            self.radius_display = int(distance) - TILE_SIZE_PIXEL // 2
 
             # 충돌 지점에 스파크 효과 추가
-            spark_x = self.x + self.radius_max * math.cos(self.angle)
-            spark_y = self.y + self.radius_max * math.sin(self.angle)
+            spark_x = self.x + self.radius_display * math.cos(self.angle)
+            spark_y = self.y + self.radius_display * math.sin(self.angle)
             vfx_manager.get_vfx_from_pool(VFXHooverLaserHit, spark_x, spark_y, self, 4)
 
     def handle_none_collision(self, group):
         if group == 'hoover_laser:tile':
-            self.radius_display = self.radius_min + self.hoover.laser_range
+            self.radius_display = self.radius_max
