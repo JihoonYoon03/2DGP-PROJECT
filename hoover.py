@@ -122,7 +122,7 @@ class Shooting:
             Shooting.action_per_time = get_hoover_laser_action_per_time(Shooting.frames_per_action)
 
     def enter(self, e):
-        print("Shooting Laser")
+        pass
 
     def exit(self, e):
         return True
@@ -190,6 +190,7 @@ class HooverLaser:
         # 화면 표시용 레이저 사거리
         self.radius_display = self.radius_max
         self.shooting = False
+        self.collide = False
         self.penetration = 0
         self.damage = HOOVER_LASER_DAMAGE_PER_TIME
 
@@ -218,6 +219,7 @@ class HooverLaser:
 
     def handle_collision(self, group, other):
         if group == 'hoover_laser:tile':
+            self.collide = True
             distance = math.sqrt((other.x - self.x) ** 2 + (other.y - self.y) ** 2)
             self.radius_display = int(distance) - TILE_SIZE_PIXEL // 2
 
@@ -228,4 +230,5 @@ class HooverLaser:
 
     def handle_none_collision(self, group):
         if group == 'hoover_laser:tile':
+            self.collide = False
             self.radius_display = self.radius_max

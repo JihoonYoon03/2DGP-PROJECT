@@ -38,15 +38,17 @@ class Mine:
 
         self.tile_set = TileSet(mine_data['image'], mine_data['size'], mine_data['tiles'], self.begin_x, self.begin_y, layer)
         # 광물 타일 분포 계산 및 생성
-        total_tiles = 0
-
+        total_tiles = len(self.tile_set.tiles)
+        bedrock_tiles = 0
         for tile in self.tile_set.tiles:
             if tile.is_bedrock:
-                continue
-            total_tiles += 1
+                bedrock_tiles += 1
+        print('Total tiles: ', total_tiles)
+        print('Bedrock tiles: ', bedrock_tiles)
 
         for mineral in mine_data['minerals'].items():
-            amount = int(total_tiles * mineral[1] / 100)
+            amount = int((total_tiles - bedrock_tiles) * mineral[1] / 100)
+            print(f'Mineral {mineral[0]}: {amount} tiles')
             for i in range(0, amount):
                 while True:
                     tile_index = random.randint(0, total_tiles - 1)

@@ -169,8 +169,8 @@ class VFXHooverLaserHit(VFX):
         self.summoner = summoner
 
         self.frame_count = 3
-        time_per_action = 0.3
-        self.frame_per_time = time_per_action / self.frame_count # 프레임 속도
+        action_per_time = 3 # 초당 액션 재생 수
+        self.frame_per_time = self.frame_count * action_per_time # 프레임 속도
 
         self.loop = True
 
@@ -178,8 +178,8 @@ class VFXHooverLaserHit(VFX):
         self.SLEEP = VFXSleep(self)
         self.stateMachine = StateMachine(self.IDLE,
                                          {
-                                             self.IDLE : { mouse_left_released : self.SLEEP },
-                                             self.SLEEP : { mouse_left_pressed : self.IDLE}
+                                             self.IDLE : { mouse_left_released : self.SLEEP, lambda e: self.summoner.collide is False : self.SLEEP },
+                                             self.SLEEP : { lambda e: self.summoner.collide is True : self.IDLE}
                                          })
 
     def get_location(self):
@@ -188,7 +188,7 @@ class VFXHooverLaserHit(VFX):
         return x, y
 
     def additional_condition(self, e):
-        if mouse_left_pressed(e):
+        if self.summoner.collide:
             if self.summoner.shooting:
                 return True
             else:

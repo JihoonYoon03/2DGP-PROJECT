@@ -281,7 +281,6 @@ class TileSet:
                     continue
                 if (d_row, d_col) in self.tiles_location:
                     self.tiles_location[(d_row, d_col)].nearby_destroyed(tile)
-                    print('called nearby_destroyed for tile at ({}, {})'.format(d_row, d_col))
 
         self.tiles.remove(tile)
         self.tiles_location.pop((tile.y, tile.x), None)
