@@ -247,10 +247,16 @@ class TileSet:
     def __init__(self, image_path, mine_size, tile_info, begin_x, begin_y, layer):
         self.image = load_image(image_path)
         self.tiles = list()
+        # 인접 타일 체크용 타일 위치 리스트
+        self.tiles_location = dict()
+
         for row in range(mine_size[1]):
             for col in range(mine_size[0]):
                 if tile_info['location'][row][col] is False: continue
                 self.tiles.append(Tile(self, begin_x, begin_y, col, row, tile_info['flag'][row][col], tile_info['entrance'], tile_info['bedrock'][row][col]))
+                # 타일 위치 기록
+                self.tiles_location.setdefault((row, col), self.tiles[-1])
+
         # 타일 출력은 각 타일 객체가 처리
         game_world.add_objects(self.tiles, layer)
         self.camera = None
@@ -263,6 +269,22 @@ class TileSet:
 
     def handle_event(self, event):
         pass
+
+    def tile_destroyed(self, tile):
+        for d_row in range(tile.row - 1, tile.row + 2):
+            # 범위 벗어남
+            if d_row < 0 or d_row >= len(self.tiles_location):
+                continue
+            for d_col in range(tile.col - 1, tile.col + 2):
+                # 범위 벗어남 or tile 본인 위치
+                if d_col < 0 or d_col >= len(self.tiles_location) or (d_row == tile.row and d_col == tile.col):
+                    continue
+                if (d_row, d_col) in self.tiles_location:
+                    self.tiles_location[(d_row, d_col)].nearby_destroyed(tile)
+                    print('called nearby_destroyed for tile at ({}, {})'.format(d_row, d_col))
+
+        self.tiles.remove(tile)
+        self.tiles_location.pop((tile.y, tile.x), None)
 
 class TileDefault:
     def __init__(self, tile):
@@ -312,10 +334,11 @@ class TileDefault:
                 view_x, view_y, draw_w, draw_h
             )
 
-        x1, y1, x2, y2 = self.tile.get_bb()
-        view_x1, view_y1 = camera.world_to_view(x1, y1)
-        view_x2, view_y2 = camera.world_to_view(x2, y2)
-        draw_rectangle(view_x1, view_y1, view_x2, view_y2)
+        if self.tile.is_exposed:
+            x1, y1, x2, y2 = self.tile.get_bb()
+            view_x1, view_y1 = camera.world_to_view(x1, y1)
+            view_x2, view_y2 = camera.world_to_view(x2, y2)
+            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
 
 class Tile:
@@ -332,6 +355,9 @@ class Tile:
             Tile.image_resource.append(load_image('Assets/Sprites/Tile/CommonResource_Tile.png'))
             Tile.image_resource.append(load_image('Assets/Sprites/Tile/RareRes1_Tile.png'))
 
+        self.col = col
+        self.row = row
+
         # 타일 월드 좌표
         self.x = col * TILE_SIZE_PIXEL + begin_x
         self.y = (entrance_index[1] - row) * TILE_SIZE_PIXEL + begin_y # 출입구 인덱스 중심 좌표 보정
@@ -339,6 +365,10 @@ class Tile:
         # 타일 플래그 및 인덱스화
         self.raw_flags = flags # 원본 비트 플래그 (이어진 면에 대한 모서리 플래그 제외 없음)
         self.TILES_index = tile_index_from_flags(normalize_tile_flags(flags))  # 인덱스화된 플래그
+
+        # 노출 여부로 충돌 체크 및 렌더링 결정
+        # flag == 0 이면 비노출이란 의미
+        self.is_exposed = False if flags == 0 else True
 
         # 타일 이미지 클리핑 좌표
         self.image_x, self.image_y = TILES[self.TILES_index]
@@ -356,8 +386,9 @@ class Tile:
         self.resource_type = None
         self.res_image = None
 
-        game_world.add_collision_pair_bb('player:tile', None, self)
-        game_world.add_collision_pair_ray_cast('hoover_laser:tile', None, self)
+        if self.is_exposed:
+            game_world.add_collision_pair_bb('player:tile', None, self)
+            game_world.add_collision_pair_ray_cast('hoover_laser:tile', None, self)
 
         self.IDLE = TileDefault(self)
 
@@ -366,6 +397,38 @@ class Tile:
             {}
         )
 
+    def nearby_destroyed(self, destroyed_tile):
+        dx = destroyed_tile.x - self.x
+        dy = destroyed_tile.y - self.y
+
+        flags = self.raw_flags
+        # 방향 별 플래그 세팅
+        if dx != 0 and dy != 0:
+            if dx > 0 and dy > 0:
+                flags |= TileFlag.C_RU
+            elif dx > 0 > dy:
+                flags |= TileFlag.C_RD
+            elif dx < 0 and dy < 0:
+                flags |= TileFlag.C_LD
+            elif dx < 0 < dy:
+                flags |= TileFlag.C_LU
+
+        else:
+            if dx > 0:
+                flags |= TileFlag.F_R
+            elif dx < 0:
+                flags |= TileFlag.F_L
+            elif dy > 0:
+                flags |= TileFlag.F_U
+            elif dy < 0:
+                flags |= TileFlag.F_D
+
+        self.update_flags(flags)
+
+        if not self.is_exposed:
+            self.is_exposed = True
+            game_world.add_collision_pair_bb('player:tile', None, self)
+            game_world.add_collision_pair_ray_cast('hoover_laser:tile', None, self)
 
     def update_flags(self, flags):
         self.raw_flags = flags
@@ -391,6 +454,7 @@ class Tile:
                 self.hp -= other.damage * game_framework.frame_time
                 if self.hp <= 0:
                     game_world.remove_object(self)
+                    self.tileset.tile_destroyed(self)
 
     def get_resource(self, res_type):
         self.has_resource = True
