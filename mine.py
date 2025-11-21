@@ -7,7 +7,7 @@ from physics_data import *
 class Mine:
     image_entrance = None
     image_bedrock = None
-    def __init__(self, mine_id, x = 1920 / 2, y = 1080 / 2):
+    def __init__(self, mine_id, layer, x = 1920 / 2, y = 1080 / 2):
         if Mine.image_entrance is None:
             Mine.image_entrance = load_image('Assets/Sprites/Tile/Enter_Biome.png')
         if Mine.image_bedrock is None:
@@ -35,7 +35,7 @@ class Mine:
         self.mine_upper = abs(self.entrance_y - 1)
         self.mine_lower = mine_data['size'][1] - self.mine_upper - 1 # 입구 타일 포함 안함
 
-        self.tile_set = TileSet(mine_data['image'], mine_data['size'], mine_data['tiles'], self.begin_x, self.begin_y)
+        self.tile_set = TileSet(mine_data['image'], mine_data['size'], mine_data['tiles'], self.begin_x, self.begin_y, layer)
 
         # 입구 위아래 타일
         self.entrance_tile_top = Tile(self.tile_set, self.begin_x, self.begin_y, -1,  self.entrance_tile_y - 1, F_L,

@@ -133,14 +133,13 @@ class Shooting:
         self.laser.x = self.laser.hoover.player.x
         self.laser.y = self.laser.hoover.player.y
         self.laser.angle = self.laser.hoover.angle
-        self.laser.radius_max = self.laser.radius_min + self.laser.hoover.laser_range
 
     def draw(self):
         camera = get_camera()
         mid_w, mid_h = camera.get_draw_size(RAY_W_H // 2, RAY_W_H)
         end_w, end_h = camera.get_draw_size(RAY_W_H * (3 / 4), RAY_W_H)
 
-        for dr in range(self.laser.radius_min, self.laser.radius_max, RAY_W_H // 2):
+        for dr in range(self.laser.radius_min, self.laser.radius_display, RAY_W_H // 2):
             x = dr * math.cos(self.laser.angle)
             y = dr * math.sin(self.laser.angle)
 
@@ -186,7 +185,10 @@ class HooverLaser:
         self.frame = 0
 
         self.radius_min = self.hoover.image_back.w // 2 + 2
+        # 충돌 처리용 레이저 사거리
         self.radius_max = self.radius_min + self.hoover.laser_range
+        # 화면 표시용 레이저 사거리
+        self.radius_display = self.radius_max
         self.shooting = False
         self.penetration = 0
         self.damage = HOOVER_LASER_DAMAGE_PER_TIME
@@ -220,9 +222,13 @@ class HooverLaser:
             dist_y = abs(other.y - self.y) - TILE_SIZE_PIXEL // 2
             distance = math.sqrt(dist_x ** 2 + dist_y ** 2)
             if distance < self.radius_max:
-                self.radius_max = int(distance)
+                self.radius_display = int(distance)
 
             # 충돌 지점에 스파크 효과 추가
             spark_x = self.x + self.radius_max * math.cos(self.angle)
             spark_y = self.y + self.radius_max * math.sin(self.angle)
-            vfx_manager.get_vfx_from_pool(VFXHooverLaserHit, spark_x, spark_y, self)
+            vfx_manager.get_vfx_from_pool(VFXHooverLaserHit, spark_x, spark_y, self, 4)
+
+    def handle_none_collision(self, group):
+        if group == 'hoover_laser:tile':
+            self.radius_display = self.radius_min + self.hoover.laser_range

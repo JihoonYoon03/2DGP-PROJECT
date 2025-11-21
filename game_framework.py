@@ -55,7 +55,6 @@ def run(start_scene):
 
         frame_time = time.time() - start_time
         start_time += frame_time
-        frame_rate = 1.0 / frame_time
 
     while (len(stack) > 0):
         stack[-1].finish()

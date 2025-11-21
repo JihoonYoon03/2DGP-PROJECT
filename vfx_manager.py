@@ -28,7 +28,7 @@ class VFXManager:
         return vfx
 
     # private
-    def __add_vfx(self, vfx, layer = 0):
+    def __add_vfx(self, vfx, layer = 1):
         if vfx not in self.vfx_list:
             self.vfx_list.append(vfx)
             game_world.add_object(vfx, layer)
@@ -151,7 +151,7 @@ class VFXHooverLaserHit(VFX):
 
         self.x = x
         self.y = y
-        self.frame_w = 6
+        self.frame_w = 64
         self.frame_h = 64
         self.layer = layer
 
@@ -172,6 +172,6 @@ class VFXHooverLaserHit(VFX):
                                          })
 
     def get_location(self):
-        x = self.summoner.x + self.summoner.radius_max * math.cos(self.summoner.angle)
-        y = self.summoner.y + self.summoner.radius_max * math.sin(self.summoner.angle)
-        return self.x, self.y
+        x = self.summoner.x + self.summoner.radius_display * math.cos(self.summoner.angle)
+        y = self.summoner.y + self.summoner.radius_display * math.sin(self.summoner.angle)
+        return x, y

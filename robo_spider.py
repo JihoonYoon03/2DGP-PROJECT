@@ -268,10 +268,10 @@ class RoboSpider:
         self.docked_mine = 0
 
         self.inner = RoboSpiderIn(self)
-        game_world.add_object(self.inner, 3)
+        game_world.add_object(self.inner, 2)
 
         self.player = Player(self)
-        game_world.add_object(self.player, 3)
+        game_world.add_object(self.player, 2)
         game_world.add_collision_pair_bb('player:tile', self.player, None)
         game_world.add_collision_pair_bb('player:spider_inner_bb', self.player, None)
         game_world.add_collision_pair_outer_radius('player:spider_inner_dome', self.player, self, 90, 270, self.radius, self.collider_offset)

@@ -213,7 +213,13 @@ def handle_collisions_ray_cast():
                 distance = math.sqrt((b.x - start_x) ** 2 + (b.y - start_y) ** 2)
                 heapq.heappush(nearest_heap, (distance, b))
 
+        # 비충돌 시
+        if len(nearest_heap) == 0:
+            laser.handle_none_collision(group)
+            continue
+
         for nearest in nearest_heap:
+            collide = True
             obj = nearest[1]
             laser.handle_collision(group, obj)
             obj.handle_collision(group, laser)

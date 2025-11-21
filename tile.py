@@ -244,14 +244,15 @@ class Ground:
 
 
 class TileSet:
-    def __init__(self, image_path, mine_size, tile_info, begin_x, begin_y):
+    def __init__(self, image_path, mine_size, tile_info, begin_x, begin_y, layer):
         self.image = load_image(image_path)
         self.tiles = list()
         for row in range(mine_size[1]):
             for col in range(mine_size[0]):
                 if tile_info['location'][row][col] is False: continue
                 self.tiles.append(Tile(self, begin_x, begin_y, col, row, tile_info['flag'][row][col], tile_info['entrance'], tile_info['bedrock'][row][col]))
-        game_world.add_objects(self.tiles, 1)
+        # 타일 출력은 각 타일 객체가 처리
+        game_world.add_objects(self.tiles, layer)
         self.camera = None
 
     def update(self):

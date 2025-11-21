@@ -16,8 +16,8 @@ def init():
     cam = Camera(WIN_WIDTH, WIN_HEIGHT)
     game_world.set_camera(cam)
 
-    mines = [Mine(1)]
-    game_world.add_objects(mines, 1)
+    mines = [Mine(1, 5)]
+    game_world.add_objects(mines, 5)
 
     ground = Ground()
     game_world.add_object(ground, 1)
@@ -25,7 +25,7 @@ def init():
     ground.add_mines(mines)
 
     spider = RoboSpider()
-    game_world.add_object(spider, 2)
+    game_world.add_object(spider, 1)
 
     spider.mine_list = ground.get_mine_list()
     cam.cam_lock(spider, WIN_WIDTH // 3)
