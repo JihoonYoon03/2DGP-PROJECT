@@ -306,6 +306,14 @@ class TileDefault:
         view_x, view_y = camera.world_to_view(self.tile.x, self.tile.y)
         draw_w, draw_h = camera.get_draw_size(TILE_W_H, TILE_W_H)
 
+        if not self.tile.is_exposed:
+            image_x, image_y = TILES[0]  # 비노출 타일
+            Tile.image_bedrock.clip_draw(
+                image_x, image_y, TILE_W_H, TILE_W_H,
+                view_x, view_y, draw_w, draw_h
+            )
+            return
+
         if self.tile.is_bedrock:
             image = Tile.image_bedrock
         else:
