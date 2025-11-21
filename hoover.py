@@ -52,6 +52,47 @@ class Idle:
                                                     self.draw_angle, self.is_flip,
                                                   view_x, view_y, draw_w, draw_h)
 
+class Vacuuming:
+    def __init__(self, hoover):
+        self.hoover = hoover
+        self.is_flip = ''
+        self.draw_angle = 0
+
+    def enter(self, e):
+        if mouse_motion(e):
+            mouse_x, mouse_y = mouse_coordinate(e)
+            camera = get_camera()
+            view_x, view_y = camera.world_to_view(self.hoover.player.x, self.hoover.player.y)
+            dx = mouse_x - view_x
+            dy = mouse_y - view_y
+            self.hoover.angle = math.atan2(dy, dx)
+            self.draw_angle = self.hoover.angle
+            if abs(self.draw_angle) > math.pi / 2:
+                self.draw_angle += math.pi
+                self.is_flip = 'h'
+            else:
+                self.is_flip = ''
+
+    def exit(self, e):
+        return True
+
+    def do(self):
+        pass
+
+    def draw(self):
+        if self.hoover.player.is_docked:
+            return
+
+        camera = get_camera()
+        draw_w, draw_h = camera.get_draw_size(self.hoover.image_back.w, self.hoover.image_back.h)
+        view_x, view_y = camera.world_to_view(self.hoover.player.x, self.hoover.player.y)
+        self.hoover.image_back.clip_composite_draw(0, 0, self.hoover.image_back.w, self.hoover.image_back.h,
+                                                   self.draw_angle, self.is_flip,
+                                                  view_x, view_y, draw_w, draw_h)
+        self.hoover.laser.draw()
+        self.hoover.image_front.clip_composite_draw(0, 0, self.hoover.image_front.w, self.hoover.image_front.h,
+                                                    self.draw_angle, self.is_flip,
+                                                  view_x, view_y, draw_w, draw_h)
 
 class Hoover:
     def __init__(self, player):
