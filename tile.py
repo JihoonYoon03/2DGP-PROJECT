@@ -48,7 +48,7 @@ class TileFlag(IntFlag):
     C_LD = 0b00000010  # 좌하단 (Left-Down)
     C_LU = 0b00000001  # 좌상단 (Left-Up)
 
-    ALL_OPEN = 0b11111111
+    ALL_OPEN = 0b11110000
     ALL_CLOSED = 0b00000000
 
 

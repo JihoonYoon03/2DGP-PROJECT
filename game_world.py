@@ -121,11 +121,16 @@ def collide_outer_radius(a, b, degree_start, degree_end, radius, offset):
 
 def collide_ray_cast(target, start_x, start_y, angle, max_range):
     step_size = 5
+    distance = math.sqrt((target.x - start_x) ** 2 + (target.y - start_y) ** 2)
+    target_bb = target.get_bb()
+
+    # 타겟이 최대 사거리 + 타겟 대각선 반경 밖에 있으면 충돌 불가. 10은 여유값
+    if distance > max_range + max(target_bb[2] - target_bb[0], target_bb[3] - target_bb[1]) / 2 + 10:
+        return False
 
     for step in range(step_size, max_range, step_size):
         ray_x = start_x + step * math.cos(angle)
         ray_y = start_y + step * math.sin(angle)
-        target_bb = target.get_bb()
         if target_bb[0] <= ray_x <= target_bb[2] and target_bb[1] <= ray_y <= target_bb[3]:
             return True
 
