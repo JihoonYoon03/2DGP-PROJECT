@@ -6,6 +6,7 @@ from robo_spider import RoboSpider
 from tile import Ground
 from mine import Mine
 from camera import Camera
+from play_scene_ui import UIResourceData
 import game_world
 import game_framework
 
@@ -29,6 +30,9 @@ def init():
 
     spider.mine_list = ground.get_mine_list()
     cam.cam_lock(spider, WIN_WIDTH // 3)
+
+    ui_resource_data = UIResourceData()
+    game_world.add_object(ui_resource_data, 10)
 
 
 def handle_events():
