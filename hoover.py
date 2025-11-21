@@ -1,5 +1,5 @@
 from pico2d import *
-from event_set import mouse_motion, mouse_coordinate
+from event_set import mouse_motion, mouse_coordinate, mouse_right_pressed, mouse_right_released
 from state_machine import StateMachine
 from physics_data import *
 from VFX import VFXHooverLaserHit
@@ -52,11 +52,24 @@ class Idle:
                                                     self.draw_angle, self.is_flip,
                                                   view_x, view_y, draw_w, draw_h)
 
-class Vacuuming:
+class Vacuum:
+    image_vacuum = None
+    VACUUM_FRAMES = (
+    (0, 0), (60, 0), (120, 0), (180, 0),
+    (0, 60), (60, 60), (120, 60), (180, 60),
+    (0, 120), (60, 120), (120, 120), (180, 120),
+    (0, 180), (60, 180)
+    )
     def __init__(self, hoover):
+        if Vacuum.image_vacuum is None:
+            Vacuum.image_vacuum = load_image('Assets/Sprites/Hoover/ResourceHoover_Sucking.png')
         self.hoover = hoover
         self.is_flip = ''
         self.draw_angle = 0
+        self.frame = 0
+        self.w = self.h = 60
+        self.frames_per_action = len(Vacuum.VACUUM_FRAMES)
+        self.frame_per_time = 1 * self.frames_per_action
 
     def enter(self, e):
         if mouse_motion(e):
@@ -77,7 +90,7 @@ class Vacuuming:
         return True
 
     def do(self):
-        pass
+        self.frame = (self.frame + self.frame_per_time * game_framework.frame_time) % self.frames_per_action
 
     def draw(self):
         if self.hoover.player.is_docked:
@@ -89,7 +102,17 @@ class Vacuuming:
         self.hoover.image_back.clip_composite_draw(0, 0, self.hoover.image_back.w, self.hoover.image_back.h,
                                                    self.draw_angle, self.is_flip,
                                                   view_x, view_y, draw_w, draw_h)
-        self.hoover.laser.draw()
+
+        clip_x, clip_y = Vacuum.VACUUM_FRAMES[int(self.frame)]
+        view_x2 = self.hoover.player.x + math.cos(self.hoover.angle) * (self.hoover.radius_min + self.w // 3)
+        view_y2 = self.hoover.player.y + math.sin(self.hoover.angle) * (self.hoover.radius_min + self.w // 3)
+        view_x2, view_y2 = camera.world_to_view(view_x2, view_y2)
+        draw_w2, draw_h2 = camera.get_draw_size(self.w, self.h)
+        Vacuum.image_vacuum.clip_composite_draw(clip_x, Vacuum.image_vacuum.h - self.h - clip_y, self.w, self.h,
+                                                self.draw_angle, self.is_flip,
+                                                view_x2, view_y2, draw_w2, draw_h2)
+
+
         self.hoover.image_front.clip_composite_draw(0, 0, self.hoover.image_front.w, self.hoover.image_front.h,
                                                     self.draw_angle, self.is_flip,
                                                   view_x, view_y, draw_w, draw_h)
@@ -101,14 +124,17 @@ class Hoover:
 
         self.player = player
         self.angle = 0
+        self.radius_min = self.image_back.w // 2
         self.laser_range = TILE_SIZE_PIXEL * 2
         self.laser = HooverLaser(self)
 
         self.IDLE = Idle(self)
+        self.VACUUM = Vacuum(self)
 
         self.stateMachine = StateMachine(self.IDLE,
                                          {
-                                             self.IDLE: { mouse_motion : self.IDLE }
+                                             self.IDLE: { mouse_motion : self.IDLE, mouse_right_pressed : self.VACUUM },
+                                             self.VACUUM: { mouse_motion : self.VACUUM, mouse_right_released : self.IDLE },
                                           })
 
     def update(self):
@@ -223,7 +249,7 @@ class HooverLaser:
 
         self.frame = 0
 
-        self.radius_min = self.hoover.image_back.w // 2 + 2
+        self.radius_min = self.hoover.radius_min
         # 충돌 처리용 레이저 사거리
         self.radius_max = self.radius_min + self.hoover.laser_range
         # 화면 표시용 레이저 사거리

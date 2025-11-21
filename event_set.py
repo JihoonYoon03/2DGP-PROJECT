@@ -77,3 +77,9 @@ def mouse_left_pressed(e):
 
 def mouse_left_released(e):
     return e[0] == 'INPUT' and e[1].type == sdl2.SDL_MOUSEBUTTONUP and e[1].button == sdl2.SDL_BUTTON_LEFT
+
+def mouse_right_pressed(e):
+    return e[0] == 'INPUT' and e[1].type == sdl2.SDL_MOUSEBUTTONDOWN and e[1].button == sdl2.SDL_BUTTON_RIGHT
+
+def mouse_right_released(e):
+    return e[0] == 'INPUT' and e[1].type == sdl2.SDL_MOUSEBUTTONUP and e[1].button == sdl2.SDL_BUTTON_RIGHT
