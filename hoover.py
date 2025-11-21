@@ -1,9 +1,11 @@
 from pico2d import *
 import event_set
+import vfx_manager
 from event_set import mouse_motion, mouse_coordinate
 from game_world import get_camera
 from state_machine import StateMachine
 from physics_data import *
+from vfx_manager import vfx_manager, VFXHooverLaserHit
 import math
 import game_framework
 import game_world
@@ -219,3 +221,8 @@ class HooverLaser:
             distance = math.sqrt(dist_x ** 2 + dist_y ** 2)
             if distance < self.radius_max:
                 self.radius_max = int(distance)
+
+            # 충돌 지점에 스파크 효과 추가
+            spark_x = self.x + self.radius_max * math.cos(self.angle)
+            spark_y = self.y + self.radius_max * math.sin(self.angle)
+            vfx_manager.get_vfx_from_pool(VFXHooverLaserHit, spark_x, spark_y, self)
