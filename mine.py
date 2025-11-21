@@ -1,8 +1,9 @@
 from mine_data import data_set
 from tile import *
 from pico2d import *
-from game_world import get_camera
 from physics_data import *
+import random
+from game_world import get_camera
 
 class Mine:
     image_entrance = None
@@ -36,6 +37,24 @@ class Mine:
         self.mine_lower = mine_data['size'][1] - self.mine_upper - 1 # 입구 타일 포함 안함
 
         self.tile_set = TileSet(mine_data['image'], mine_data['size'], mine_data['tiles'], self.begin_x, self.begin_y, layer)
+        # 광물 타일 분포 계산 및 생성
+        total_tiles = 0
+
+        for tile in self.tile_set.tiles:
+            if tile.is_bedrock:
+                continue
+            total_tiles += 1
+
+        for mineral in mine_data['minerals'].items():
+            amount = int(total_tiles * mineral[1] / 100)
+            for i in range(0, amount):
+                while True:
+                    tile_index = random.randint(0, total_tiles - 1)
+                    tile = self.tile_set.tiles[tile_index]
+                    if tile.is_bedrock or tile.has_resource:
+                        continue
+                    tile.get_resource(mineral[0])
+                    break
 
         # 입구 위아래 타일
         self.entrance_tile_top = Tile(self.tile_set, self.begin_x, self.begin_y, -1,  self.entrance_tile_y - 1, F_L,

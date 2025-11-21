@@ -301,7 +301,7 @@ class TileDefault:
 
             self.tile.res_image.clip_composite_draw(
                 0, 0, res_clip_w, res_clip_h,
-                view_x, view_y, res_draw_w, res_draw_h
+                0, '', view_x, view_y, res_draw_w, res_draw_h
             )
 
         if self.tile.hp < self.tile.max_hp:
