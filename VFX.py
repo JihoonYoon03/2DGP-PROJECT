@@ -5,41 +5,6 @@ from state_machine import StateMachine
 from event_set import *
 from abc import abstractmethod, ABCMeta
 
-
-class VFXManager:
-    def __init__(self):
-        self.vfx_list = []
-        self.vfx_pool = {}  # VFX 풀링용 딕셔너리
-
-    def get_vfx_from_pool(self, vfx_class, *args):
-        # setdefault로 풀에 해당 VFX 클래스가 있는지 판단
-        pool = self.vfx_pool.setdefault(vfx_class, [])
-        for vfx in pool:
-            # 있으면 재활용
-            if vfx.finished:
-                vfx.reactivate(*args)
-            return vfx
-        else:
-            # 없으면 새로 생성
-            vfx = vfx_class(*args)
-            pool.append(vfx)
-            self.__add_vfx(vfx)
-            game_world.add_object(vfx, vfx.layer)
-        return vfx
-
-    # private
-    def __add_vfx(self, vfx, layer = 1):
-        if vfx not in self.vfx_list:
-            self.vfx_list.append(vfx)
-            game_world.add_object(vfx, layer)
-
-    # def delete_vfx(self, vfx):
-    #     if vfx in self.vfx_list:
-    #         self.vfx_list.remove(vfx)
-    #         game_world.remove_object(vfx)
-
-vfx_manager = VFXManager()
-
 class VFXRunning:
     def __init__(self, vfx):
         self.vfx = vfx
@@ -47,7 +12,7 @@ class VFXRunning:
     def enter(self, e):
         if signal_wake_up(e):
             self.vfx.current_frame = 0
-            self.vfx.finished = False
+            self.vfx.inactive = False
         if self.vfx.summoner is not None:
             self.vfx.x, self.vfx.y = self.vfx.get_location()
 
@@ -67,7 +32,7 @@ class VFXRunning:
             if self.vfx.loop:
                 self.vfx.current_frame %= self.vfx.frame_count
             else:
-                self.vfx.finished = True
+                self.vfx.inactive = True
                 self.vfx.stateMachine.handle_state_event(('TIME_OUT', None))
 
     def draw(self):
@@ -97,7 +62,7 @@ class VFXSleep:
             return False
 
     def do(self):
-        if not self.vfx.finished:
+        if not self.vfx.inactive:
             self.vfx.stateMachine.handle_state_event(('WAKE_UP', None))
 
     def draw(self):
@@ -122,8 +87,10 @@ class VFX(metaclass=ABCMeta):
         self.current_frame = 0
 
         self.elapsed_time = 0.0
-        self.finished = False
+        self.inactive = False
         self.loop = False
+
+        self.unique_key = None
 
         self.stateMachine = None
 
@@ -140,7 +107,7 @@ class VFX(metaclass=ABCMeta):
     def reactivate(self, x, y):
         self.x = x
         self.y = y
-        self.finished = False
+        self.inactive = False
 
     # VFX별 구현 필수
     @abstractmethod
@@ -167,6 +134,7 @@ class VFXHooverLaserHit(VFX):
         self.layer = layer
 
         self.summoner = summoner
+        self.unique_key = summoner
 
         self.frame_count = 3
         action_per_time = 3 # 초당 액션 재생 수

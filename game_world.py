@@ -1,7 +1,9 @@
 import math
 import heapq
+import object_pool
 
 world = [[]]
+obj_pool = object_pool.object_pool()
 
 camera = None
 UI_ResourceData = None

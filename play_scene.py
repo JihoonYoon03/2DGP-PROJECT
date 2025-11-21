@@ -6,7 +6,7 @@ from robo_spider import RoboSpider
 from tile import Ground
 from mine import Mine
 from camera import Camera
-from play_scene_ui import UIResourceData
+from UI_play_scene import UIResourceData
 import game_world
 import game_framework
 

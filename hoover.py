@@ -1,11 +1,9 @@
 from pico2d import *
-import event_set
-import vfx_manager
 from event_set import mouse_motion, mouse_coordinate
-from game_world import get_camera
 from state_machine import StateMachine
 from physics_data import *
-from vfx_manager import vfx_manager, VFXHooverLaserHit
+from VFX import VFXHooverLaserHit
+from game_world import get_camera
 import math
 import game_framework
 import game_world
@@ -226,7 +224,7 @@ class HooverLaser:
             # 충돌 지점에 스파크 효과 추가
             spark_x = self.x + self.radius_display * math.cos(self.angle)
             spark_y = self.y + self.radius_display * math.sin(self.angle)
-            vfx_manager.get_vfx_from_pool(VFXHooverLaserHit, spark_x, spark_y, self, 4)
+            game_world.obj_pool.get_object(VFXHooverLaserHit, spark_x, spark_y, self, 4, **{'unique_key': self})
 
     def handle_none_collision(self, group):
         if group == 'hoover_laser:tile':
