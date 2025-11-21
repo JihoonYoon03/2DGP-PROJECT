@@ -145,9 +145,18 @@ def collide_ray_cast(target, start_x, start_y, angle, max_range):
 
     return False
 
+def collide_range(a, b):
+    dx = a.x - b.x
+    dy = a.y - b.y
+    distance = math.sqrt(dx * dx + dy * dy)
+    if distance <= (a.collision_range + b.collision_range):
+        return True
+    return False
+
 collision_pairs_bb = {}
 collision_pairs_outer_radius = {}
 collision_pairs_ray_cast = {}
+collision_pairs_range = {}
 
 def add_collision_pair_bb(group, a, b):
     if group not in collision_pairs_bb: # 처음 추가되는 그룹이면
@@ -169,7 +178,7 @@ def add_collision_pair_outer_radius(group, a, b, degree_start=0, degree_end=0, r
     collision_pairs_outer_radius[group][2] = degree_start
     collision_pairs_outer_radius[group][3] = degree_end
     collision_pairs_outer_radius[group][4] = radius
-    collision_pairs_outer_radius[group][5] = offset
+    collision_pairs_outer_radius[group][5] = offset\
 
 def add_collision_pair_ray_cast(group, a, b):
     if group not in collision_pairs_ray_cast: # 처음 추가되는 그룹이면
@@ -179,15 +188,26 @@ def add_collision_pair_ray_cast(group, a, b):
     if b:
         collision_pairs_ray_cast[group][1].append(b)
 
+def add_collision_pair_range(group, a, b):
+    if group not in collision_pairs_range:
+        collision_pairs_range[group] = [[], []]
+    if a:
+        collision_pairs_range[group][0].append(a)
+    if b:
+        collision_pairs_range[group][1].append(b)
+
 def handle_collisions():
     handle_collisions_bb()
     handle_collisions_outer_radius()
     handle_collisions_ray_cast()
+    handle_collisions_range()
 
 def handle_collisions_bb():
     for group, pairs in collision_pairs_bb.items():
         for a in pairs[0]:
             for b in pairs[1]:
+                if a == b:
+                    continue
                 if collide_bb(a, b):
                     a.handle_collision(group, b)
                     b.handle_collision(group, a)
@@ -243,3 +263,13 @@ def handle_collisions_ray_cast():
                 break
             else:
                 laser.penetration -= 1
+
+def handle_collisions_range():
+    for group, pairs in collision_pairs_range.items():
+        for a in pairs[0]:
+            for b in pairs[1]:
+                if a == b:
+                    continue
+                if collide_range(a, b):
+                    a.handle_collision(group, b)
+                    b.handle_collision(group, a)

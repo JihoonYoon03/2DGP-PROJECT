@@ -1,4 +1,6 @@
 from pico2d import *
+from pygame.draw import circle
+
 from physics_data import *
 from state_machine import StateMachine
 from game_world import get_camera
@@ -67,7 +69,9 @@ class Ore:
                 self.IDLE: {}
             })
 
+        self.collision_range = min(self.image.w, self.image.h) / 1.2
         game_world.add_collision_pair_bb('ore:tile', self, None)
+        game_world.add_collision_pair_range('ore:ore', self, self)
 
     def update(self):
         self.stateMachine.update()
@@ -76,7 +80,10 @@ class Ore:
         self.stateMachine.draw()
 
         camera = get_camera()
-        x1, y1, x2, y2 = self.get_bb()
+        x1 = self.x - self.collision_range / 2
+        y1 = self.y - self.collision_range / 2
+        x2 = self.x + self.collision_range / 2
+        y2 = self.y + self.collision_range / 2
         view_x1, view_y1 = camera.world_to_view(x1, y1)
         view_x2, view_y2 = camera.world_to_view(x2, y2)
         draw_rectangle(view_x1, view_y1, view_x2, view_y2)
@@ -121,3 +128,29 @@ class Ore:
                     self.x = tile_right + half_w
                 self.vx = 0
                 self.ax = 0
+
+        elif group == 'ore:ore':
+            dx = self.x - other.x
+            dy = self.y - other.y
+
+            dist = math.hypot(dx, dy)
+            min_dist = (self.collision_range + other.collision_range) // 2  # 충돌범위 합
+
+            if dist == 0:
+                # 완전히 겹친 경우 임의 방향으로 분리
+                dx, dy = 1, 0
+                dist = 1
+
+            # 겹침 정도
+            overlap = min_dist - dist
+            if overlap > 0:
+                # 겹친 만큼 반씩 밀어냄
+                self.x += (dx / dist) * (overlap / 2)
+                self.y += (dy / dist) * (overlap / 2)
+
+                # 반대쪽 ore는 자기 핸들러에서 처리
+
+                self.vx = 0
+                self.vy = 0
+                self.ax = 0
+                self.ay = 0
