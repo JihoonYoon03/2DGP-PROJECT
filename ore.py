@@ -1,6 +1,9 @@
 from pico2d import *
 from physics_data import *
 from state_machine import StateMachine
+from game_world import get_camera
+import game_framework
+import game_world
 
 class Idle:
     def __init__(self, ore):
@@ -13,10 +16,18 @@ class Idle:
         return True
 
     def do(self):
-        pass
+        self.ore.vx += self.ore.ax * game_framework.frame_time
+        self.ore.vy += self.ore.ay * game_framework.frame_time
+        self.ore.vy -= GRAVITY * game_framework.frame_time
+        self.ore.x += self.ore.vx * game_framework.frame_time
+        self.ore.y += self.ore.vy * game_framework.frame_time
 
     def draw(self):
-        self.ore.draw()
+        camera = get_camera()
+        view_x, view_y = camera.world_to_view(self.ore.x, self.ore.y)
+        draw_w, draw_h = camera.get_draw_size(Ore.image_ore[self.ore.ore_type].w, Ore.image_ore[self.ore.ore_type].h)
+        Ore.image_ore[self.ore.ore_type].clip_draw(0, 0, Ore.image_ore[self.ore.ore_type].w, Ore.image_ore[self.ore.ore_type].h,
+                                                   view_x, view_y, draw_w, draw_h)
 
 class Ore:
     image_ore = list()
@@ -37,8 +48,10 @@ class Ore:
         self.y = y
 
         self.dir_vector = (0, 0)
-        self.acceleration = 0.0
-        self.velocity = 0.0
+        self.ax = 0.0
+        self.ay = 0.0
+        self.vx = 0.0
+        self.vy = 0.0
         self.ore_type = ore_type
 
         self.IDLE = Idle(self)

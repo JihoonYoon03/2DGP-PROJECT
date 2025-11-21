@@ -213,6 +213,7 @@ def handle_collisions_ray_cast():
         # 일단 레이저 하나만 체크
         laser = pairs[0][0]
         if not laser.shooting:
+            laser.collide = False
             continue
         start_x = laser.x
         start_y = laser.y

@@ -56,10 +56,7 @@ class VFXSleep:
         pass
 
     def exit(self, e):
-        if self.vfx.additional_condition(e):
-            return True
-        else:
-            return False
+        return True
 
     def do(self):
         if not self.vfx.inactive:
@@ -114,10 +111,6 @@ class VFX(metaclass=ABCMeta):
     def get_location(self):
         pass
 
-    @abstractmethod
-    def additional_condition(self, e):
-        pass
-
 class VFXHooverLaserHit(VFX):
     # 시작 좌표 (x, y), 객체 레퍼런스
     def __init__(self, x, y, summoner = None, layer = 1):
@@ -146,19 +139,11 @@ class VFXHooverLaserHit(VFX):
         self.SLEEP = VFXSleep(self)
         self.stateMachine = StateMachine(self.IDLE,
                                          {
-                                             self.IDLE : { mouse_left_released : self.SLEEP, lambda e: self.summoner.collide is False : self.SLEEP },
-                                             self.SLEEP : { lambda e: self.summoner.collide is True : self.IDLE}
+                                             self.IDLE : { lambda e: not (self.summoner.shooting and self.summoner.collide) : self.SLEEP },
+                                             self.SLEEP : { lambda e: self.summoner.shooting and self.summoner.collide : self.IDLE }
                                          })
 
     def get_location(self):
         x = self.summoner.x + self.summoner.radius_display * math.cos(self.summoner.angle)
         y = self.summoner.y + self.summoner.radius_display * math.sin(self.summoner.angle)
         return x, y
-
-    def additional_condition(self, e):
-        if self.summoner.collide:
-            if self.summoner.shooting:
-                return True
-            else:
-                return False
-        return True

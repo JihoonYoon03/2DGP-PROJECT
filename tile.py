@@ -8,6 +8,7 @@ import game_framework
 from game_world import get_camera
 from physics_data import TILE_SIZE_PIXEL, TILE_W_H
 from state_machine import StateMachine
+from ore import Ore
 
 # Tex_Bedrock.png 타일 좌표 (x, y)
 # 타일 크기: 40x40, 패딩: 20칸, 좌측/상단 패딩: 10칸
@@ -248,6 +249,7 @@ class Ground:
 class TileSet:
     def __init__(self, image_path, mine_size, tile_info, begin_x, begin_y, layer):
         self.image = load_image(image_path)
+        self.layer = layer
         self.tiles = list()
         # 인접 타일 체크용 타일 위치 리스트
         self.tiles_location = dict()
@@ -502,7 +504,9 @@ class Tile:
             if not self.is_bedrock:
                 self.hp -= other.damage * game_framework.frame_time
                 if self.hp <= 0:
-                    game_world.UI_ResourceData.add_resource_amount(self.resource_type, 1)
+                    # game_world.UI_ResourceData.add_resource_amount(self.resource_type, 1)
+                    if self.has_resource:
+                        game_world.add_object(Ore(self.x, self.y, self.resource_type), self.tileset.layer)
                     game_world.remove_collision_object(self)
                     self.stateMachine.handle_state_event(('DEAD', None))
                     self.tileset.tile_destroyed(self)
