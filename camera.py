@@ -65,7 +65,7 @@ class Camera:
                 self.zoom = 0.2
 
     def camera_enter_mine(self):
-        self.zoom = 2.0
+        self.zoom = 2.4
         self.offset_x = 0
         self.offset_y = 0
 

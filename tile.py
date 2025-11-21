@@ -1,5 +1,7 @@
 from pico2d import *
 from enum import IntFlag
+
+import event_set
 from physics_data import *
 import game_world
 import game_framework
@@ -347,6 +349,43 @@ class TileDefault:
             view_x2, view_y2 = camera.world_to_view(x2, y2)
             draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
+class TileDelete:
+    image_delete = None
+    def __init__(self, tile):
+        self.tile = tile
+        self.frame = 0
+        self.frame_count = 8
+        time_per_action = 0.4
+        self.frame_per_time = self.frame_count / time_per_action
+        self.w_h = 48
+
+        if TileDelete.image_delete is None:
+            TileDelete.image_delete = load_image('Assets/Sprites/Tile/BlockRuin.png')
+
+    def enter(self, e):
+        pass
+
+    def exit(self, e):
+        return True
+
+    def do(self):
+        self.frame += self.frame_per_time * game_framework.frame_time
+        if self.frame >= self.frame_count:
+            game_world.remove_object(self.tile)
+
+    def draw(self):
+        camera = get_camera()
+        view_x, view_y = camera.world_to_view(self.tile.x, self.tile.y)
+        draw_w, draw_h = camera.get_draw_size(self.w_h, self.w_h)
+
+        frame = int(self.frame)
+        clip_x = self.w_h * frame
+        clip_y = TileDelete.image_delete.h - self.w_h - (self.w_h * (frame // 5))
+        TileDelete.image_delete.clip_draw(
+            clip_x, clip_y, self.w_h, self.w_h,
+            view_x, view_y, draw_w, draw_h
+        )
+
 
 class Tile:
     # tile_data: 타일 데이터 튜플
@@ -398,10 +437,13 @@ class Tile:
             game_world.add_collision_pair_ray_cast('hoover_laser:tile', None, self)
 
         self.IDLE = TileDefault(self)
+        self.DELETE = TileDelete(self)
 
         self.stateMachine = StateMachine(
             self.IDLE,
-            {}
+            {
+                self.IDLE : { event_set.signal_dead : self.DELETE }
+             }
         )
 
     def nearby_destroyed(self, destroyed_tile):
@@ -461,7 +503,8 @@ class Tile:
                 self.hp -= other.damage * game_framework.frame_time
                 if self.hp <= 0:
                     game_world.UI_ResourceData.add_resource_amount(self.resource_type, 1)
-                    game_world.remove_object(self)
+                    game_world.remove_collision_object(self)
+                    self.stateMachine.handle_state_event(('DEAD', None))
                     self.tileset.tile_destroyed(self)
 
     def get_resource(self, res_type):
