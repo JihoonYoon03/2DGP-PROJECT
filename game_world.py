@@ -253,7 +253,7 @@ def handle_collisions_ray_cast():
             continue
 
         for nearest in nearest_heap:
-            collide = True
+            laser.collide = True
             obj = nearest[1]
             laser.handle_collision(group, obj)
             obj.handle_collision(group, laser)

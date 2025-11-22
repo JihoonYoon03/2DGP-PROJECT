@@ -139,8 +139,8 @@ class VFXHooverLaserHit(VFX):
         self.SLEEP = VFXSleep(self)
         self.stateMachine = StateMachine(self.IDLE,
                                          {
-                                             self.IDLE : { lambda e: not (self.summoner.shooting and self.summoner.collide) : self.SLEEP },
-                                             self.SLEEP : { lambda e: self.summoner.shooting and self.summoner.collide : self.IDLE }
+                                             self.IDLE : { lambda e: not self.summoner.collide : self.SLEEP },
+                                             self.SLEEP : { lambda e: self.summoner.collide : self.IDLE }
                                          })
 
     def get_location(self):
