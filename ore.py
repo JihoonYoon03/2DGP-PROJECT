@@ -72,6 +72,7 @@ class Ore:
         self.collision_range = min(self.image.w, self.image.h) / 1.2
         game_world.add_collision_pair_bb('ore:tile', self, None)
         game_world.add_collision_pair_range('ore:ore', self, self)
+        game_world.add_collision_pair_range('hoover_vacuum:ore', None, self)
 
     def update(self):
         self.stateMachine.update()

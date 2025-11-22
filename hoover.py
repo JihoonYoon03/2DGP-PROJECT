@@ -176,6 +176,7 @@ class Hoover:
         self.laser_range = TILE_SIZE_PIXEL * 2
         self.radius_min = self.image_back.w // 2
         self.radius_max = self.radius_min + self.laser_range
+        self.radius_vacuum = self.radius_min + TILE_SIZE_PIXEL
         # 화면 표시용 레이저 사거리
         self.radius_display = self.radius_max
         self.damage = HOOVER_LASER_DAMAGE_PER_TIME
@@ -194,7 +195,9 @@ class Hoover:
                                              self.DRILL : { mouse_motion : self.DRILL, lambda e: not self.shooting : self.IDLE}
                                           })
 
+        self.collision_range = self.radius_vacuum
         game_world.add_collision_pair_ray_cast('hoover_laser:tile', self, None)
+        game_world.add_collision_pair_range('hoover_vacuum:ore', self, None)
 
     def update(self):
         self.stateMachine.update()
@@ -238,6 +241,9 @@ class Hoover:
             spark_x = self.player.x + self.radius_display * math.cos(self.angle)
             spark_y = self.player.y + self.radius_display * math.sin(self.angle)
             game_world.obj_pool.get_object(VFXHooverLaserHit, spark_x, spark_y, self, 4, **{'unique_key': self})
+
+        elif group == 'hoover_vacuum:ore':
+            print('Vacuumed ore!')
 
     def handle_none_collision(self, group):
         if group == 'hoover_laser:tile':
