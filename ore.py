@@ -23,6 +23,11 @@ class Idle:
         self.ore.vy -= GRAVITY * game_framework.frame_time
         if self.ore.vy > MAX_ORE_FALLING_SPEED:
             self.ore.vy = MAX_ORE_FALLING_SPEED
+        self.ore.omega = self.ore.alpha * game_framework.frame_time
+        self.ore.angle += self.ore.omega * game_framework.frame_time
+        self.ore.vx *= self.ore.friction
+        self.ore.vy *= self.ore.friction
+        self.ore.omega *= self.ore.friction
         self.ore.x += self.ore.vx * game_framework.frame_time
         self.ore.y += self.ore.vy * game_framework.frame_time
 
@@ -30,8 +35,9 @@ class Idle:
         camera = get_camera()
         view_x, view_y = camera.world_to_view(self.ore.x, self.ore.y)
         draw_w, draw_h = camera.get_draw_size(self.ore.w, self.ore.h)
-        self.ore.image.clip_draw(0, 0, self.ore.w, self.ore.h,
-                                                   view_x, view_y, draw_w, draw_h)
+        self.ore.image.clip_composite_draw(0, 0, self.ore.w, self.ore.h,
+                                            self.ore.angle, '',
+                                            view_x, view_y, draw_w, draw_h)
 
 class Ore:
     image_ore = list()
@@ -56,6 +62,10 @@ class Ore:
         self.ay = 0.0
         self.vx = 0.0
         self.vy = -GRAVITY * 0.5  # 약간 떨어지면서 시작
+        self.angle = 0.0
+        self.omega = 0.0
+        self.alpha = 0.0
+        self.friction = 0.99
         self.ore_type = ore_type
 
         self.image = Ore.image_ore[self.ore_type]
@@ -69,7 +79,7 @@ class Ore:
                 self.IDLE: {}
             })
 
-        self.collision_range = min(self.image.w, self.image.h) / 1.2
+        self.collision_range = min(self.image.w, self.image.h) * 0.4
         game_world.add_collision_pair_bb('ore:tile', self, None)
         game_world.add_collision_pair_range('ore:ore', self, self)
         game_world.add_collision_pair_range('hoover_vacuum:ore', None, self)
@@ -81,10 +91,10 @@ class Ore:
         self.stateMachine.draw()
 
         camera = get_camera()
-        x1 = self.x - self.collision_range / 2
-        y1 = self.y - self.collision_range / 2
-        x2 = self.x + self.collision_range / 2
-        y2 = self.y + self.collision_range / 2
+        x1 = self.x - self.collision_range
+        y1 = self.y - self.collision_range
+        x2 = self.x + self.collision_range
+        y2 = self.y + self.collision_range
         view_x1, view_y1 = camera.world_to_view(x1, y1)
         view_x2, view_y2 = camera.world_to_view(x2, y2)
         draw_rectangle(view_x1, view_y1, view_x2, view_y2)
@@ -133,25 +143,41 @@ class Ore:
         elif group == 'ore:ore':
             dx = self.x - other.x
             dy = self.y - other.y
-
             dist = math.hypot(dx, dy)
-            min_dist = (self.collision_range + other.collision_range) // 2  # 충돌범위 합
 
-            if dist == 0:
-                # 완전히 겹친 경우 임의 방향으로 분리
-                dx, dy = 1, 0
-                dist = 1
+            # 법선 벡터 계산, dx > 0이면 본인이 오른쪽, dy > 0이면 본인이 위쪽
+            nx = -dx / dist if dist != 0 else 0
+            ny = -dy / dist if dist != 0 else 0
 
-            # 겹침 정도
-            overlap = min_dist - dist
-            if overlap > 0:
-                # 겹친 만큼 반씩 밀어냄
-                self.x += (dx / dist) * (overlap / 2)
-                self.y += (dy / dist) * (overlap / 2)
+            # 겹친 길이 측정
+            overlap = self.collision_range + other.collision_range - dist
 
-                # 반대쪽 ore는 자기 핸들러에서 처리
+            # 겹친 길이만큼 위치 조정. 법선 벡터의 반대 방향으로 밀어냄
+            self.x -= nx * (overlap / 2)
+            self.y -= ny * (overlap / 2)
+            other.x += nx * (overlap / 2)
+            other.y += ny * (overlap / 2)
 
-                self.vx = 0
-                self.vy = 0
-                self.ax = 0
-                self.ay = 0
+            # 상대 속도
+            rv_x = other.vx - self.vx
+            rv_y = other.vy - self.vy
+
+            # 법선 방향 상대 속도
+            vel_along_normal = rv_x * nx + rv_y * ny
+
+            if vel_along_normal > 0:
+                return
+
+            # 임펄스 크기 계산
+            j = -(1 + ORE_RESTITUTION) * vel_along_normal
+            j /= 2 / ORE_MASS
+
+            # 임펄스 적용
+            impulse_x = j * nx
+            impulse_y = j * ny
+
+            # 튕김은 법선 반대 방향이므로 반대로 적용
+            self.vx -= impulse_x / ORE_MASS
+            self.vy -= impulse_y / ORE_MASS
+            other.vx += impulse_x / ORE_MASS
+            other.vy += impulse_y / ORE_MASS

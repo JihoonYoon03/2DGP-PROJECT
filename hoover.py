@@ -243,7 +243,7 @@ class Hoover:
             game_world.obj_pool.get_object(VFXHooverLaserHit, spark_x, spark_y, self, 4, **{'unique_key': self})
 
         elif group == 'hoover_vacuum:ore':
-            print('Vacuumed ore!')
+            pass
 
     def handle_none_collision(self, group):
         if group == 'hoover_laser:tile':
