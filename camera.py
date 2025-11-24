@@ -1,5 +1,5 @@
 import event_set
-from physics_data import WIN_WIDTH
+from physics_data import WIN_WIDTH, WIN_HEIGHT
 
 class Camera:
     def __init__(self, win_width, win_height):
@@ -56,6 +56,15 @@ class Camera:
     def get_draw_size(self, width, height):
         return round(width * self.zoom) + 1, round(height * self.zoom) + 1
 
+    def draw_clipping(self, x, y, w, h):
+        left = x - w // 2
+        right = x + w // 2
+        top = y + h // 2
+        bottom = y - h // 2
+        if right < 0 or left > WIN_WIDTH or top < 0 or bottom > WIN_HEIGHT:
+            return True
+        return False
+
     def handle_event(self, event):
         if event_set.equals_pressed(('INPUT', event)):
             self.zoom += 0.05
@@ -65,7 +74,7 @@ class Camera:
                 self.zoom = 0.2
 
     def camera_enter_mine(self):
-        self.zoom = 2.4
+        self.zoom = self.screen_width / 1920 * 3.0
         self.offset_x = 0
         self.offset_y = 0
 

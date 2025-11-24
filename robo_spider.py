@@ -393,39 +393,42 @@ class SpInIdle:
         # 배경 그리기
         view_x, view_y = camera.world_to_view(self.sp_in.sp.x, self.sp_in.sp.y - 16) # 이미지 크기 보정용 -2 추가
         draw_w, draw_h = camera.get_draw_size(self.sp_in.image_background.w, self.sp_in.image_background.h)
-        self.sp_in.image_background.clip_draw(0, 0, self.sp_in.image_background.w, self.sp_in.image_background.h,
-                                              view_x, view_y, draw_w, draw_h)
-        # 방 내부 그리기
-        draw_w, draw_h = camera.get_draw_size(self.sp_in.image_room.w, self.sp_in.image_room.h)
-        self.sp_in.image_room.clip_draw(0, 0, self.sp_in.image_room.w, self.sp_in.image_room.h,
-                                        view_x, view_y, draw_w, draw_h)
+        if not camera.draw_clipping(view_x, view_y, draw_w, draw_h):
+            self.sp_in.image_background.clip_draw(0, 0, self.sp_in.image_background.w, self.sp_in.image_background.h,
+                                                    view_x, view_y, draw_w, draw_h)
+            # 방 내부 그리기
+            draw_w, draw_h = camera.get_draw_size(self.sp_in.image_room.w, self.sp_in.image_room.h)
+            self.sp_in.image_room.clip_draw(0, 0, self.sp_in.image_room.w, self.sp_in.image_room.h,
+                                            view_x, view_y, draw_w, draw_h)
 
         # 도킹 게이트 그리기
         gate_view_x, gate_view_y = camera.world_to_view(self.sp_in.sp.x + self.sp_in.sp.w * 0.44, self.sp_in.sp.y)
         gate_draw_w, gate_draw_h = camera.get_draw_size(40, 84)
-        frame = int(self.sp_in.barrier_frame)
-        self.sp_in.image_barrier.clip_draw(frame * 40, self.sp_in.image_barrier.h - 84, 40, 84,
-                                        gate_view_x, gate_view_y, gate_draw_w, gate_draw_h)
+        if not camera.draw_clipping(gate_view_x, gate_view_y, gate_draw_w, gate_draw_h):
+            frame = int(self.sp_in.barrier_frame)
+            self.sp_in.image_barrier.clip_draw(frame * 40, self.sp_in.image_barrier.h - 84, 40, 84,
+                                                gate_view_x, gate_view_y, gate_draw_w, gate_draw_h)
 
-        # 자원 수집기 그리기
-        rh_view_x, rh_view_y = camera.world_to_view(self.sp_in.sp.x + self.sp_in.sp.w * 0.28, self.sp_in.sp.y)
-        rh_draw_w, rh_draw_h = camera.get_draw_size(44, 124)
-        frame = int(self.sp_in.rh_frame)
-        row = frame // 11 + 1
-        self.sp_in.image_rh.clip_draw(frame % 11 * 44, self.sp_in.image_rh.h - row * 124, 44, 124,
-                                                    rh_view_x, rh_view_y, rh_draw_w, rh_draw_h)
+            # 자원 수집기 그리기
+            rh_view_x, rh_view_y = camera.world_to_view(self.sp_in.sp.x + self.sp_in.sp.w * 0.28, self.sp_in.sp.y)
+            rh_draw_w, rh_draw_h = camera.get_draw_size(44, 124)
+            frame = int(self.sp_in.rh_frame)
+            row = frame // 11 + 1
+            self.sp_in.image_rh.clip_draw(frame % 11 * 44, self.sp_in.image_rh.h - row * 124, 44, 124,
+                                            rh_view_x, rh_view_y, rh_draw_w, rh_draw_h)
 
         # 프레임 그리기
         draw_w, draw_h = camera.get_draw_size(self.sp_in.image_frame.w, self.sp_in.image_frame.h)
-        self.sp_in.image_frame.clip_draw(0, 0, self.sp_in.image_frame.w, self.sp_in.image_frame.h,
-                                         view_x, view_y, draw_w, draw_h)
+        if not camera.draw_clipping(view_x, view_y, draw_w, draw_h):
+            self.sp_in.image_frame.clip_draw(0, 0, self.sp_in.image_frame.w, self.sp_in.image_frame.h,
+                                            view_x, view_y, draw_w, draw_h)
 
-        # 도킹 모듈 그리기
-        x, y = SPIDER_INNER_DOCKER_FRAMES[int(self.sp_in.docker_frame)]
-        docker_view_x, docker_view_y = camera.world_to_view(self.sp_in.docker_x, self.sp_in.docker_y)
-        draw_w, draw_h = camera.get_draw_size(40, 40)
-        self.sp_in.image_docker.clip_draw(x, self.sp_in.image_docker.h - 40 - y,
-                                          40, 40, docker_view_x, docker_view_y, draw_w, draw_h)
+            # 도킹 모듈 그리기
+            x, y = SPIDER_INNER_DOCKER_FRAMES[int(self.sp_in.docker_frame)]
+            docker_view_x, docker_view_y = camera.world_to_view(self.sp_in.docker_x, self.sp_in.docker_y)
+            draw_w, draw_h = camera.get_draw_size(40, 40)
+            self.sp_in.image_docker.clip_draw(x, self.sp_in.image_docker.h - 40 - y,
+                                              40, 40, docker_view_x, docker_view_y, draw_w, draw_h)
 
 # 스파이더 내부
 class RoboSpiderIn:

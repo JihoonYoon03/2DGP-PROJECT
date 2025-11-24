@@ -32,13 +32,6 @@ class Idle:
         if self.ore.vy < -MAX_ORE_FALLING_SPEED:
             self.ore.vy = -MAX_ORE_FALLING_SPEED
 
-        # 토크 -> 각가속도 -> 각속도
-        self.ore.alpha = self.ore.torque / self.ore.moment_of_inertia
-        self.ore.omega += self.ore.alpha * dt
-
-        # 각속도 -> 각도
-        self.ore.angle += self.ore.omega * dt
-
         # 속도 -> 위치
         self.ore.x += self.ore.vx * dt
         self.ore.y += self.ore.vy * dt
@@ -46,15 +39,18 @@ class Idle:
         # 힘/토크 초기화 (다음 프레임을 위해)
         self.ore.ax = 0
         self.ore.ay = 0
-        self.ore.torque = 0
+
+        self.ore.vx *= self.ore.friction
+        self.ore.vy *= self.ore.friction
 
     def draw(self):
         camera = get_camera()
         view_x, view_y = camera.world_to_view(self.ore.x, self.ore.y)
         draw_w, draw_h = camera.get_draw_size(self.ore.w, self.ore.h)
-        self.ore.image.clip_composite_draw(0, 0, self.ore.w, self.ore.h,
-                                           self.ore.angle, '',
-                                           view_x, view_y, draw_w, draw_h)
+        if not camera.draw_clipping(view_x, view_y, draw_w, draw_h):
+            self.ore.image.clip_composite_draw(0, 0, self.ore.w, self.ore.h,
+                                               0, '',
+                                               view_x, view_y, draw_w, draw_h)
 
 
 class Ore:
@@ -89,22 +85,13 @@ class Ore:
         # 물리 속성
         self.mass = ORE_MASS
         self.restitution = ORE_RESTITUTION
-        self.friction_coefficient = 0.6  # 마찰 계수
-
-        # 관성 모멘트 (원형 근사)
-        self.moment_of_inertia = 0.5 * self.mass * (self.radius ** 2)
+        self.friction = ORE_FRICTION  # 마찰 계수
 
         # 선형 운동
         self.vx = 1.0
         self.vy = -GRAVITY * 0.5
         self.ax = 0.0
         self.ay = 0.0
-
-        # 회전 운동
-        self.angle = 0.0
-        self.omega = 0.0
-        self.alpha = 0.0
-        self.torque = 0.0
 
         # 상태 머신
         self.IDLE = Idle(self)
@@ -146,15 +133,18 @@ class Ore:
     def handle_collision(self, group, other):
         if group == 'ore:tile':
             self.ground_friction(other)
+
         elif group == 'ore:ore':
             dx = other.x - self.x
             dy = other.y - self.y
             dist = math.hypot(dx, dy)
             if dist < self.collision_range + other.collision_range:
                 self.resolve_collision(self, other, dx, dy, dist)
+
         elif group == 'ore:hoover_vacuum':
             if other[0].Vacuuming:
                 self.apply_attraction(other[0].x, other[0].y, HOOVER_VACUUM_POWER)
+
         elif group == 'spider_mine_barrier:ore':
             self.stopped_by_barrier(other)
 
@@ -166,7 +156,6 @@ class Ore:
         self.x = barrier.x + barrier.w // 2 + self.w // 2 + 1
         self.vx = 0
         self.vy = 0
-        self.omega = 0
 
     def ground_friction(self, ground):
         """타일과의 충돌 처리 및 마찰 적용"""
@@ -209,48 +198,13 @@ class Ore:
 
         # 접촉점에서의 접선 방향 속도
         # = 중심의 접선 속도 + 회전에 의한 속도
-        contact_vel_tangent = (self.vx * tangent[0] + self.vy * tangent[1]) + \
-                              self.omega * self.radius
+        contact_vel_tangent = (self.vx * tangent[0] + self.vy * tangent[1])
 
-        # 속도가 매우 작으면 완전 정지 (jitter 방지)
+        # 속도가 매우 작으면 완전 정지
         velocity_threshold = 5.0  # 픽셀/초
-
-        # 마찰력 적용
-        if abs(contact_vel_tangent) > velocity_threshold:
-            # 동적 마찰
-            friction_impulse = -contact_vel_tangent * self.friction_coefficient * self.mass
-
-            # 질량과 관성을 고려한 임펄스 분배
-            denom = 1.0 / self.mass + (self.radius ** 2) / self.moment_of_inertia
-            j_friction = friction_impulse / denom
-
-            # 최대 마찰력 제한 (폭발 방지)
-            max_friction_impulse = abs(vel_normal) * self.friction_coefficient * self.mass * 2.0
-            j_friction = max(-max_friction_impulse, min(max_friction_impulse, j_friction))
-
-            # 선속도 변화
-            self.vx += tangent[0] * j_friction / self.mass
-            self.vy += tangent[1] * j_friction / self.mass
-
-            # 토크 적용
-            torque_direction = 1 if normal[0] != 0 else -1
-            applied_torque = self.radius * j_friction * torque_direction
-
-            # 토크 제한 (각가속도 폭발 방지)
-            max_torque = self.moment_of_inertia * 100  # 최대 각가속도 100 rad/s^2
-            applied_torque = max(-max_torque, min(max_torque, applied_torque))
-
-            self.torque += applied_torque
-        else:
-            # 정적 마찰: 완전히 멈춤
+        if abs(contact_vel_tangent) < velocity_threshold:
             self.vx -= tangent[0] * contact_vel_tangent
             self.vy -= tangent[1] * contact_vel_tangent
-            self.omega *= 0.5
-
-        # 각속도 최댓값 제한 (안전장치)
-        max_angular_velocity = 10.0  # rad/s
-        if abs(self.omega) > max_angular_velocity:
-            self.omega = max_angular_velocity if self.omega > 0 else -max_angular_velocity
 
     def resolve_collision(self, body1, body2, dx, dy, dist):
         """광석끼리의 충돌 처리"""
