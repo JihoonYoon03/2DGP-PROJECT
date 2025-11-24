@@ -93,10 +93,21 @@ class Vacuum:
                                                 self.hoover.draw_angle, self.hoover.is_flip,
                                                 view_x2, view_y2, draw_w2, draw_h2)
 
-
         self.hoover.image_front.clip_composite_draw(0, 0, self.hoover.image_front.w, self.hoover.image_front.h,
                                                     self.hoover.draw_angle, self.hoover.is_flip,
                                                   view_x, view_y, draw_w, draw_h)
+
+        view_x, view_y = camera.world_to_view(self.hoover.player.x, self.hoover.player.y - 20)
+        bar_w, bar_h = camera.get_draw_size(36, 8)
+        self.hoover.image_bar_back.clip_draw(0, 0, self.hoover.image_bar_back.w, self.hoover.image_bar_back.h,
+                                                       view_x, view_y, bar_w, bar_h)
+
+        progress_w = self.hoover.caught_ores / HOOVER_CAPACITY * bar_w
+        self.hoover.image_bar_progress.clip_draw(0, 0, self.hoover.image_bar_progress.w, self.hoover.image_bar_progress.h,
+                                                       view_x - (bar_w - progress_w) / 2, view_y, progress_w, bar_h)
+
+        self.hoover.image_bar_front.clip_draw(0, 0, self.hoover.image_bar_front.w, self.hoover.image_bar_front.h,
+                                                       view_x, view_y, bar_w, bar_h)
 
 class Drilling:
     def __init__(self, hoover):
@@ -173,6 +184,9 @@ class Hoover:
         self.image_front = load_image('Assets/Sprites/Hoover/ResourceHoover_lvl1_Front.png')
         self.image_ray = load_image('Assets/Sprites/Bullets/DrillingRay.png')
         self.image_ray_spark = load_image('Assets/Sprites/VFX/DrillingFlash.png')
+        self.image_bar_back = load_image('Assets/Sprites/UI/ResourceHoover_UI_Bar_Back.png')
+        self.image_bar_front = load_image('Assets/Sprites/UI/ResourceHoover_UI_Bar_Front.png')
+        self.image_bar_progress = load_image('Assets/Sprites/UI/ResourceHoover_UI_Bar_Progress.png')
 
         self.player = player
         self.x = player.x
@@ -216,7 +230,7 @@ class Hoover:
         self.stateMachine = StateMachine(self.IDLE,
                                          {
                                              self.IDLE: { mouse_motion : self.IDLE, mouse_right_pressed : self.VACUUM, mouse_left_pressed : self.DRILL },
-                                             self.VACUUM: { mouse_motion : self.VACUUM, mouse_right_released : self.IDLE, lambda e : not self.player.engage : self.IDLE },
+                                             self.VACUUM: { mouse_motion : self.VACUUM, mouse_right_released : self.IDLE },
                                              self.DRILL : { mouse_motion : self.DRILL, mouse_left_released : self.IDLE, lambda e : not self.player.engage : self.IDLE }
                                           })
 

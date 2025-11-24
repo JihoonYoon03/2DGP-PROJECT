@@ -19,11 +19,12 @@ class ResData:
         self.res_data.image.clip_composite_draw(0, 0, self.res_data.image.w, self.res_data.image.h,
                                                  0, '', self.res_data.x, self.res_data.y,
                                                 self.res_data.w, self.res_data.h)
+        self.res_data.font.draw(self.res_data.x - self.res_data.w * 0.32, self.res_data.y + self.res_data.h * 0.35, 'Resources', (255, 200, 0))
         list_y = self.res_data.list_y
         list_x = self.res_data.list_x
         count = 0
         for res, savings in self.res_data.res_amount.items():
-            if savings == 0:
+            if savings == 0 and res != 0:
                 continue
             self.res_data.res_image[res].clip_composite_draw(0, 0, self.res_data.res_image[res].w,
                                                               self.res_data.res_image[res].h,
@@ -60,7 +61,7 @@ class UIResourceData:
         self.x = WIN_WIDTH - self.w // 2 - 10
         self.y = WIN_HEIGHT - self.h // 2 - 10
         self.list_x = self.x - self.w * 0.3
-        self.list_y = self.y + self.h * 0.3
+        self.list_y = self.y + self.h * 0.2
         self.dx = self.w * 0.9 // 2
         self.dy = self.h * 0.9 // 9 + 6
 
