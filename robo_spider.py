@@ -1,5 +1,4 @@
 from pico2d import *
-from pygame.draw import circle
 
 import game_world
 import game_framework
@@ -353,6 +352,10 @@ class RoboSpider:
                 return True
         return False
 
+    def gather_resources(self, amount):
+        game_world.UI_ResourceData.add_resources(amount)
+        self.inner.rh_frame = 1 # 자원 수집기 작동 애니메이션 재생
+
 class SpInIdle:
     frames_per_action = None
     action_per_time = None
@@ -377,9 +380,10 @@ class SpInIdle:
                                        % SpInIdle.frames_per_action)
             self.sp_in.barrier_frame = ((self.sp_in.barrier_frame + self.sp_in.barrier_frames_per_time * game_framework.frame_time)
                                         % self.sp_in.barrier_frame_count)
-            if self.sp_in.rh_frame > 0:
-                self.sp_in.rh_frame = ((self.sp_in.rh_frame + self.sp_in.rh_per_time * game_framework.frame_time)
-                                       % self.sp_in.rh_frame_count)
+            if 0 < self.sp_in.rh_frame:
+                self.sp_in.rh_frame += self.sp_in.rh_per_time * game_framework.frame_time
+                if self.sp_in.rh_frame > self.sp_in.rh_frame_count:
+                    self.sp_in.rh_frame = 0
         else:
             self.sp_in.docker_x = self.sp_in.sp.x - 16
             self.sp_in.docker_y = self.sp_in.sp.y
