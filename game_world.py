@@ -1,6 +1,8 @@
 import math
 import heapq
 import object_pool
+import physics_data
+from physics_data import *
 
 world = [[]]
 obj_pool = object_pool.object_pool()
@@ -206,7 +208,8 @@ def handle_collisions_bb():
     for group, pairs in collision_pairs_bb.items():
         for a in pairs[0]:
             for b in pairs[1]:
-                if a == b:
+                distance = math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
+                if a == b or distance > physics_data.TILE_SIZE_PIXEL * 4:
                     continue
                 if collide_bb(a, b):
                     a.handle_collision(group, b)

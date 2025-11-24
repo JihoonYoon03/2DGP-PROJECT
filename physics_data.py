@@ -43,6 +43,8 @@ def get_hoover_laser_action_per_time(frame_count):
 class Collider_bb:
     def __init__(self, owner, offset_x, offset_y, width, height):
         self.owner = owner
+        self.x = owner.x
+        self.y = owner.y
         self.offset_x = offset_x
         self.offset_y = offset_y
         self.width = width
