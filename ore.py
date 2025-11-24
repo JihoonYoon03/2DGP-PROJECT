@@ -39,11 +39,6 @@ class Idle:
         # 각속도 -> 각도
         self.ore.angle += self.ore.omega * dt
 
-        # 공기 저항 (선택적)
-        air_resistance = 0.998
-        self.ore.vx *= air_resistance
-        self.ore.omega *= air_resistance
-
         # 속도 -> 위치
         self.ore.x += self.ore.vx * dt
         self.ore.y += self.ore.vy * dt
@@ -65,7 +60,7 @@ class Idle:
 class Ore:
     image_ore = list()
 
-    def __init__(self, x, y, ore_type):
+    def __init__(self, x, y, res_type):
         if len(Ore.image_ore) == 0:
             Ore.image_ore.append(load_image('Assets/Sprites/Item/CommonResource_Item.png'))
             Ore.image_ore.append(load_image('Assets/Sprites/Item/RareRes1_Item.png'))
@@ -82,10 +77,10 @@ class Ore:
         self.y = y
 
         # 이미지 설정
-        self.ore_type = ore_type
-        self.image = Ore.image_ore[self.ore_type]
-        self.w = Ore.image_ore[self.ore_type].w
-        self.h = Ore.image_ore[self.ore_type].h
+        self.res_type = res_type
+        self.image = Ore.image_ore[self.res_type]
+        self.w = Ore.image_ore[self.res_type].w
+        self.h = Ore.image_ore[self.res_type].h
 
         # 충돌 범위
         self.collision_range = min(self.image.w, self.image.h) * 0.4
@@ -157,9 +152,11 @@ class Ore:
             if dist < self.collision_range + other.collision_range:
                 self.resolve_collision(self, other, dx, dy, dist)
         elif group == 'ore:hoover_vacuum':
-            print ("Ore vacuum check")
             if other[0].Vacuuming:
                 self.apply_attraction(other[0].x, other[0].y, HOOVER_VACUUM_POWER)
+
+    def caught_by_hoover(self, hoover):
+        game_world.remove_object(self)
 
     def ground_friction(self, ground):
         """타일과의 충돌 처리 및 마찰 적용"""

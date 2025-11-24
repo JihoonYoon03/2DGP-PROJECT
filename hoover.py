@@ -188,6 +188,18 @@ class Hoover:
         self.degree_start = -40
         self.degree_end = 40
         self.collision_radius_offset = (0, 0)
+        self.caught_ores = 0
+        self.res_amount = {
+                0 : 0,
+                1 : 0,
+                2 : 0,
+                3 : 0,
+                4 : 0,
+                5 : 0,
+                6 : 0,
+                7 : 0,
+                8 : 0,
+            }
 
         # 화면 표시용 레이저 사거리
         self.radius_display = self.radius_max
@@ -252,8 +264,14 @@ class Hoover:
             spark_y = self.player.y + self.radius_display * math.sin(self.angle)
             game_world.obj_pool.get_object(VFXHooverLaserHit, spark_x, spark_y, self, 4, **{'unique_key': self})
 
-        elif group == 'hoover_vacuum:ore':
-            pass
+        elif group == 'ore:hoover_vacuum':
+            ore = other[0]
+            distance = math.sqrt((ore.x - self.player.x) ** 2 + (ore.y - self.player.y) ** 2)
+            overlap = self.radius_min + ore.collision_range - distance
+            if overlap > 0 and self.Vacuuming and self.caught_ores < HOOVER_CAPACITY:
+                self.res_amount[ore.res_type] += 1
+                self.caught_ores += 1
+                ore.caught_by_hoover(self)
 
     def handle_none_collision(self, group):
         if group == 'hoover_laser:tile':

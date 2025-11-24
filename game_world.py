@@ -59,7 +59,7 @@ def remove_collision_object(o):
         if o in pairs[1]:
             pairs[1].remove(o)
 
-    for pairs in collision_pairs_outer_radius.values():
+    for pairs in collision_pairs_radius_limited.values():
         if o in pairs[0]:
             pairs[0].remove(o)
         if o in pairs[1]:
@@ -153,7 +153,7 @@ def collide_range(a, b):
     return False
 
 collision_pairs_bb = {}
-collision_pairs_outer_radius = {}
+collision_pairs_radius_limited = {}
 collision_pairs_ray_cast = {}
 collision_pairs_range = {}
 
@@ -167,17 +167,17 @@ def add_collision_pair_bb(group, a, b):
 
 
 def add_collision_pair_radius_limited(group, a, origin, radius=0, outer=False):
-    if group not in collision_pairs_outer_radius:
-        collision_pairs_outer_radius[group] = [[], [], None, None]
+    if group not in collision_pairs_radius_limited:
+        collision_pairs_radius_limited[group] = [[], [], None, None]
     if a:
-        collision_pairs_outer_radius[group][0].append(a)
+        collision_pairs_radius_limited[group][0].append(a)
     if origin:
-        collision_pairs_outer_radius[group][1].append(origin)
+        collision_pairs_radius_limited[group][1].append(origin)
     # 그룹당 하나의 설정값만 사용
-    if collision_pairs_outer_radius[group][2] is None:
-        collision_pairs_outer_radius[group][2] = radius
-    if collision_pairs_outer_radius[group][3] is None:
-        collision_pairs_outer_radius[group][3] = outer
+    if collision_pairs_radius_limited[group][2] is None:
+        collision_pairs_radius_limited[group][2] = radius
+    if collision_pairs_radius_limited[group][3] is None:
+        collision_pairs_radius_limited[group][3] = outer
 
 def add_collision_pair_ray_cast(group, a, b):
     if group not in collision_pairs_ray_cast: # 처음 추가되는 그룹이면
@@ -197,7 +197,7 @@ def add_collision_pair_range(group, a, b):
 
 def handle_collisions():
     handle_collisions_bb()
-    handle_collisions_outer_radius()
+    handle_collisions_radius_limited()
     handle_collisions_ray_cast()
     handle_collisions_range()
 
@@ -213,8 +213,8 @@ def handle_collisions_bb():
                     b.handle_collision(group, a)
 
 
-def handle_collisions_outer_radius():
-    for group, data in collision_pairs_outer_radius.items():
+def handle_collisions_radius_limited():
+    for group, data in collision_pairs_radius_limited.items():
         a_list = data[0]
         origin_list = data[1]
         radius = data[2]
