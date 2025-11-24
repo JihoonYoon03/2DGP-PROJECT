@@ -1,7 +1,7 @@
 from pico2d import *
 import event_set
 from event_set import signal_empty, signal_not_empty, signal_in_range, e_pressed
-from game_world import get_camera, collide_bb, collide_outer_radius
+from game_world import get_camera, collide_bb, collide_radius_limited
 from hoover import Hoover
 from state_machine import StateMachine
 from physics_data import *
@@ -327,12 +327,12 @@ class Player:
 
             # x만 증가시킬 때 충돌 검사
             self.x = origin_x
-            x_collide = collide_outer_radius(self, *other)
+            x_collide = collide_radius_limited(self, *other)
 
             # y만 증가시킬 때 충돌 검사
             self.x -= self.delta_x  # 복구
             self.y = origin_y
-            y_collide = collide_outer_radius(self, *other)
+            y_collide = collide_radius_limited(self, *other)
 
             self.y -= self.delta_y
 

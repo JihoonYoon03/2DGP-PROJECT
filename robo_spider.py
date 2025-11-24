@@ -257,7 +257,10 @@ class RoboSpider:
         self.w = 178
         self.h = 440
         self.radius = self.w // 2.0
-        self.collider_offset = (60, 0)
+        self.degree_start = 90
+        self.degree_end = 270
+        self.collision_radius_offset = (60, 0)
+
         self.additional_collider_upper = Collider_bb(self, 74, 60, 30, 70)
         self.additional_collider_lower = Collider_bb(self, 74, -60, 30, 70)
         game_world.add_collision_pair_bb('player:spider_inner_bb', None, self.additional_collider_upper)
@@ -274,7 +277,7 @@ class RoboSpider:
         game_world.add_object(self.player, 2)
         game_world.add_collision_pair_bb('player:tile', self.player, None)
         game_world.add_collision_pair_bb('player:spider_inner_bb', self.player, None)
-        game_world.add_collision_pair_outer_radius('player:spider_inner_dome', self.player, self, 90, 270, self.radius, self.collider_offset)
+        game_world.add_collision_pair_radius_limited('player:spider_inner_dome', self.player, self, self.radius, True)
 
         self.IDLE = SpIdle(self)
         self.UP = SpMove(self)
@@ -436,7 +439,7 @@ class RoboSpiderIn:
             draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
             # 2, 3사분면 반원 그리기 (디버그용)
-            view_x, view_y = cam.world_to_view(self.sp.x + self.sp.collider_offset[0], self.sp.y)
+            view_x, view_y = cam.world_to_view(self.sp.x + self.sp.collision_radius_offset[0], self.sp.y)
             radius = cam.value_to_view(self.sp.radius)
 
             import math
