@@ -297,6 +297,11 @@ class Ore:
         body2.vx += impulse_x / body2.mass
         body2.vy += impulse_y / body2.mass
 
+    def apply_force(self, fx, fy):
+        """외부 힘 적용 (인력 등)"""
+        self.ax += fx / self.mass
+        self.ay += fy / self.mass
+
     def apply_attraction(self, target_x, target_y, strength=50000):
         """특정 지점으로 끌어당기는 힘"""
         dx = target_x - self.x
