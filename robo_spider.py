@@ -375,8 +375,11 @@ class SpInIdle:
             self.sp_in.docker_frame = ((self.sp_in.docker_frame
                                        + SpInIdle.frames_per_action * SpInIdle.action_per_time * game_framework.frame_time)
                                        % SpInIdle.frames_per_action)
-            self.sp_in.gate_frame = ((self.sp_in.gate_frame + self.sp_in.gate_frames_per_time * game_framework.frame_time)
-                                     % self.sp_in.gate_frame_count)
+            self.sp_in.barrier_frame = ((self.sp_in.barrier_frame + self.sp_in.barrier_frames_per_time * game_framework.frame_time)
+                                        % self.sp_in.barrier_frame_count)
+            if self.sp_in.rh_frame > 0:
+                self.sp_in.rh_frame = ((self.sp_in.rh_frame + self.sp_in.rh_per_time * game_framework.frame_time)
+                                       % self.sp_in.rh_frame_count)
         else:
             self.sp_in.docker_x = self.sp_in.sp.x - 16
             self.sp_in.docker_y = self.sp_in.sp.y
@@ -394,11 +397,19 @@ class SpInIdle:
                                         view_x, view_y, draw_w, draw_h)
 
         # 도킹 게이트 그리기
-        gate_view_x, gate_view_y = camera.world_to_view(self.sp_in.sp.x + self.sp_in.sp.w / 2.2, self.sp_in.sp.y)
+        gate_view_x, gate_view_y = camera.world_to_view(self.sp_in.sp.x + self.sp_in.sp.w * 0.44, self.sp_in.sp.y)
         gate_draw_w, gate_draw_h = camera.get_draw_size(40, 84)
-        frame = int(self.sp_in.gate_frame)
+        frame = int(self.sp_in.barrier_frame)
         self.sp_in.image_barrier.clip_draw(frame * 40, self.sp_in.image_barrier.h - 84, 40, 84,
                                         gate_view_x, gate_view_y, gate_draw_w, gate_draw_h)
+
+        # 자원 수집기 그리기
+        rh_view_x, rh_view_y = camera.world_to_view(self.sp_in.sp.x + self.sp_in.sp.w * 0.28, self.sp_in.sp.y)
+        rh_draw_w, rh_draw_h = camera.get_draw_size(44, 124)
+        frame = int(self.sp_in.rh_frame)
+        row = frame // 11 + 1
+        self.sp_in.image_rh.clip_draw(frame % 11 * 44, self.sp_in.image_rh.h - row * 124, 44, 124,
+                                                    rh_view_x, rh_view_y, rh_draw_w, rh_draw_h)
 
         # 프레임 그리기
         draw_w, draw_h = camera.get_draw_size(self.sp_in.image_frame.w, self.sp_in.image_frame.h)
@@ -419,7 +430,8 @@ class RoboSpiderIn:
         self.image_frame = load_image('Assets/Sprites/Spider/Spider_Inner_Frame.png')
         self.image_background = load_image('Assets/Sprites/Spider/Spider_Inner_Opened.png')
         self.image_docker = load_image('Assets/Sprites/Spider/Spider_DockingModule.png')
-        self.image_barrier = load_image('Assets/Sprites/Spider/EnergyGate_Idle.png') # 40*84
+        self.image_barrier = load_image('Assets/Sprites/Spider/EnergyGate_Idle.png')
+        self.image_rh = load_image('Assets/Sprites/Spider/Spider_ResourceHandler_Working.png')
 
         self.sp = robo_spider
 
@@ -427,9 +439,14 @@ class RoboSpiderIn:
         self.docker_y = robo_spider.y
         self.docker_frame = 0
 
-        self.gate_frame = 0
-        self.gate_frames_per_time = 8
-        self.gate_frame_count = 4
+        self.barrier_frame = 0
+        self.barrier_frames_per_time = 8
+        self.barrier_frame_count = 4
+
+        # rh = resource handler
+        self.rh_frame = 0
+        self.rh_per_time = 8
+        self.rh_frame_count = 16
 
         self.IDLE = SpInIdle(self)
         self.stateMachine = StateMachine(self.IDLE, {})
