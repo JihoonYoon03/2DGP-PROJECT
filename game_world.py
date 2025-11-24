@@ -168,14 +168,16 @@ def add_collision_pair_bb(group, a, b):
 
 def add_collision_pair_radius_limited(group, a, origin, radius=0, outer=False):
     if group not in collision_pairs_outer_radius:
-        collision_pairs_outer_radius[group] = [[], [], radius, outer]
+        collision_pairs_outer_radius[group] = [[], [], None, None]
     if a:
         collision_pairs_outer_radius[group][0].append(a)
     if origin:
         collision_pairs_outer_radius[group][1].append(origin)
     # 그룹당 하나의 설정값만 사용
-    collision_pairs_outer_radius[group][2] = radius
-    collision_pairs_outer_radius[group][3] = outer
+    if collision_pairs_outer_radius[group][2] is None:
+        collision_pairs_outer_radius[group][2] = radius
+    if collision_pairs_outer_radius[group][3] is None:
+        collision_pairs_outer_radius[group][3] = outer
 
 def add_collision_pair_ray_cast(group, a, b):
     if group not in collision_pairs_ray_cast: # 처음 추가되는 그룹이면

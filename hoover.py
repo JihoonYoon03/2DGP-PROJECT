@@ -1,5 +1,8 @@
+from math import degrees
+
 from pico2d import *
-from event_set import mouse_motion, mouse_coordinate, mouse_right_pressed, mouse_right_released
+from event_set import mouse_motion, mouse_coordinate, mouse_right_pressed, mouse_right_released, mouse_left_pressed, \
+    mouse_left_released
 from state_machine import StateMachine
 from physics_data import *
 from VFX import VFXHooverLaserHit
@@ -18,6 +21,8 @@ class Idle:
         pass
 
     def exit(self, e):
+        if not self.hoover.player.engage:
+            return False
         return True
 
     def do(self):
@@ -56,9 +61,11 @@ class Vacuum:
         self.frame_per_time = 1 * self.frames_per_action
 
     def enter(self, e):
+        self.hoover.Vacuuming = True
         pass
 
     def exit(self, e):
+        self.hoover.Vacuuming = False
         return True
 
     def do(self):
@@ -99,9 +106,10 @@ class Drilling:
         self.action_per_time = get_hoover_laser_action_per_time(self.frames_per_action)
 
     def enter(self, e):
-        pass
+        self.hoover.shooting = True
 
     def exit(self, e):
+        self.hoover.shooting = False
         return True
 
     def do(self):
@@ -176,11 +184,16 @@ class Hoover:
         self.laser_range = TILE_SIZE_PIXEL * 2
         self.radius_min = self.image_back.w // 2
         self.radius_max = self.radius_min + self.laser_range
-        self.radius_vacuum = self.radius_min + TILE_SIZE_PIXEL
+        self.radius_vacuum = self.radius_min + self.laser_range
+        self.degree_start = -40
+        self.degree_end = 40
+        self.collision_radius_offset = (0, 0)
+
         # 화면 표시용 레이저 사거리
         self.radius_display = self.radius_max
         self.damage = HOOVER_LASER_DAMAGE_PER_TIME
         self.penetration = 0
+        self.Vacuuming = False
         self.shooting = False
         self.collide = False
 
@@ -190,14 +203,14 @@ class Hoover:
 
         self.stateMachine = StateMachine(self.IDLE,
                                          {
-                                             self.IDLE: { mouse_motion : self.IDLE, mouse_right_pressed : self.VACUUM, lambda e: self.shooting : self.DRILL },
+                                             self.IDLE: { mouse_motion : self.IDLE, mouse_right_pressed : self.VACUUM, mouse_left_pressed : self.DRILL },
                                              self.VACUUM: { mouse_motion : self.VACUUM, mouse_right_released : self.IDLE },
-                                             self.DRILL : { mouse_motion : self.DRILL, lambda e: not self.shooting : self.IDLE}
+                                             self.DRILL : { mouse_motion : self.DRILL, mouse_left_released : self.IDLE}
                                           })
 
         self.collision_range = self.radius_vacuum
         game_world.add_collision_pair_ray_cast('hoover_laser:tile', self, None)
-        game_world.add_collision_pair_range('hoover_vacuum:ore', self, None)
+        game_world.add_collision_pair_radius_limited('ore:hoover_vacuum', None, self, self.radius_vacuum)
 
     def update(self):
         self.stateMachine.update()
@@ -206,19 +219,16 @@ class Hoover:
         self.stateMachine.draw()
 
     def handle_event(self, event):
-
-        if event.type == SDL_MOUSEBUTTONDOWN and event.button == SDL_BUTTON_LEFT and self.player.engage:
-            self.shooting = True
-        elif event.type == SDL_MOUSEBUTTONUP and event.button == SDL_BUTTON_LEFT and self.player.engage:
-            self.shooting = False
-
         if mouse_motion(('INPUT', event)):
             mouse_x, mouse_y = mouse_coordinate((None, event))
             camera = get_camera()
             view_x, view_y = camera.world_to_view(self.x, self.y)
             dx = mouse_x - view_x
             dy = mouse_y - view_y
-            self.angle = math.atan2(dy, dx)
+            da = math.atan2(dy, dx) - self.angle
+            self.angle += da
+            self.degree_start += degrees(da)
+            self.degree_end += degrees(da)
             self.draw_angle = self.angle
             if abs(self.draw_angle) > math.pi / 2:
                 self.draw_angle += math.pi

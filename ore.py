@@ -122,7 +122,7 @@ class Ore:
         # 충돌 등록
         game_world.add_collision_pair_bb('ore:tile', self, None)
         game_world.add_collision_pair_range('ore:ore', self, self)
-        game_world.add_collision_pair_range('hoover_vacuum:ore', None, self)
+        game_world.add_collision_pair_radius_limited('ore:hoover_vacuum', self, None, None)
 
     def update(self):
         self.stateMachine.update()
@@ -156,8 +156,10 @@ class Ore:
             dist = math.hypot(dx, dy)
             if dist < self.collision_range + other.collision_range:
                 self.resolve_collision(self, other, dx, dy, dist)
-        elif group == 'hoover_vacuum:ore':
-            self.apply_attraction(other.x, other.y, HOOVER_VACUUM_POWER)
+        elif group == 'ore:hoover_vacuum':
+            print ("Ore vacuum check")
+            if other[0].Vacuuming:
+                self.apply_attraction(other[0].x, other[0].y, HOOVER_VACUUM_POWER)
 
     def ground_friction(self, ground):
         """타일과의 충돌 처리 및 마찰 적용"""
@@ -295,11 +297,6 @@ class Ore:
         body2.vx += impulse_x / body2.mass
         body2.vy += impulse_y / body2.mass
 
-    def apply_force(self, fx, fy):
-        """외부 힘 적용 (인력 등)"""
-        self.ax += fx / self.mass
-        self.ay += fy / self.mass
-
     def apply_attraction(self, target_x, target_y, strength=50000):
         """특정 지점으로 끌어당기는 힘"""
         dx = target_x - self.x
@@ -308,7 +305,7 @@ class Ore:
 
         if dist > 0:
             # 거리 제곱에 반비례
-            force_magnitude = strength / (dist ** 2) % 10000  # 최대 힘 제한
+            force_magnitude = strength / (dist ** HOOVER_VACUUM_DAMPING) % (HOOVER_VACUUM_POWER / 2)  # 최대 힘 제한
             # 정규화된 방향 * 힘
             fx = (dx / dist) * force_magnitude
             fy = (dy / dist) * force_magnitude
