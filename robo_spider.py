@@ -263,6 +263,7 @@ class RoboSpider:
 
         self.additional_collider_upper = Collider_bb(self, 74, 60, 30, 70)
         self.additional_collider_lower = Collider_bb(self, 74, -60, 30, 70)
+        self.barrier = Collider_bb(self, 74, 0, 30, 70)
         game_world.add_collision_pair_bb('player:spider_inner_bb', None, self.additional_collider_upper)
         game_world.add_collision_pair_bb('player:spider_inner_bb', None, self.additional_collider_lower)
 
@@ -374,6 +375,8 @@ class SpInIdle:
             self.sp_in.docker_frame = ((self.sp_in.docker_frame
                                        + SpInIdle.frames_per_action * SpInIdle.action_per_time * game_framework.frame_time)
                                        % SpInIdle.frames_per_action)
+            self.sp_in.gate_frame = ((self.sp_in.gate_frame + self.sp_in.gate_frames_per_time * game_framework.frame_time)
+                                     % self.sp_in.gate_frame_count)
         else:
             self.sp_in.docker_x = self.sp_in.sp.x - 16
             self.sp_in.docker_y = self.sp_in.sp.y
@@ -389,6 +392,13 @@ class SpInIdle:
         draw_w, draw_h = camera.get_draw_size(self.sp_in.image_room.w, self.sp_in.image_room.h)
         self.sp_in.image_room.clip_draw(0, 0, self.sp_in.image_room.w, self.sp_in.image_room.h,
                                         view_x, view_y, draw_w, draw_h)
+
+        # 도킹 게이트 그리기
+        gate_view_x, gate_view_y = camera.world_to_view(self.sp_in.sp.x + self.sp_in.sp.w / 2.2, self.sp_in.sp.y)
+        gate_draw_w, gate_draw_h = camera.get_draw_size(40, 84)
+        frame = int(self.sp_in.gate_frame)
+        self.sp_in.image_barrier.clip_draw(frame * 40, self.sp_in.image_barrier.h - 84, 40, 84,
+                                        gate_view_x, gate_view_y, gate_draw_w, gate_draw_h)
 
         # 프레임 그리기
         draw_w, draw_h = camera.get_draw_size(self.sp_in.image_frame.w, self.sp_in.image_frame.h)
@@ -409,12 +419,17 @@ class RoboSpiderIn:
         self.image_frame = load_image('Assets/Sprites/Spider/Spider_Inner_Frame.png')
         self.image_background = load_image('Assets/Sprites/Spider/Spider_Inner_Opened.png')
         self.image_docker = load_image('Assets/Sprites/Spider/Spider_DockingModule.png')
+        self.image_barrier = load_image('Assets/Sprites/Spider/EnergyGate_Idle.png') # 40*84
 
         self.sp = robo_spider
 
         self.docker_x = robo_spider.x - 16
         self.docker_y = robo_spider.y
         self.docker_frame = 0
+
+        self.gate_frame = 0
+        self.gate_frames_per_time = 8
+        self.gate_frame_count = 4
 
         self.IDLE = SpInIdle(self)
         self.stateMachine = StateMachine(self.IDLE, {})
