@@ -118,6 +118,7 @@ class Ore:
         game_world.add_collision_pair_bb('ore:tile', self, None)
         game_world.add_collision_pair_range('ore:ore', self, self)
         game_world.add_collision_pair_radius_limited('ore:hoover_vacuum', self, None, None)
+        game_world.add_collision_pair_bb('spider_mine_barrier:ore', None, self)
 
     def update(self):
         self.stateMachine.update()
@@ -154,9 +155,18 @@ class Ore:
         elif group == 'ore:hoover_vacuum':
             if other[0].Vacuuming:
                 self.apply_attraction(other[0].x, other[0].y, HOOVER_VACUUM_POWER)
+        elif group == 'spider_mine_barrier:ore':
+            self.stopped_by_barrier(other)
+
 
     def caught_by_hoover(self, hoover):
         game_world.remove_object(self)
+
+    def stopped_by_barrier(self, barrier):
+        self.x = barrier.x + barrier.w // 2 + self.w // 2 + 1
+        self.vx = 0
+        self.vy = 0
+        self.omega = 0
 
     def ground_friction(self, ground):
         """타일과의 충돌 처리 및 마찰 적용"""

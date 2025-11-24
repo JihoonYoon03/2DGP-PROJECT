@@ -263,9 +263,10 @@ class RoboSpider:
 
         self.additional_collider_upper = Collider_bb(self, 74, 60, 30, 70)
         self.additional_collider_lower = Collider_bb(self, 74, -60, 30, 70)
-        self.barrier = Collider_bb(self, 74, 0, 30, 70)
+        self.barrier = Collider_bb(self, 0, 0, self.w * 1.05, 200)
         game_world.add_collision_pair_bb('player:spider_inner_bb', None, self.additional_collider_upper)
         game_world.add_collision_pair_bb('player:spider_inner_bb', None, self.additional_collider_lower)
+        game_world.add_collision_pair_bb('spider_mine_barrier:ore', self.barrier, None)
 
         # 광산 레퍼런스 리스트와 현재 도킹된 광산 입구 위치
         self.mine_list = list()
@@ -295,7 +296,6 @@ class RoboSpider:
 
     def update(self):
         self.stateMachine.update()
-        # self.inner.update()
 
     def draw(self):
         self.stateMachine.draw()
@@ -449,6 +449,11 @@ class RoboSpiderIn:
             draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
             x1, y1, x2, y2 = self.sp.additional_collider_lower.get_bb()
+            view_x1, view_y1 = cam.world_to_view(x1, y1)
+            view_x2, view_y2 = cam.world_to_view(x2, y2)
+            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
+
+            x1, y1, x2, y2 = self.sp.barrier.get_bb()
             view_x1, view_y1 = cam.world_to_view(x1, y1)
             view_x2, view_y2 = cam.world_to_view(x2, y2)
             draw_rectangle(view_x1, view_y1, view_x2, view_y2)

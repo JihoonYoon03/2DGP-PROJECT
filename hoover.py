@@ -216,8 +216,8 @@ class Hoover:
         self.stateMachine = StateMachine(self.IDLE,
                                          {
                                              self.IDLE: { mouse_motion : self.IDLE, mouse_right_pressed : self.VACUUM, mouse_left_pressed : self.DRILL },
-                                             self.VACUUM: { mouse_motion : self.VACUUM, mouse_right_released : self.IDLE },
-                                             self.DRILL : { mouse_motion : self.DRILL, mouse_left_released : self.IDLE}
+                                             self.VACUUM: { mouse_motion : self.VACUUM, mouse_right_released : self.IDLE, lambda e : not self.player.engage : self.IDLE },
+                                             self.DRILL : { mouse_motion : self.DRILL, mouse_left_released : self.IDLE, lambda e : not self.player.engage : self.IDLE }
                                           })
 
         self.collision_range = self.radius_vacuum
