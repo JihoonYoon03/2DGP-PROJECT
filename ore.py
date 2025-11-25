@@ -271,7 +271,7 @@ class Ore:
 
         if dist > 0:
             # 거리 제곱에 반비례
-            force_magnitude = strength / (dist ** HOOVER_VACUUM_DAMPING) % (HOOVER_VACUUM_POWER / 2)  # 최대 힘 제한
+            force_magnitude = strength / (dist ** HOOVER_VACUUM_DAMPING) % (HOOVER_VACUUM_POWER / 4)  # 최대 힘 제한
             # 정규화된 방향 * 힘
             fx = (dx / dist) * force_magnitude
             fy = (dy / dist) * force_magnitude

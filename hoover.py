@@ -199,8 +199,8 @@ class Hoover:
         self.radius_min = self.image_back.w // 2
         self.radius_max = self.radius_min + self.laser_range
         self.radius_vacuum = self.radius_min + self.laser_range
-        self.degree_start = -40
-        self.degree_end = 40
+        self.degree_start = -50
+        self.degree_end = 50
         self.collision_radius_offset = (0, 0)
         self.caught_ores = 0
         self.res_amount = {
