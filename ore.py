@@ -112,15 +112,10 @@ class Ore:
 
     def draw(self):
         self.stateMachine.draw()
-        # 디버그 용 바운딩 박스
+
         camera = get_camera()
-        x1 = self.x - self.collision_range
-        y1 = self.y - self.collision_range
-        x2 = self.x + self.collision_range
-        y2 = self.y + self.collision_range
-        view_x1, view_y1 = camera.world_to_view(x1, y1)
-        view_x2, view_y2 = camera.world_to_view(x2, y2)
-        draw_rectangle(view_x1, view_y1, view_x2, view_y2)
+        view_x, view_y = camera.world_to_view(self.x, self.y)
+        draw_circle(view_x, view_y, int(self.collision_range * camera.zoom), 255)
 
     def handle_event(self, event):
         pass
