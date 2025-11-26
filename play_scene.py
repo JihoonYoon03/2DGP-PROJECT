@@ -7,6 +7,7 @@ from tile import Ground
 from mine import Mine
 from camera import Camera
 from UI_play_scene import UIResourceData
+from enemy import *
 import game_world
 import game_framework
 
@@ -27,6 +28,9 @@ def init():
 
     spider = RoboSpider()
     game_world.add_object(spider, 1)
+
+    enemy_test = InfantryTier0(spider.x, spider.y)
+    game_world.add_object(enemy_test, 2)
 
     spider.mine_list = ground.get_mine_list()
     cam.cam_lock(spider, WIN_WIDTH // 3)

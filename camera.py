@@ -18,7 +18,8 @@ class Camera:
         self.offset_x = 0
         self.offset_y = 0
 
-        self.zoom = win_width / 1920 * 1.4
+        self.zoom = win_width / 1920 * 2.0
+        # self.zoom = win_width / 1920 * 1.4
         self.lock = False
         self.lock_target = None
 
