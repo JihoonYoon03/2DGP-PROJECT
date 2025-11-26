@@ -112,7 +112,7 @@ class InfantryTier0(EnemyBase):
 
         a2 = Action('Set Target Location', self.set_target_location)
         a3 = Action('Move to Target', self.move_to_target)
-        chase_target = Sequence('Chase Target', a1, a2)
+        chase_target = Sequence('Chase Target', a2, a3)
 
         root = Selector('Attack or Chase', attack_target, chase_target)
         self.bt = BehaviorTree(root)

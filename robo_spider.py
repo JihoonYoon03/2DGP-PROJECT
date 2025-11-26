@@ -3,9 +3,9 @@ from pico2d import *
 import game_world
 import game_framework
 import event_set
+import common
 from state_machine import StateMachine
 from event_set import signal_empty, signal_not_empty, r_pressed, signal_time_out
-from player import Player
 from physics_data import *
 
 # 스프라이트 프레임 정보 (x, y, w, h)
@@ -151,7 +151,7 @@ class SpDock:
         event_set.reset_all_flags()
 
     def exit(self, e):
-        if self.sp.frame < 34 or not self.sp.player.is_docked: return False # 도킹 모션이 끝나지 않았을 때는 상태 전환 불가
+        if self.sp.frame < 34 or not common.player.is_docked: return False # 도킹 모션이 끝나지 않았을 때는 상태 전환 불가
         return True
 
     def do(self):
@@ -185,7 +185,7 @@ class SpDock:
                 camera.camera_enter_mine()
                 self.sp.docked_mine.reveal()
                 self.sp.is_docking = True
-                self.sp.player.is_docked = True
+                common.player.is_docked = True
 
     def draw(self):
         camera = get_camera()
@@ -266,6 +266,7 @@ class RoboSpider:
         game_world.add_collision_pair_bb('player:spider_inner_bb', None, self.additional_collider_upper)
         game_world.add_collision_pair_bb('player:spider_inner_bb', None, self.additional_collider_lower)
         game_world.add_collision_pair_bb('spider_mine_barrier:ore', self.barrier, None)
+        game_world.add_collision_pair_radius_limited('player:spider_inner_dome', None, self, self.radius, True)
 
         # 광산 레퍼런스 리스트와 현재 도킹된 광산 입구 위치
         self.mine_list = list()
@@ -273,12 +274,6 @@ class RoboSpider:
 
         self.inner = RoboSpiderIn(self)
         game_world.add_object(self.inner, 2)
-
-        self.player = Player(self)
-        game_world.add_object(self.player, 2)
-        game_world.add_collision_pair_bb('player:tile', self.player, None)
-        game_world.add_collision_pair_bb('player:spider_inner_bb', self.player, None)
-        game_world.add_collision_pair_radius_limited('player:spider_inner_dome', self.player, self, self.radius, True)
 
         self.IDLE = SpIdle(self)
         self.UP = SpMove(self)

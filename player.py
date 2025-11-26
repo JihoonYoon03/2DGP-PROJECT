@@ -8,6 +8,7 @@ from physics_data import *
 import math
 import game_framework
 import game_world
+import common
 
 PLAYER_WIDTH = 40
 PLAYER_HEIGHT = 40
@@ -45,8 +46,8 @@ class Dock:
             self.player.frame = 12
         elif e[0] == 'IN_RANGE':
             self.player.is_docked = True
-            self.player.x = self.player.robo_spider.inner.docker_x
-            self.player.y = self.player.robo_spider.inner.docker_y
+            self.player.x = common.spider.inner.docker_x
+            self.player.y = common.spider.inner.docker_y
             self.player.frame = 0
             self.player.move_x = 0
             self.player.move_y = 0
@@ -57,8 +58,8 @@ class Dock:
 
     def do(self):
         if self.player.is_docked:
-            self.player.x = self.player.robo_spider.inner.docker_x
-            self.player.y = self.player.robo_spider.inner.docker_y
+            self.player.x = common.spider.inner.docker_x
+            self.player.y = common.spider.inner.docker_y
         if self.player.frame < Dock.frames_per_action - 1:
             self.player.frame = ((self.player.frame
                                   + Dock.frames_per_action * Dock.action_per_time * game_framework.frame_time)
@@ -156,13 +157,13 @@ class Move:
                               + Move.frames_per_action * Move.action_per_time * game_framework.frame_time)
                              % Move.frames_per_action)
 
-        if self.player.x > self.player.robo_spider.x + 100:
+        if self.player.x > common.spider.x + 100:
             camera = get_camera()
             camera.cam_lock(self.player)
             self.player.engage = True
         else:
             camera = get_camera()
-            camera.cam_lock(self.player.robo_spider)
+            camera.cam_lock(common.spider)
             self.player.engage = False
 
     def draw(self):
@@ -188,18 +189,17 @@ class Move:
 
 
 class Player:
-    def __init__(self, robo_spider):
+    def __init__(self):
         self.image_dock = load_image('Assets/Sprites/Player/Attaching_Player_Docking.png')
         self.image_idle = load_image('Assets/Sprites/Player/Hero_Idle.png')
         self.image_move_right = load_image('Assets/Sprites/Player/Hero_Right_Moving.png')
         self.image_move_up = load_image('Assets/Sprites/Player/Hero_Up_Moving.png')
         self.image_move_down = load_image('Assets/Sprites/Player/Hero_Down_Moving.png')
 
-        self.robo_spider = robo_spider
         self.is_docked = True  # 스파이더에 도킹 여부
         self.engage = False  # 광산 진입여부
-        self.x = robo_spider.x - 16
-        self.y = robo_spider.y
+        self.x = common.spider.x - 16
+        self.y = common.spider.y
         self.frame = 0
         self.face_dir = 0  # 1: right, -1: left, 2: up, -2: down
         self.move_x = 0
@@ -222,12 +222,16 @@ class Player:
                 self.MOVE: {signal_empty: self.IDLE, signal_in_range: self.DOCKED}
             })
 
+        game_world.add_collision_pair_bb('player:tile', self, None)
+        game_world.add_collision_pair_bb('player:spider_inner_bb', self, None)
+        game_world.add_collision_pair_radius_limited('player:spider_inner_dome', self, None, 0, True)
+
     def update(self):
-        if self.robo_spider.is_docking:
+        if common.spider.is_docking:
             self.stateMachine.update()
 
     def draw(self):
-        if self.robo_spider.is_docking:
+        if common.spider.is_docking:
             self.stateMachine.draw()
 
             camera = get_camera()
@@ -243,8 +247,8 @@ class Player:
 
         # IDLE과 MOVE 상태 변환을 위해 Player가 직접 키 입력을 처리
         if event_set.e_pressed(event_tuple) and not self.is_docked:
-            if math.sqrt(math.pow((self.x - self.robo_spider.inner.docker_x), 2) +
-                         math.pow((self.y - self.robo_spider.inner.docker_y), 2)) < 30:
+            if math.sqrt(math.pow((self.x - common.spider.inner.docker_x), 2) +
+                         math.pow((self.y - common.spider.inner.docker_y), 2)) < 30:
                 self.stateMachine.handle_state_event(('IN_RANGE', None))
                 return
         elif event_set.d_pressed(event_tuple):

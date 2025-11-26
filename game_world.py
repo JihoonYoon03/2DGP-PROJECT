@@ -2,20 +2,16 @@ import math
 import heapq
 import object_pool
 import physics_data
+import common
 from physics_data import *
 
 world = [[]]
 obj_pool = object_pool.object_pool()
 
-camera = None
 UI_ResourceData = None
 
-def set_camera(cam):
-    global camera
-    camera = cam
-
 def get_camera():
-    return camera
+    return common.cam
 
 def add_object(obj, layer = 0):
     if layer >= len(world):
@@ -32,9 +28,8 @@ def add_objects(objs, layer = 0):
     world[layer] += objs
 
 def update():
-    global camera
-    if camera:
-        camera.update()
+    if common.cam:
+        common.cam.update()
     for layer in world:
         for obj in layer:
             obj.update()
@@ -45,9 +40,8 @@ def render():
             obj.draw()
 
 def handle_event(event):
-    global camera
-    if camera:
-        camera.handle_event(event)
+    if common.cam:
+        common.cam.handle_event(event)
     for layer in world:
         for obj in layer:
             obj.handle_event(event)

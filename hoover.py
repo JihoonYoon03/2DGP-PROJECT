@@ -7,6 +7,7 @@ from state_machine import StateMachine
 from physics_data import *
 from VFX import VFXHooverLaserHit
 from game_world import get_camera
+import common
 import math
 import game_framework
 import game_world
@@ -265,7 +266,7 @@ class Hoover:
         # 자원 수집 처리
         if not self.player.engage:
             if self.caught_ores > 0:
-                self.player.robo_spider.gather_resources(self.res_amount)
+                common.spider.gather_resources(self.res_amount)
                 self.caught_ores = 0
                 for key in self.res_amount.keys():
                     self.res_amount[key] = 0

@@ -29,8 +29,8 @@ class ResData:
             self.res_data.res_image[res].clip_composite_draw(0, 0, self.res_data.res_image[res].w,
                                                               self.res_data.res_image[res].h,
                                                               0, '', list_x, list_y,
-                                                             self.res_data.res_image[res].w * 2,
-                                                             self.res_data.res_image[res].h * 2)
+                                                             self.res_data.res_image[res].w * self.res_data.ratio,
+                                                             self.res_data.res_image[res].h * self.res_data.ratio)
             amount_text = f'{savings}'
             self.res_data.font.draw(list_x + 14, list_y, amount_text, (255, 200, 0))
             list_y -= self.res_data.dy
@@ -55,9 +55,10 @@ class UIResourceData:
             load_image('Assets/Sprites/UI/RareRes7_Icon.png'),
             load_image('Assets/Sprites/UI/RareRes8_Icon.png'),
         )
-        self.font = load_font('Assets/Fonts/ARIAL.ttf', 18)
-        self.w = self.image.w * WIN_WIDTH / 1920 * 2.5
-        self.h = self.image.h * WIN_HEIGHT / 1080 * 2.5
+        self.ratio = (WIN_WIDTH / WIN_HEIGHT) / (1920 / 1080) * 1.5
+        self.font = load_font('Assets/Fonts/ARIAL.ttf', int(11 * self.ratio))
+        self.w = self.image.w * self.ratio
+        self.h = self.image.h * self.ratio
         self.x = WIN_WIDTH - self.w // 2 - 10
         self.y = WIN_HEIGHT - self.h // 2 - 10
         self.list_x = self.x - self.w * 0.3

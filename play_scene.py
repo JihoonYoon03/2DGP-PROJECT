@@ -3,11 +3,13 @@ from physics_data import WIN_WIDTH, WIN_HEIGHT
 
 from background import Background
 from robo_spider import RoboSpider
+from player import Player
 from tile import Ground
 from mine import Mine
 from camera import Camera
 from UI_play_scene import UIResourceData
 from enemy import *
+import common
 import game_world
 import game_framework
 
@@ -15,8 +17,7 @@ def init():
     background = Background()
     game_world.add_object(background, 0)
 
-    cam = Camera(WIN_WIDTH, WIN_HEIGHT)
-    game_world.set_camera(cam)
+    common.cam = Camera(WIN_WIDTH, WIN_HEIGHT)
 
     mines = [Mine(1, 5)]
     game_world.add_objects(mines, 5)
@@ -26,14 +27,17 @@ def init():
 
     ground.add_mines(mines)
 
-    spider = RoboSpider()
-    game_world.add_object(spider, 1)
+    common.spider = RoboSpider()
+    game_world.add_object(common.spider, 1)
 
-    enemy_test = InfantryTier0(spider.x, spider.y)
+    common.player = Player()
+    game_world.add_object(common.player, 2)
+
+    enemy_test = InfantryTier0(common.spider.x, common.spider.y)
     game_world.add_object(enemy_test, 2)
 
-    spider.mine_list = ground.get_mine_list()
-    cam.cam_lock(spider, WIN_WIDTH // 3)
+    common.spider.mine_list = ground.get_mine_list()
+    common.cam.cam_lock(common.spider, WIN_WIDTH // 3)
 
     game_world.UI_ResourceData = UIResourceData()
     game_world.add_object(game_world.UI_ResourceData, 10)
