@@ -7,32 +7,31 @@ import math
 from abc import abstractmethod, ABCMeta
 
 class EnemyBase(metaclass=ABCMeta):
-    def __init__(self, name):
-        self.x = 0
-        self.y = 0
+    def __init__(self, x, y, name, frame_data, w, h, frame, frame_count, frame_per_time, draw_angle, flip, state, speed, hp):
+        self.x = x
+        self.y = y
         self.name = name
 
         self.image ={   'Walk' : load_image('Assets/Sprites/Zyrex/' + name + 'WalkTileset.png'),
                         'Attack' : load_image('Assets/Sprites/Zyrex/' + name + 'AttackTileset.png'),
                         'Death' : load_image('Assets/Sprites/Zyrex/' + name + 'DeathTileset.png')
                     }
-        self.frame_data ={ 'Walk' : (),
-                           'Attack' : (),
-                            'Death': ()
-                        }
-        self.w = {'Walk' : 0, 'Attack' : 0, 'Death': 0}
-        self.h = {'Walk' : 0, 'Attack' : 0, 'Death': 0}
-        self.frame = 0
-        self.frame_count = {'Walk' : 0, 'Attack' : 0, 'Death': 0} # 걷기, 공격, 죽기
-        self.frame_per_time = {'Walk' : 0, 'Attack' : 0, 'Death': 0}
-        self.draw_angle = 0
-        self.flip = ''
-        self.state = 'Walk'
+        self.frame_data = frame_data
+        self.w = w
+        self.h = h
+        self.frame = frame
+        self.frame_count = frame_count
+        self.frame_per_time = frame_per_time
+
+        self.draw_angle = draw_angle
+        self.flip = flip
+
+        self.state = state
 
         self.tx = 0
         self.ty = 0
-        self.speed = 0
-        self.hp = 0
+        self.speed = speed
+        self.hp = hp
 
         self.build_behavior_tree()
 
@@ -67,33 +66,32 @@ class EnemyBase(metaclass=ABCMeta):
 
 class InfantryTier0(EnemyBase):
     def __init__(self, x, y):
-        super().__init__('Infantry')
-        self.x = x
-        self.y = y
+        super().__init__(
+            x, y, 'Infantry',
 
-        self.frame_data['Walk'] += (
-            (0, 0), (40, 0), (80, 0),
-            (0, 40), (40, 40), (80, 40),
-            (0, 80), (40, 80), (80, 80)
+    {'Walk' :(
+                (0, 0), (40, 0), (80, 0),
+                (0, 40), (40, 40), (80, 40),
+                (0, 80), (40, 80), (80, 80)
+                ),
+                'Attack' :(),
+                'Death' :()
+                },
+
+        {'Walk': 40, 'Attack' : 60, 'Death' : 40},
+        {'Walk': 40, 'Attack' : 46, 'Death' : 50},
+
+            0,
+            {'Walk' : 8, 'Attack' : 8, 'Death': 8},
+            {'Walk' : 8, 'Attack' : 8, 'Death': 8},
+            0,
+            '',
+
+            'Walk',
+            PIXEL_PER_METER,
+            0
         )
-        self.w['Walk'] = 40
-        self.w['Attack'] = 60
-        self.w['Death'] = 40
-
-        self.h['Walk'] = 40
-        self.h['Attack'] = 46
-        self.h['Death'] = 50
-
-        self.frame = 0
-
-        for key in self.frame_count.keys():
-            self.frame_count[key] = 8
-            self.frame_per_time[key] = 8
-
         # self.draw_angle = math.pi / 2
-        self.flip = ''
-
-        self.speed = PIXEL_PER_METER
 
     def target_in_range(self):
         pass
