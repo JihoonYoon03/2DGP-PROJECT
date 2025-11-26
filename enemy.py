@@ -102,9 +102,12 @@ class InfantryTier0(EnemyBase):
     def attack_target(self):
         pass
 
-    def set_target_location(self):
-        self.tx = self.spider.x
-        self.ty = self.spider.y
+    def set_target_location(self, x, y):
+        if x is None or y is None:
+            raise ValueError('목적지가 설정되어야 합니다.')
+        self.tx = x
+        self.ty = y
+        return BehaviorTree.SUCCESS
 
     def distance_less_than(self, x1, y1, x2, y2, r):
         distance2 = (x1 - x2) ** 2 + (y1 - y2) ** 2
@@ -130,7 +133,7 @@ class InfantryTier0(EnemyBase):
         a1 = Action('Attack Target', self.attack_target)
         attack_target = Sequence('Attack Target', c1, a1)
 
-        a2 = Action('Set Target Location', self.set_target_location)
+        a2 = Action('Set Target Location', self.set_target_location, self.spider.x, self.spider.y)
         a3 = Action('Move to Target', self.move_to_target)
         chase_target = Sequence('Chase Target', a2, a3)
 
