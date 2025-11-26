@@ -1,15 +1,18 @@
 from pico2d import *
+
 from physics_data import *
 from behavior_tree import *
 from game_world import get_camera
 import game_framework
 import math
+import common
 from abc import abstractmethod, ABCMeta
 
 class EnemyBase(metaclass=ABCMeta):
-    def __init__(self, x, y, name, frame_data, w, h, frame, frame_count, frame_per_time, draw_angle, flip, state, speed, hp):
+    def __init__(self, x, y, spider, name, frame_data, w, h, frame, frame_count, frame_per_time, draw_angle, flip, state, speed, hp):
         self.x = x
         self.y = y
+        self.spider = spider
         self.name = name
 
         self.image ={   'Walk' : load_image('Assets/Sprites/Zyrex/' + name + 'WalkTileset.png'),
@@ -30,7 +33,7 @@ class EnemyBase(metaclass=ABCMeta):
 
         self.tx = 0
         self.ty = 0
-        self.speed = speed
+        self.speed = speed # m/s
         self.hp = hp
 
         self.build_behavior_tree()
@@ -65,9 +68,9 @@ class EnemyBase(metaclass=ABCMeta):
         pass
 
 class InfantryTier0(EnemyBase):
-    def __init__(self, x, y):
+    def __init__(self, x, y, spider):
         super().__init__(
-            x, y, 'Infantry',
+            x, y, spider,'Infantry',
 
     {'Walk' :(
                 (0, 0), (40, 0), (80, 0),
@@ -88,7 +91,7 @@ class InfantryTier0(EnemyBase):
             '',
 
             'Walk',
-            PIXEL_PER_METER,
+            2,
             0
         )
         # self.draw_angle = math.pi / 2
@@ -100,10 +103,27 @@ class InfantryTier0(EnemyBase):
         pass
 
     def set_target_location(self):
-        pass
+        self.tx = self.spider.x
+        self.ty = self.spider.y
 
-    def move_to_target(self):
-        pass
+    def distance_less_than(self, x1, y1, x2, y2, r):
+        distance2 = (x1 - x2) ** 2 + (y1 - y2) ** 2
+        return distance2 < (PIXEL_PER_METER * r) ** 2
+
+    def move_little_to(self, tx, ty):
+        # 여기를 채우시오.
+        distance = self.speed * PIXEL_PER_METER * game_framework.frame_time
+        self.dir = math.atan2(ty - self.y, tx - self.x)
+        self.x += distance * math.cos(self.dir)
+        self.y += distance * math.sin(self.dir)
+
+    def move_to_target(self, r=0.5):
+        self.state = 'Walk' # 디버그 출력
+        self.move_little_to(self.tx, self.ty) # 목적지로 조금 이동
+        if self.distance_less_than(self.tx, self.ty, self.x, self.y, r):
+            return BehaviorTree.SUCCESS
+        else:
+            return BehaviorTree.RUNNING
 
     def build_behavior_tree(self):
         c1 = Condition('Target in range', self.target_in_range)
@@ -114,5 +134,6 @@ class InfantryTier0(EnemyBase):
         a3 = Action('Move to Target', self.move_to_target)
         chase_target = Sequence('Chase Target', a2, a3)
 
-        root = Selector('Attack or Chase', attack_target, chase_target)
+        # root = Selector('Attack or Chase', attack_target, chase_target)
+        root = chase_target
         self.bt = BehaviorTree(root)
