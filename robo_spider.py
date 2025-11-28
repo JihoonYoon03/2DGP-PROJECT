@@ -243,7 +243,6 @@ class RoboSpider:
         self.image_dock = load_image('Assets/Sprites/Spider/Spider_Docking.png')
         self.image_undock = load_image('Assets/Sprites/Spider/Spider_Undocking.png')
 
-        # 스파이더 중앙과 스프라이트 중앙 매칭 필요
         self.x = x - 178 // 2
         self.y = y
         self.speed = 1

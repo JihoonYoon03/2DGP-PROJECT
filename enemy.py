@@ -22,6 +22,7 @@ class EnemyBase(metaclass=ABCMeta):
         self.frame_data = frame_data
         self.w = w
         self.h = h
+        self.collision_range = (max(w['Walk'], h['Walk']) - 4) / 2
         self.frame = frame
         self.frame_count = frame_count
         self.frame_per_time = frame_per_time
@@ -29,6 +30,7 @@ class EnemyBase(metaclass=ABCMeta):
         self.draw_angle = draw_angle
         self.flip = flip
 
+        self.last_state = state
         self.state = state
 
         self.tx = 0
@@ -40,6 +42,9 @@ class EnemyBase(metaclass=ABCMeta):
 
     def update(self):
         self.frame = (self.frame + self.frame_per_time[self.state] * game_framework.frame_time) % self.frame_count[self.state]
+        if self.last_state != self.state:
+            self.frame = 0
+            self.last_state = self.state
         self.bt.run()
 
     def draw(self):
@@ -53,6 +58,7 @@ class EnemyBase(metaclass=ABCMeta):
                                                        self.draw_angle, self.flip,
                                                        view_x, view_y,
                                                        draw_w, draw_h)
+        draw_circle(view_x, view_y, int(self.collision_range * camera.zoom), 255, 0, 0)
 
     def handle_event(self, event):
         pass
@@ -77,17 +83,20 @@ class InfantryTier0(EnemyBase):
                 (0, 40), (40, 40), (80, 40),
                 (0, 80), (40, 80), (80, 80)
                 ),
-                'Attack' :(),
+                'Attack' :( # 60*44
+                    (0, 3), (60, 3), (120, 3), (180, 3),
+                    (0, 47), (60, 47), (120, 47), (180, 47)
+                ),
                 'Death' :()
                 },
 
-        {'Walk': 40, 'Attack' : 60, 'Death' : 40},
-        {'Walk': 40, 'Attack' : 46, 'Death' : 50},
+        {'Walk': 40, 'Attack' : 54, 'Death' : 40},
+        {'Walk': 40, 'Attack' : 44, 'Death' : 50},
 
             0,
             {'Walk' : 8, 'Attack' : 8, 'Death': 8},
             {'Walk' : 8, 'Attack' : 8, 'Death': 8},
-            0,
+            math.pi / 2,
             '',
 
             'Walk',
@@ -96,17 +105,22 @@ class InfantryTier0(EnemyBase):
         )
         # self.draw_angle = math.pi / 2
 
-    def target_in_range(self):
-        pass
+    def target_in_range(self, target, r=0.5):
+        if self.distance_less_than(target.x, target.y, self.x, self.y, r):
+            return BehaviorTree.SUCCESS
+        return BehaviorTree.FAIL
 
     def attack_target(self):
-        pass
+        print('Attacking target!')
+        self.last_state = self.state
+        self.state = 'Attack'  # 디버그 출력
+        return BehaviorTree.SUCCESS
 
-    def set_target_location(self, x, y):
-        if x is None or y is None:
+    def set_target_location(self, target):
+        if target is None:
             raise ValueError('목적지가 설정되어야 합니다.')
-        self.tx = x
-        self.ty = y
+        self.tx = target.x
+        self.ty = target.y
         return BehaviorTree.SUCCESS
 
     def distance_less_than(self, x1, y1, x2, y2, r):
@@ -121,22 +135,21 @@ class InfantryTier0(EnemyBase):
         self.y += distance * math.sin(self.dir)
 
     def move_to_target(self, r=0.5):
-        self.state = 'Walk' # 디버그 출력
-        self.move_little_to(self.tx, self.ty) # 목적지로 조금 이동
         if self.distance_less_than(self.tx, self.ty, self.x, self.y, r):
             return BehaviorTree.SUCCESS
-        else:
-            return BehaviorTree.RUNNING
+        self.last_state = self.state
+        self.state = 'Walk' # 디버그 출력
+        self.move_little_to(self.tx, self.ty) # 목적지로 조금 이동
+        return BehaviorTree.RUNNING
 
     def build_behavior_tree(self):
-        c1 = Condition('Target in range', self.target_in_range)
+        c1 = Condition('Target in range', self.target_in_range, self.spider, (self.spider.h / PIXEL_PER_METER) / 2)
         a1 = Action('Attack Target', self.attack_target)
-        attack_target = Sequence('Attack Target', c1, a1)
+        attack = Sequence('Attack', c1, a1)
 
-        a2 = Action('Set Target Location', self.set_target_location, self.spider.x, self.spider.y)
-        a3 = Action('Move to Target', self.move_to_target)
+        a2 = Action('Set Target Location', self.set_target_location, self.spider)
+        a3 = Action('Move to Target', self.move_to_target, (self.spider.h / PIXEL_PER_METER) / 2)
         chase_target = Sequence('Chase Target', a2, a3)
 
-        # root = Selector('Attack or Chase', attack_target, chase_target)
-        root = chase_target
+        root = Selector('Attack or Chase', attack, chase_target)
         self.bt = BehaviorTree(root)
