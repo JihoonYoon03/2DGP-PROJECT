@@ -295,6 +295,10 @@ class RoboSpider:
 
     def update(self):
         self.stateMachine.update()
+        self.collider_spider.update()
+        self.collider_entrance_up.update()
+        self.collider_entrance_down.update()
+        self.barrier.update()
 
     def draw(self):
         self.stateMachine.draw()
@@ -344,7 +348,8 @@ class RoboSpider:
         return self.x - half_w, self.y - half_h, self.x + half_w, self.y + half_h
 
     def handle_collision(self, group, other):
-        pass
+        if group == 'spider:enemy_melee':
+            print('got damaged by enemy melee!')
 
     # 도킹 시 근처 광산을 찾는 함수
     def find_nearby_mine(self):

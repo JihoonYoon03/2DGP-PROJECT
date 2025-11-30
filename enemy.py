@@ -48,6 +48,9 @@ class EnemyBase(metaclass=ABCMeta):
         if self.last_state != self.state:
             self.frame = 0
             self.last_state = self.state
+        if self.attack_collider is not None:
+            self.attack_collider.update()
+
         self.bt.run()
 
     def draw(self):
@@ -76,7 +79,11 @@ class EnemyBase(metaclass=ABCMeta):
         pass
 
     def handle_collision(self, other, group):
-        pass
+        if group == 'spider:enemy_melee':
+            print(f'{self.name} hit by melee for {other.dmg} damage')
+            if self.attack_collider is not None:
+                game_world.remove_collision_object(self.attack_collider)
+                self.attack_collider = None
 
     @abstractmethod
     def build_behavior_tree(self):
@@ -122,14 +129,10 @@ class InfantryTier0(EnemyBase):
     def attack_target(self):
         self.last_state = self.state
         self.state = 'Attack'  # 디버그 출력
-        if int(self.frame) == 4: # 공격 프레임에서 데미지 적용
-            print('Dealing', self.dmg, 'damage to target')
-            self.attack_collider = Collider_range(self, 0, self.collision_range * (-1 if self.flip else 1) , self.collision_range // 2)
-            game_world.add_collision_pair_range('spider:enemy_melee', None, self.attack_collider)
-        else:
-            if self.attack_collider is not None:
-                game_world.remove_collision_object(self.attack_collider)
-                self.attack_collider = None
+        if 4 < self.frame < 5: # 공격 프레임에서 데미지 적용
+            if self.attack_collider is None:
+                self.attack_collider = Collider_range(self, 0, self.collision_range * (-1 if self.flip else 1) , self.collision_range // 2)
+                game_world.add_collision_pair_range('spider:enemy_melee', None, self.attack_collider)
 
         return BehaviorTree.SUCCESS
 

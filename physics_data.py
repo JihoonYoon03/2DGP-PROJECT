@@ -62,6 +62,10 @@ class Collider_bb:
                 x + self.offset_x + self.w // 2,
                 y + self.offset_y + self.h // 2)
 
+    def update(self):
+        self.x = self.owner.x
+        self.y = self.owner.y
+
     def handle_collision(self, group, other):
         self.owner.handle_collision(group, other)
 
@@ -78,6 +82,10 @@ class Collider_range:
         x = self.owner.x + self.offset_x
         y = self.owner.y + self.offset_y
         return x, y
+
+    def update(self):
+        self.x = self.owner.x
+        self.y = self.owner.y
 
     def handle_collision(self, group, other):
         self.owner.handle_collision(group, other)
