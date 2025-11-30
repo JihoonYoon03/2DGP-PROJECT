@@ -3,13 +3,14 @@ from pico2d import *
 from physics_data import *
 from behavior_tree import *
 from game_world import get_camera
+import game_world
 import game_framework
 import math
 import common
 from abc import abstractmethod, ABCMeta
 
 class EnemyBase(metaclass=ABCMeta):
-    def __init__(self, x, y, spider, name, frame_data, w, h, frame, frame_count, frame_per_time, draw_angle, flip, state, speed, hp):
+    def __init__(self, x, y, spider, name, frame_data, w, h, frame, frame_count, frame_per_time, draw_angle, flip, state, speed, hp, dmg=0):
         self.x = x
         self.y = y
         self.spider = spider
@@ -37,6 +38,8 @@ class EnemyBase(metaclass=ABCMeta):
         self.ty = 0
         self.speed = speed # m/s
         self.hp = hp
+        self.dmg = dmg  # 근접 유닛 데미지(원거리는 총알 데미지로 처리)
+        self.attack_collider = None
 
         self.build_behavior_tree()
 
@@ -59,6 +62,12 @@ class EnemyBase(metaclass=ABCMeta):
                                                        view_x, view_y,
                                                        draw_w, draw_h)
         draw_circle(view_x, view_y, int(self.collision_range * camera.zoom), 255, 0, 0)
+
+        if self.attack_collider is not None:
+            x, y = self.attack_collider.get_position()
+            x, y = camera.world_to_view(x, y)
+            r = int(self.attack_collider.collision_range * camera.zoom)
+            draw_circle(x, y, r, 255, 0, 0)
 
     def handle_event(self, event):
         pass
@@ -101,19 +110,27 @@ class InfantryTier0(EnemyBase):
 
             'Walk',
             2,
-            0
+            100,
+            10
         )
-        # self.draw_angle = math.pi / 2
 
     def target_in_range(self, target, r=0.5):
-        if self.distance_less_than(target.x, target.y, self.x, self.y, r):
+        if self.distance_less_than(self.x, target.y, self.x, self.y, r):
             return BehaviorTree.SUCCESS
         return BehaviorTree.FAIL
 
     def attack_target(self):
-        print('Attacking target!')
         self.last_state = self.state
         self.state = 'Attack'  # 디버그 출력
+        if int(self.frame) == 4: # 공격 프레임에서 데미지 적용
+            print('Dealing', self.dmg, 'damage to target')
+            self.attack_collider = Collider_range(self, 0, self.collision_range * (-1 if self.flip else 1) , self.collision_range // 2)
+            game_world.add_collision_pair_range('spider:enemy_melee', None, self.attack_collider)
+        else:
+            if self.attack_collider is not None:
+                game_world.remove_collision_object(self.attack_collider)
+                self.attack_collider = None
+
         return BehaviorTree.SUCCESS
 
     def set_target_location(self, target):
@@ -125,7 +142,7 @@ class InfantryTier0(EnemyBase):
 
     def distance_less_than(self, x1, y1, x2, y2, r):
         distance2 = (x1 - x2) ** 2 + (y1 - y2) ** 2
-        return distance2 < (PIXEL_PER_METER * r) ** 2
+        return distance2 <= (PIXEL_PER_METER * r) ** 2
 
     def move_little_to(self, tx, ty):
         # 여기를 채우시오.
@@ -135,20 +152,20 @@ class InfantryTier0(EnemyBase):
         self.y += distance * math.sin(self.dir)
 
     def move_to_target(self, r=0.5):
-        if self.distance_less_than(self.tx, self.ty, self.x, self.y, r):
+        if self.distance_less_than(self.x, self.ty, self.x, self.y, r):
             return BehaviorTree.SUCCESS
         self.last_state = self.state
         self.state = 'Walk' # 디버그 출력
-        self.move_little_to(self.tx, self.ty) # 목적지로 조금 이동
+        self.move_little_to(self.x, self.ty) # 목적지로 조금 이동
         return BehaviorTree.RUNNING
 
     def build_behavior_tree(self):
-        c1 = Condition('Target in range', self.target_in_range, self.spider, (self.spider.h / 2 + self.collision_range) / PIXEL_PER_METER)
+        c1 = Condition('Target in range', self.target_in_range, self.spider, (self.spider.collision_range - 30 + self.collision_range) / PIXEL_PER_METER)
         a1 = Action('Attack Target', self.attack_target)
         attack = Sequence('Attack', c1, a1)
 
         a2 = Action('Set Target Location', self.set_target_location, self.spider)
-        a3 = Action('Move to Target', self.move_to_target, (self.spider.h / 2 + self.collision_range) / PIXEL_PER_METER)
+        a3 = Action('Move to Target', self.move_to_target, (self.spider.collision_range - 30 + self.collision_range) / PIXEL_PER_METER)
         chase_target = Sequence('Chase Target', a2, a3)
 
         root = Selector('Attack or Chase', attack, chase_target)
