@@ -254,7 +254,7 @@ class RoboSpider:
 
         self.w = 178
         self.h = 440
-        self.radius = self.w // 2.0
+        self.radius_inner = self.w // 2.0 # 내부 반경
         self.degree_start = 90
         self.degree_end = 270
         self.collision_radius_offset = (60, 0)
@@ -265,7 +265,7 @@ class RoboSpider:
         game_world.add_collision_pair_bb('player:spider_inner_bb', None, self.additional_collider_upper)
         game_world.add_collision_pair_bb('player:spider_inner_bb', None, self.additional_collider_lower)
         game_world.add_collision_pair_bb('spider_mine_barrier:ore', self.barrier, None)
-        game_world.add_collision_pair_radius_limited('player:spider_inner_dome', None, self, self.radius, True)
+        game_world.add_collision_pair_radius_limited('player:spider_inner_dome', None, self, self.radius_inner, True)
 
         # 광산 레퍼런스 리스트와 현재 도킹된 광산 입구 위치
         self.mine_list = list()
@@ -292,11 +292,6 @@ class RoboSpider:
 
     def draw(self):
         self.stateMachine.draw()
-        camera = get_camera()
-        x1, y1, x2, y2 = self.get_bb()
-        view_x1, view_y1 = camera.world_to_view(x1, y1)
-        view_x2, view_y2 = camera.world_to_view(x2, y2)
-        draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
     def handle_event(self, event):
         if not self.is_docking and self.stateMachine.cur_state != self.DOCK:
@@ -481,27 +476,11 @@ class RoboSpiderIn:
             x1, y1, x2, y2 = self.sp.barrier.get_bb()
             view_x1, view_y1 = cam.world_to_view(x1, y1)
             view_x2, view_y2 = cam.world_to_view(x2, y2)
-            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
+            draw_rectangle(view_x1, view_y1, view_x2, view_y2, 150, 200, 255)
 
             # 2, 3사분면 반원 그리기 (디버그용)
             view_x, view_y = cam.world_to_view(self.sp.x + self.sp.collision_radius_offset[0], self.sp.y)
-            radius = cam.value_to_view(self.sp.radius)
-
-            import math
-            segments = 100  # 점의 개수 (많을수록 부드러움)
-
-            # π/2 (90°)부터 3π/2 (270°)까지
-            prev_x, prev_y = None, None
-            for i in range(segments + 1):
-                angle = math.pi / 2 + (math.pi * i / segments)
-                x = view_x + radius * math.cos(angle)
-                y = view_y + radius * math.sin(angle)
-
-                if prev_x is not None:
-                    # 두 점을 잇는 얇은 사각형 그리기
-                    draw_rectangle(prev_x, prev_y, x, y)
-
-                prev_x, prev_y = x, y
+            draw_circle(view_x, view_y, int(cam.value_to_view(self.sp.radius_inner)), 255, 0, 0)
 
     def handle_event(self, event):
         pass

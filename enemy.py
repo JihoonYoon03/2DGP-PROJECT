@@ -143,12 +143,12 @@ class InfantryTier0(EnemyBase):
         return BehaviorTree.RUNNING
 
     def build_behavior_tree(self):
-        c1 = Condition('Target in range', self.target_in_range, self.spider, (self.spider.h / PIXEL_PER_METER) / 2)
+        c1 = Condition('Target in range', self.target_in_range, self.spider, (self.spider.h / 2 + self.collision_range) / PIXEL_PER_METER)
         a1 = Action('Attack Target', self.attack_target)
         attack = Sequence('Attack', c1, a1)
 
         a2 = Action('Set Target Location', self.set_target_location, self.spider)
-        a3 = Action('Move to Target', self.move_to_target, (self.spider.h / PIXEL_PER_METER) / 2)
+        a3 = Action('Move to Target', self.move_to_target, (self.spider.h / 2 + self.collision_range) / PIXEL_PER_METER)
         chase_target = Sequence('Chase Target', a2, a3)
 
         root = Selector('Attack or Chase', attack, chase_target)
