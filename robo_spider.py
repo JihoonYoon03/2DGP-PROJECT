@@ -254,18 +254,24 @@ class RoboSpider:
 
         self.w = 178
         self.h = 440
-        self.radius_inner = self.w // 2.0 # 내부 반경
+        self.range_inner = self.w * 0.5 # 내부 반경
+        self.range_inner_offset = (60, 0)
+        game_world.add_collision_pair_radius_limited('player:spider_inner_dome', None, self, self.range_inner, True)
+
+        self.collision_range = self.w * 1.2  # 외부 충돌 반경
+        self.collision_range_offset = (120, 10)
+        self.collider_spider = Collider_range(self, self.collision_range_offset[0], self.collision_range_offset[1], self.collision_range)
+        game_world.add_collision_pair_range('spider:enemy_melee', self.collider_spider, None)
+
+         # 충돌 범위 제한
         self.degree_start = 90
         self.degree_end = 270
-        self.collision_radius_offset = (60, 0)
-
-        self.additional_collider_upper = Collider_bb(self, 74, 60, 30, 70)
-        self.additional_collider_lower = Collider_bb(self, 74, -60, 30, 70)
+        self.collider_entrance_up = Collider_bb(self, 74, 60, 30, 70)
+        self.collider_entrance_down = Collider_bb(self, 74, -60, 30, 70)
         self.barrier = Collider_bb(self, 0, 0, self.w * 1.05, 200)
-        game_world.add_collision_pair_bb('player:spider_inner_bb', None, self.additional_collider_upper)
-        game_world.add_collision_pair_bb('player:spider_inner_bb', None, self.additional_collider_lower)
+        game_world.add_collision_pair_bb('player:spider_inner_bb', None, self.collider_entrance_up)
+        game_world.add_collision_pair_bb('player:spider_inner_bb', None, self.collider_entrance_down)
         game_world.add_collision_pair_bb('spider_mine_barrier:ore', self.barrier, None)
-        game_world.add_collision_pair_radius_limited('player:spider_inner_dome', None, self, self.radius_inner, True)
 
         # 광산 레퍼런스 리스트와 현재 도킹된 광산 입구 위치
         self.mine_list = list()
@@ -292,6 +298,9 @@ class RoboSpider:
 
     def draw(self):
         self.stateMachine.draw()
+        camera = get_camera()
+        view_x, view_y = camera.world_to_view(self.x + self.collision_range_offset[0], self.y + self.collision_range_offset[1])
+        draw_circle(view_x, view_y, int(camera.value_to_view(self.collision_range)), 255, 0, 0)
 
     def handle_event(self, event):
         if not self.is_docking and self.stateMachine.cur_state != self.DOCK:
@@ -463,12 +472,12 @@ class RoboSpiderIn:
             self.stateMachine.draw()
 
             cam = get_camera()
-            x1, y1, x2, y2 = self.sp.additional_collider_upper.get_bb()
+            x1, y1, x2, y2 = self.sp.collider_entrance_up.get_bb()
             view_x1, view_y1 = cam.world_to_view(x1, y1)
             view_x2, view_y2 = cam.world_to_view(x2, y2)
             draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
-            x1, y1, x2, y2 = self.sp.additional_collider_lower.get_bb()
+            x1, y1, x2, y2 = self.sp.collider_entrance_down.get_bb()
             view_x1, view_y1 = cam.world_to_view(x1, y1)
             view_x2, view_y2 = cam.world_to_view(x2, y2)
             draw_rectangle(view_x1, view_y1, view_x2, view_y2)
@@ -479,8 +488,8 @@ class RoboSpiderIn:
             draw_rectangle(view_x1, view_y1, view_x2, view_y2, 150, 200, 255)
 
             # 2, 3사분면 반원 그리기 (디버그용)
-            view_x, view_y = cam.world_to_view(self.sp.x + self.sp.collision_radius_offset[0], self.sp.y)
-            draw_circle(view_x, view_y, int(cam.value_to_view(self.sp.radius_inner)), 255, 0, 0)
+            view_x, view_y = cam.world_to_view(self.sp.x + self.sp.range_inner_offset[0], self.sp.y)
+            draw_circle(view_x, view_y, int(cam.value_to_view(self.sp.range_inner)), 255, 0, 0)
 
     def handle_event(self, event):
         pass

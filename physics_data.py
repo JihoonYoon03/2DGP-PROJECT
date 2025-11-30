@@ -64,3 +64,20 @@ class Collider_bb:
 
     def handle_collision(self, group, other):
         self.owner.handle_collision(group, other)
+
+class Collider_range:
+    def __init__(self, owner, offset_x, offset_y, radius):
+        self.owner = owner
+        self.x = owner.x
+        self.y = owner.y
+        self.offset_x = offset_x
+        self.offset_y = offset_y
+        self.collision_range = radius
+
+    def get_position(self):
+        x = self.owner.x + self.offset_x
+        y = self.owner.y + self.offset_y
+        return x, y
+
+    def handle_collision(self, group, other):
+        self.owner.handle_collision(group, other)

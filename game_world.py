@@ -96,8 +96,8 @@ def collide_radius_limited(a, origin, radius, outer):
     start = math.radians(origin.degree_start % 360)
     end = math.radians(origin.degree_end % 360)
 
-    dx = a.x - (origin.x + origin.collision_radius_offset[0])
-    dy = a.y - (origin.y + origin.collision_radius_offset[1])
+    dx = a.x - (origin.x + origin.range_inner_offset[0])
+    dy = a.y - (origin.y + origin.range_inner_offset[1])
 
     angle = math.atan2(dy, dx)
     if angle < 0:

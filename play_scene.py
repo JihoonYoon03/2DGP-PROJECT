@@ -33,7 +33,7 @@ def init():
     common.player = Player()
     game_world.add_object(common.player, 2)
 
-    enemy_test = InfantryTier0(common.spider.x, common.spider.y - 400, common.spider)
+    enemy_test = InfantryTier0(common.spider.x + 72, common.spider.y - 400, common.spider)
     game_world.add_object(enemy_test, 2)
 
     common.spider.mine_list = ground.get_mine_list()
