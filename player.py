@@ -54,6 +54,8 @@ class Dock:
             event_set.reset_all_flags()
 
     def exit(self, e):
+        self.player.move_x = 0
+        self.player.move_y = 0
         return True
 
     def do(self):

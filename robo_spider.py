@@ -292,6 +292,11 @@ class RoboSpider:
 
     def draw(self):
         self.stateMachine.draw()
+        camera = get_camera()
+        x1, y1, x2, y2 = self.get_bb()
+        view_x1, view_y1 = camera.world_to_view(x1, y1)
+        view_x2, view_y2 = camera.world_to_view(x2, y2)
+        draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
     def handle_event(self, event):
         if not self.is_docking and self.stateMachine.cur_state != self.DOCK:
@@ -330,7 +335,9 @@ class RoboSpider:
         self.stateMachine.handle_state_event(('INPUT', event))
 
     def get_bb(self):
-        pass
+        half_w = self.w // 2
+        half_h = self.h // 2
+        return self.x - half_w, self.y - half_h, self.x + half_w, self.y + half_h
 
     def handle_collision(self, group, other):
         pass
