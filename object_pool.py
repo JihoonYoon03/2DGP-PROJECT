@@ -26,13 +26,25 @@ class ObjectPool:
                 if unique_key:
                     obj.unique_key = unique_key
                 return obj
-        # 없거나 모두 사용 중이면 새로 생성
-        obj = obj_class(*args)
-        if unique_key:
-            obj.unique_key = unique_key
-        class_pool.append(obj)
-        game_world.add_object(obj, obj.layer)
-        return obj
+        else:
+            # 없거나 모두 사용 중이면 새로 생성
+            obj = obj_class(*args)
+            if unique_key:
+                obj.unique_key = unique_key
+            class_pool.append(obj)
+            game_world.add_object(obj, obj.layer)
+            return obj
+
+    def release_object(self, obj_class, *args, **kwargs):
+        unique_key = kwargs.get('unique_key', None)
+        class_pool = self.pool.get(obj_class, [])
+
+        for obj in class_pool:
+            if not obj.inactive:
+                if unique_key is None or getattr(obj, 'unique_key', None) == unique_key:
+                    obj.inactive = True
+                    return True
+        return False
 
     def print_pool_status(self):
         for obj_class, objects in self.pool.items():

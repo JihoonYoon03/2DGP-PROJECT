@@ -14,7 +14,7 @@ class Projectile(metaclass=ABCMeta):
         if len(Projectile.image) == 0:
             Projectile.image.setdefault(weapon_type, load_image('Assets/Sprites/Bullets/Bullet_MachineGun.png'))
         self.type = weapon_type
-        self.inactive = True
+        self.inactive = False
         self.x = x
         self.y = y
         self.rad = rad

@@ -1,6 +1,6 @@
 from pico2d import *
 import event_set
-from event_set import signal_empty, signal_not_empty, signal_in_range, e_pressed
+from event_set import signal_empty, signal_not_empty, signal_in_range, e_pressed, reset_all_flags
 from game_world import get_camera, collide_bb, collide_radius_limited
 from hoover import Hoover
 from state_machine import StateMachine
@@ -43,9 +43,11 @@ class Dock:
     def enter(self, e):
         if e[0] == 'START':
             self.player.is_docked = True
+            self.player.turret_control = True
             self.player.frame = 12
         elif e[0] == 'IN_RANGE':
             self.player.is_docked = True
+            self.player.turret_control = True
             self.player.x = common.spider.inner.docker_x
             self.player.y = common.spider.inner.docker_y
             self.player.frame = 0
@@ -54,8 +56,12 @@ class Dock:
             event_set.reset_all_flags()
 
     def exit(self, e):
+        if not common.spider.is_docking:
+            return False
+        reset_all_flags()
         self.player.move_x = 0
         self.player.move_y = 0
+        self.player.face_dir = 0
         return True
 
     def do(self):
@@ -68,6 +74,7 @@ class Dock:
                                  % Dock.frames_per_action)
         if self.player.frame >= Dock.frames_per_action:
             self.player.frame = Dock.frames_per_action - 1
+            self.player.turret_control = True
 
     def draw(self):
         camera = get_camera()
@@ -91,6 +98,7 @@ class Idle:
 
     def enter(self, e):
         if self.player.is_docked:  # Dock 상태에서 온 경우
+            self.player.turret_control = False
             self.frame_delta = -1  # 도킹 애니메이션 역재생
         else:
             self.frame_delta = 1
@@ -199,6 +207,7 @@ class Player:
         self.image_move_down = load_image('Assets/Sprites/Player/Hero_Down_Moving.png')
 
         self.is_docked = True  # 스파이더에 도킹 여부
+        self.turret_control = True # 터렛 제어권 여부
         self.engage = False  # 광산 진입여부
         self.x = common.spider.x - 16
         self.y = common.spider.y

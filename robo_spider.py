@@ -516,6 +516,7 @@ class Turret:
         self.spider = spider
 
         self.radius = self.spider.w * 0.8  # 터렛 회전 반경
+        self.recoil_distance = 1  # 반동 거리
         self.angle = math.pi
         self.cur_angle = math.pi
         self.rot_speed = math.radians(SPIDER_TURRET_ROTATE_SPEED)  # 초당 회전 각도
@@ -535,10 +536,11 @@ class Turret:
             else:
                 self.cur_angle -= min(self.rot_speed * game_framework.frame_time, -da)
 
-        self.last_fire_time += game_framework.frame_time
+        self.last_fire_time = clamp(0, self.last_fire_time + game_framework.frame_time, self.fire_rate)
 
         if self.shooting:
-            if self.last_fire_time >= self.fire_rate:
+            if self.last_fire_time == self.fire_rate:
+                print('shoot')
                 self.last_fire_time %= self.fire_rate
                 bullet_x = self.spider.x + 60 + (self.radius + self.image.w // 2) * math.cos(self.cur_angle)
                 bullet_y = self.spider.y + (self.radius + self.image.w // 2) * math.sin(self.cur_angle)
@@ -547,8 +549,8 @@ class Turret:
 
     def draw(self):
         camera = get_camera()
-        turret_x = self.spider.x + 60 + self.radius * math.cos(self.cur_angle)
-        turret_y = self.spider.y + self.radius * math.sin(self.cur_angle)
+        turret_x = self.spider.x + 60 + (self.radius - self.recoil_distance / max(0.1, self.last_fire_time / self.fire_rate)) * math.cos(self.cur_angle)
+        turret_y = self.spider.y + (self.radius - self.recoil_distance / max(0.1, self.last_fire_time / self.fire_rate)) * math.sin(self.cur_angle)
         turret_x, turret_y = camera.world_to_view(turret_x, turret_y)
         turret_w, turret_h = camera.get_draw_size(self.image.w, self.image.h)
         self.image.clip_composite_draw(0, 0, self.image.w, self.image.h,
@@ -556,7 +558,7 @@ class Turret:
                                               turret_x, turret_y, turret_w, turret_h)
 
     def handle_event(self, event):
-        if event_set.mouse_motion(('INPUT', event)):
+        if event_set.mouse_motion(('INPUT', event)) and common.player.turret_control:
             mouse_x, mouse_y = event_set.mouse_coordinate((None, event))
             camera = get_camera()
             view_x, view_y = camera.world_to_view(self.spider.x + 60, self.spider.y)
@@ -568,10 +570,10 @@ class Turret:
             da = angle - self.angle
             self.angle = clamp(math.pi / 2, self.angle + da, math.pi * 3 / 2)
 
-        if event_set.mouse_left_pressed(('INPUT', event)):
+        if event_set.mouse_left_pressed(('INPUT', event)) and common.player.turret_control:
             self.shooting = True
 
-        if event_set.mouse_left_released(('INPUT', event)):
+        if event_set.mouse_left_released(('INPUT', event)) or not common.player.turret_control:
             self.shooting = False
 
 
