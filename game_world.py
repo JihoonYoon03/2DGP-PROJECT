@@ -6,7 +6,6 @@ import common
 from physics_data import *
 
 world = [[]]
-obj_pool = object_pool.object_pool()
 
 def get_camera():
     return common.cam

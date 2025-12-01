@@ -5,3 +5,5 @@ player = None
 
 UI_ResourceData = None
 UI_SpiderStatus = None
+
+obj_pool = None

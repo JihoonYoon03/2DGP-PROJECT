@@ -79,13 +79,6 @@ class EnemyBase(metaclass=ABCMeta):
     def get_bb(self):
         pass
 
-    def handle_collision(self, group, other):
-        if group == 'spider:enemy_melee':
-            if self.attack_collider is not None:
-                print('enemy attacking')
-                game_world.remove_collision_object(self.attack_collider)
-                self.attack_collider = None
-
     @abstractmethod
     def build_behavior_tree(self):
         pass
@@ -121,6 +114,20 @@ class InfantryTier0(EnemyBase):
             100,
             10
         )
+
+        game_world.add_collision_pair_range('Machine_gun_bullet:enemy', None, self)
+
+    def handle_collision(self, group, other):
+        if group == 'spider:enemy_melee':
+            if self.attack_collider is not None:
+                game_world.remove_collision_object(self.attack_collider)
+                self.attack_collider = None
+        elif group == 'Machine_gun_bullet:enemy':
+            print('enemy hit by bullet, dmg:', other.dmg)
+            self.hp -= other.dmg
+            if self.hp <= 0:
+                # 사망 모션
+                game_world.remove_object(self)
 
     def target_in_range(self, target, r=0.5):
         if self.distance_less_than(self.x, target.y, self.x, self.y, r):

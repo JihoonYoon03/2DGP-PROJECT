@@ -3,7 +3,7 @@ import game_world
 # 각종 객체 풀링을 담당하는 클래스
 # 객체 풀링 대상: 적, VFX, 발사체
 
-class object_pool:
+class ObjectPool:
     def __init__(self):
         self.pool = {}
 

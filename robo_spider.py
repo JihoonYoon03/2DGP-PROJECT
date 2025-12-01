@@ -8,6 +8,7 @@ import math
 from state_machine import StateMachine
 from event_set import signal_empty, signal_not_empty, r_pressed, signal_time_out
 from physics_data import *
+from projectile import *
 
 # 스프라이트 프레임 정보 (x, y, w, h)
 # 1행 1열부터 시작 (좌상단 기준)
@@ -552,6 +553,13 @@ class Turret:
                 angle += 2 * math.pi
             da = angle - self.angle
             self.angle = clamp(math.pi / 2, self.angle + da, math.pi * 3 / 2)
+
+        if event_set.mouse_left_pressed(('INPUT', event)):
+            bullet_x = self.spider.x + 60 + (self.radius + self.image.w // 2) * math.cos(self.cur_angle)
+            bullet_y = self.spider.y + (self.radius + self.image.w // 2) * math.sin(self.cur_angle)
+            # 총알 발사. x, y, rad 인자 필요
+            common.obj_pool.get_object(MachineGunProjectile, bullet_x, bullet_y, self.cur_angle)
+
 
     def handle_collision(self, group, other):
         pass

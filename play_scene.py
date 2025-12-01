@@ -8,6 +8,7 @@ from tile import Ground
 from mine import Mine
 from camera import Camera
 from UI_play_scene import UIResourceData, UISpiderStatus
+from object_pool import ObjectPool
 from enemy import *
 import common
 import game_world
@@ -44,6 +45,8 @@ def init():
 
     common.UI_SpiderStatus = UISpiderStatus()
     game_world.add_object(common.UI_SpiderStatus, 10)
+
+    common.obj_pool = ObjectPool()
 
 
 def handle_events():
