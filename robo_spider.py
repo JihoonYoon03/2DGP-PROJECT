@@ -4,6 +4,7 @@ import game_world
 import game_framework
 import event_set
 import common
+import math
 from state_machine import StateMachine
 from event_set import signal_empty, signal_not_empty, r_pressed, signal_time_out
 from physics_data import *
@@ -260,6 +261,8 @@ class RoboSpider:
         self.range_inner_offset = (60, 0)
         game_world.add_collision_pair_radius_limited('player:spider_inner_dome', None, self, self.range_inner, True)
 
+        self.turret = Turret(self)
+
         self.collision_range = self.w * 1.2  # 외부 충돌 반경
         self.collision_range_offset = (120, 10)
         self.collider_spider = Collider_range(self, self.collision_range_offset[0], self.collision_range_offset[1], self.collision_range)
@@ -298,12 +301,14 @@ class RoboSpider:
 
     def update(self):
         self.stateMachine.update()
+        self.turret.update()
         self.collider_spider.update()
         self.collider_entrance_up.update()
         self.collider_entrance_down.update()
         self.barrier.update()
 
     def draw(self):
+        self.turret.draw()
         self.stateMachine.draw()
         camera = get_camera()
         view_x, view_y = camera.world_to_view(self.x + self.collision_range_offset[0], self.y + self.collision_range_offset[1])
@@ -343,6 +348,7 @@ class RoboSpider:
             elif prev_moving and not now_moving:
                 self.stateMachine.handle_state_event(('EMPTY', None))
 
+        self.turret.handle_event(event)
         self.stateMachine.handle_state_event(('INPUT', event))
 
     def get_bb(self):
@@ -501,4 +507,46 @@ class RoboSpiderIn:
             draw_circle(view_x, view_y, int(cam.value_to_view(self.sp.range_inner)), 255, 0, 0)
 
     def handle_event(self, event):
+        pass
+
+class Turret:
+    def __init__(self, spider):
+        self.image = load_image('Assets/Sprites/Turret/Turret_MachineGun.png')
+        self.spider = spider
+
+        self.radius = self.spider.w * 0.8  # 터렛 회전 반경
+        self.angle = 0
+        self.cur_angle = 0
+        self.rot_speed = math.radians(90)  # 초당 회전 각도
+
+    def update(self):
+        pass
+
+    def draw(self):
+        camera = get_camera()
+        turret_x = self.spider.x + 60 + self.radius * math.cos(self.angle)
+        turret_y = self.spider.y + self.radius * math.sin(self.angle)
+        turret_x, turret_y = camera.world_to_view(turret_x, turret_y)
+        turret_w, turret_h = camera.get_draw_size(self.image.w, self.image.h)
+        self.image.clip_composite_draw(0, 0, self.image.w, self.image.h,
+                                            self.angle, 'h',
+                                              turret_x, turret_y, turret_w, turret_h)
+
+    def handle_event(self, event):
+        if self.spider.is_docking or self.spider.stateMachine.cur_state == self.spider.DOCK:
+            return
+
+        if event_set.mouse_motion(('INPUT', event)):
+            mouse_x, mouse_y = event_set.mouse_coordinate((None, event))
+            camera = get_camera()
+            view_x, view_y = camera.world_to_view(self.spider.x + 60, self.spider.y)
+            dx = mouse_x - view_x
+            dy = mouse_y - view_y
+            angle = math.atan2(dy, dx)
+            if angle < 0:
+                angle += 2 * math.pi
+            da = angle - self.angle
+            self.angle = clamp(math.pi / 2, self.angle + da, math.pi * 3 / 2)
+
+    def handle_collision(self, group, other):
         pass
