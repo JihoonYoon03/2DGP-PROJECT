@@ -515,27 +515,32 @@ class Turret:
         self.spider = spider
 
         self.radius = self.spider.w * 0.8  # 터렛 회전 반경
-        self.angle = 0
-        self.cur_angle = 0
-        self.rot_speed = math.radians(90)  # 초당 회전 각도
+        self.angle = math.pi
+        self.cur_angle = math.pi
+        self.rot_speed = math.radians(SPIDER_TURRET_ROTATE_SPEED)  # 초당 회전 각도
 
     def update(self):
-        pass
+        # 터렛 각도 보간
+        da = self.angle - self.cur_angle
+        if abs(da) < 0.01:
+            self.cur_angle = self.angle
+        else:
+            if da > 0:
+                self.cur_angle += min(self.rot_speed * game_framework.frame_time, da)
+            else:
+                self.cur_angle -= min(self.rot_speed * game_framework.frame_time, -da)
 
     def draw(self):
         camera = get_camera()
-        turret_x = self.spider.x + 60 + self.radius * math.cos(self.angle)
-        turret_y = self.spider.y + self.radius * math.sin(self.angle)
+        turret_x = self.spider.x + 60 + self.radius * math.cos(self.cur_angle)
+        turret_y = self.spider.y + self.radius * math.sin(self.cur_angle)
         turret_x, turret_y = camera.world_to_view(turret_x, turret_y)
         turret_w, turret_h = camera.get_draw_size(self.image.w, self.image.h)
         self.image.clip_composite_draw(0, 0, self.image.w, self.image.h,
-                                            self.angle, 'h',
+                                            self.cur_angle, 'h',
                                               turret_x, turret_y, turret_w, turret_h)
 
     def handle_event(self, event):
-        if self.spider.is_docking or self.spider.stateMachine.cur_state == self.spider.DOCK:
-            return
-
         if event_set.mouse_motion(('INPUT', event)):
             mouse_x, mouse_y = event_set.mouse_coordinate((None, event))
             camera = get_camera()
