@@ -8,8 +8,6 @@ from physics_data import *
 world = [[]]
 obj_pool = object_pool.object_pool()
 
-UI_ResourceData = None
-
 def get_camera():
     return common.cam
 

@@ -7,7 +7,7 @@ from player import Player
 from tile import Ground
 from mine import Mine
 from camera import Camera
-from UI_play_scene import UIResourceData
+from UI_play_scene import UIResourceData, UISpiderStatus
 from enemy import *
 import common
 import game_world
@@ -39,8 +39,11 @@ def init():
     common.spider.mine_list = ground.get_mine_list()
     common.cam.cam_lock(common.spider, WIN_WIDTH // 3)
 
-    game_world.UI_ResourceData = UIResourceData()
-    game_world.add_object(game_world.UI_ResourceData, 10)
+    common.UI_ResourceData = UIResourceData()
+    game_world.add_object(common.UI_ResourceData, 10)
+
+    common.UI_SpiderStatus = UISpiderStatus()
+    game_world.add_object(common.UI_SpiderStatus, 10)
 
 
 def handle_events():

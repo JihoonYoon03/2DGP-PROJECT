@@ -1,6 +1,11 @@
 from pico2d import *
+
+import physics_data
 from physics_data import *
 from state_machine import StateMachine
+import common
+
+UI_BAR_RATIO = [1, 0.5, 0.5]  # 체력, 실드, 웨이브 바 비율
 
 class ResData:
     def __init__(self, res_data):
@@ -98,13 +103,60 @@ class UIResourceData:
 
 class UISpiderStatus():
     def __init__(self):
-        pass
+        self.image_back = load_image('Assets/Sprites/UI/Window_GameInfo_BarBackground.png')
+        self.image_health = load_image('Assets/Sprites/UI/Window_GameInfo_Health_Bar.png')
+        self.image_health_icon = load_image('Assets/Sprites/UI/Window_GameInfo_Health_Icon.png')
+        self.image_shield = load_image('Assets/Sprites/UI/Window_GameInfo_Shield_Bar.png')
+        self.image_shield_icon = load_image('Assets/Sprites/UI/Window_GameInfo_Shield_Icon.png')
+        self.image_wave = load_image('Assets/Sprites/UI/Window_GameInfo_Daytime_Bar.png')
+        self.image_wave_icon = load_image('Assets/Sprites/UI/Window_GameInfo_Daytime_Icon.png')
+        self.ratio = (WIN_WIDTH / WIN_HEIGHT) / (1920 / 1080) * 1.5
+        self.base_bar_ratio = [SPIDER_MAX_HP / SPIDER_BASE_HP * UI_BAR_RATIO[0],
+                            SPIDER_MAX_SHIELD / SPIDER_BASE_SHIELD * UI_BAR_RATIO[1],
+                               1.0 * UI_BAR_RATIO[2]]
+        self.cur_bar_ratio = [1.0, 1.0, 0.0]
+        self.x = WIN_WIDTH * 0.05
+        self.y = WIN_HEIGHT * 0.1
 
     def update(self):
-        pass
+        if common.spider is None:
+            return
+        for i in range(3):
+            if i == 0:
+                self.cur_bar_ratio[i] = common.spider.health / SPIDER_BASE_HP
+            elif i == 1:
+                self.cur_bar_ratio[i] = common.spider.shield / SPIDER_BASE_SHIELD
 
     def draw(self):
-        pass
+        for i in range(3):
+            bar_x = self.x + self.image_back.w * 1.5 * i
+            bar_y = self.y
+            image_bar = None
+            image_icon = None
+            if i == 0:
+                image_bar = self.image_health
+                image_icon = self.image_health_icon
+            elif i == 1:
+                image_bar = self.image_shield
+                image_icon = self.image_shield_icon
+            elif i == 2:
+                image_bar = self.image_wave
+                image_icon = self.image_wave_icon
+
+            self.image_back.draw_to_origin(bar_x, bar_y,
+                                            self.image_back.w * self.ratio,
+                                            self.image_back.h * self.ratio * self.base_bar_ratio[i])
+            if common.spider is None:
+                continue
+
+            # Bar
+            image_bar.draw_to_origin(bar_x + (self.image_back.w - image_bar.w) // 2, bar_y + (self.image_back.h - image_bar.h) // 2,
+                                    image_bar.w * self.ratio,
+                                    image_bar.h * self.ratio * self.base_bar_ratio[i] * self.cur_bar_ratio[i])
+            # Icon
+            image_icon.draw_to_origin(bar_x + (self.image_back.w - image_icon.w) // 2, bar_y - image_icon.h,
+                                    image_icon.w * self.ratio,
+                                    image_icon.h * self.ratio)
 
     def handle_event(self, event):
         pass

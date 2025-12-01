@@ -2,3 +2,6 @@
 cam = None
 spider = None
 player = None
+
+UI_ResourceData = None
+UI_SpiderStatus = None
