@@ -40,6 +40,7 @@ class EnemyBase(metaclass=ABCMeta):
         self.hp = hp
         self.dmg = dmg  # 근접 유닛 데미지(원거리는 총알 데미지로 처리)
         self.attack_collider = None
+        self.attacked = False   # 현재 프레임 사이클에서 공격 수행했는지 여부
 
         self.build_behavior_tree()
 
@@ -78,10 +79,10 @@ class EnemyBase(metaclass=ABCMeta):
     def get_bb(self):
         pass
 
-    def handle_collision(self, other, group):
+    def handle_collision(self, group, other):
         if group == 'spider:enemy_melee':
-            print(f'{self.name} hit by melee for {other.dmg} damage')
             if self.attack_collider is not None:
+                print('enemy attacking')
                 game_world.remove_collision_object(self.attack_collider)
                 self.attack_collider = None
 
@@ -129,7 +130,11 @@ class InfantryTier0(EnemyBase):
     def attack_target(self):
         self.last_state = self.state
         self.state = 'Attack'  # 디버그 출력
-        if 4 < self.frame < 5: # 공격 프레임에서 데미지 적용
+        if int(self.frame) == 0:
+            self.attacked = False
+
+        if 4 < self.frame < 5 and not self.attacked: # 공격 프레임에서 데미지 적용
+            self.attacked = True
             if self.attack_collider is None:
                 self.attack_collider = Collider_range(self, 0, self.collision_range * (-1 if self.flip else 1) , self.collision_range // 2)
                 game_world.add_collision_pair_range('spider:enemy_melee', None, self.attack_collider)
@@ -141,6 +146,10 @@ class InfantryTier0(EnemyBase):
             raise ValueError('목적지가 설정되어야 합니다.')
         self.tx = target.x
         self.ty = target.y
+        if self.ty < self.y:
+            self.flip = 'h'
+        else:
+            self.flip = ''
         return BehaviorTree.SUCCESS
 
     def distance_less_than(self, x1, y1, x2, y2, r):

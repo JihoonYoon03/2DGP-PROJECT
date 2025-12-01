@@ -69,7 +69,6 @@ def remove_collision_object(o):
         if o in pairs[0]:
             pairs[0].remove(o)
         if o in pairs[1]:
-            print('removing from range pair')
             pairs[1].remove(o)
 
 def remove_object(obj):
