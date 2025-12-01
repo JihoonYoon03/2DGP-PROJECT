@@ -520,6 +520,10 @@ class Turret:
         self.cur_angle = math.pi
         self.rot_speed = math.radians(SPIDER_TURRET_ROTATE_SPEED)  # 초당 회전 각도
 
+        self.shooting = False
+        self.last_fire_time = 0
+        self.fire_rate = MACHINE_GUN_FIRE_RATE
+
     def update(self):
         # 터렛 각도 보간
         da = self.angle - self.cur_angle
@@ -530,6 +534,16 @@ class Turret:
                 self.cur_angle += min(self.rot_speed * game_framework.frame_time, da)
             else:
                 self.cur_angle -= min(self.rot_speed * game_framework.frame_time, -da)
+
+        self.last_fire_time += game_framework.frame_time
+
+        if self.shooting:
+            if self.last_fire_time >= self.fire_rate:
+                self.last_fire_time %= self.fire_rate
+                bullet_x = self.spider.x + 60 + (self.radius + self.image.w // 2) * math.cos(self.cur_angle)
+                bullet_y = self.spider.y + (self.radius + self.image.w // 2) * math.sin(self.cur_angle)
+                # 총알 발사. x, y, rad 인자 필요
+                common.obj_pool.get_object(MachineGunProjectile, bullet_x, bullet_y, self.cur_angle)
 
     def draw(self):
         camera = get_camera()
@@ -555,10 +569,10 @@ class Turret:
             self.angle = clamp(math.pi / 2, self.angle + da, math.pi * 3 / 2)
 
         if event_set.mouse_left_pressed(('INPUT', event)):
-            bullet_x = self.spider.x + 60 + (self.radius + self.image.w // 2) * math.cos(self.cur_angle)
-            bullet_y = self.spider.y + (self.radius + self.image.w // 2) * math.sin(self.cur_angle)
-            # 총알 발사. x, y, rad 인자 필요
-            common.obj_pool.get_object(MachineGunProjectile, bullet_x, bullet_y, self.cur_angle)
+            self.shooting = True
+
+        if event_set.mouse_left_released(('INPUT', event)):
+            self.shooting = False
 
 
     def handle_collision(self, group, other):

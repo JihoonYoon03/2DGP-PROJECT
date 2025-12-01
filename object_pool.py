@@ -33,3 +33,10 @@ class ObjectPool:
         class_pool.append(obj)
         game_world.add_object(obj, obj.layer)
         return obj
+
+    def print_pool_status(self):
+        for obj_class, objects in self.pool.items():
+            total = len(objects)
+            active = sum(1 for obj in objects if not obj.inactive)
+            inactive = total - active
+            print(f'Class: {obj_class.__name__}, Total: {total}, Active: {active}, Inactive: {inactive}')

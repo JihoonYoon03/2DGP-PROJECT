@@ -35,6 +35,7 @@ def render():
     for layer in world:
         for obj in layer:
             obj.draw()
+    # common.obj_pool.print_pool_status()
 
 def handle_event(event):
     if common.cam:

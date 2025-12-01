@@ -5,6 +5,7 @@ from abc import ABCMeta
 import game_framework
 import game_world
 import math
+import random
 
 
 class Projectile(metaclass=ABCMeta):
@@ -34,8 +35,9 @@ class Projectile(metaclass=ABCMeta):
         self.x += self.vx * self.velocity * game_framework.frame_time
         self.y += self.vy * self.velocity * game_framework.frame_time
         # 일정 범위 밖으로 나가면 비활성화
-        if abs(self.x) > PIXEL_PER_METER * 1000 + self.w or abs(self.y) > PIXEL_PER_METER * 1000 + self.h:
+        if abs(self.x) > PIXEL_PER_METER * 200 + self.w or abs(self.y) > PIXEL_PER_METER * 200 + self.h:
             self.inactive = True
+            print('Projectile deactivated due to out of bounds.')
 
     def draw(self):
         if self.inactive:
@@ -45,7 +47,7 @@ class Projectile(metaclass=ABCMeta):
         draw_w, draw_h = camera.get_draw_size(self.w, self.h)
         if not camera.draw_clipping(view_x, view_y, draw_w, draw_h):
             Projectile.image[self.type].clip_composite_draw(0, 0, self.w, self.h,
-                                                           self.rad, '',
+                                                           self.rad, 'h',
                                                            view_x, view_y, draw_w, draw_h)
 
     def get_bb(self):
@@ -59,16 +61,17 @@ class Projectile(metaclass=ABCMeta):
 
 class MachineGunProjectile(Projectile):
     def __init__(self, x, y, rad):
-        vx = math.cos(rad)
-        vy = math.sin(rad)
+        r = rad + random.uniform(-MACHINE_GUN_SPREAD_RAD, MACHINE_GUN_SPREAD_RAD)
+        vx = math.cos(r)
+        vy = math.sin(r)
 
         normalizing = math.sqrt(vx * vx + vy * vy)
         vx /= normalizing
         vy /= normalizing
 
-        velocity = MACHINE_GUN_BULLET_SPEED_MPS
+        velocity = MACHINE_GUN_BULLET_SPEED_MPS * PIXEL_PER_METER
 
-        super().__init__(x, y, rad, vx, vy, velocity, 'MachineGun', MACHINE_GUN_BULLET_DAMAGE)
+        super().__init__(x, y, r, vx, vy, velocity, 'MachineGun', MACHINE_GUN_BULLET_DAMAGE)
 
         game_world.add_collision_pair_range('Machine_gun_bullet:enemy', self, None)
 
@@ -81,9 +84,9 @@ class MachineGunProjectile(Projectile):
     def reactivate(self, x, y, rad):
         self.x = x
         self.y = y
-        self.rad1 = rad
-        self.vx = math.cos(rad)
-        self.vy = math.sin(rad)
+        self.rad = rad + random.uniform(-MACHINE_GUN_SPREAD_RAD, MACHINE_GUN_SPREAD_RAD)
+        self.vx = math.cos(self.rad)
+        self.vy = math.sin(self.rad)
         normalizing = math.sqrt(self.vx * self.vx + self.vy * self.vy)
         self.vx /= normalizing
         self.vy /= normalizing
