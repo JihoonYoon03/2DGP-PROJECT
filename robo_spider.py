@@ -246,6 +246,7 @@ class RoboSpider:
         self.x = x - 178 // 2
         self.y = y
         self.speed = 1
+        self.hp = SPIDER_MAX_HP
         self.is_moving = False
         self.is_docking = False
         self.move_dir = 0
@@ -277,6 +278,7 @@ class RoboSpider:
         self.mine_list = list()
         self.docked_mine = 0
 
+        # 스파이더 내부
         self.inner = RoboSpiderIn(self)
         game_world.add_object(self.inner, 2)
 
@@ -349,7 +351,8 @@ class RoboSpider:
 
     def handle_collision(self, group, other):
         if group == 'spider:enemy_melee':
-            print('got damaged by enemy melee!')
+            self.hp -= other.owner.dmg  # 충돌 대상이 enemy의 collider_range 객체이므로 owner로 접근
+            print('RoboSpider HP:', self.hp)
 
     # 도킹 시 근처 광산을 찾는 함수
     def find_nearby_mine(self):

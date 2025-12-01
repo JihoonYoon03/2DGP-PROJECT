@@ -94,3 +94,17 @@ class UIResourceData:
         for res, amount in res_input.items():
             if res in self.res_amount:
                 self.res_amount[res] += amount
+
+
+class UISpiderStatus():
+    def __init__(self):
+        pass
+
+    def update(self):
+        pass
+
+    def draw(self):
+        pass
+
+    def handle_event(self, event):
+        pass
