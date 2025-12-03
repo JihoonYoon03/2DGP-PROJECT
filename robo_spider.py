@@ -183,11 +183,10 @@ class SpDock:
                 self.sp.frame = self.sp.frame + SpDock.frames_per_action * SpDock.action_per_time * game_framework.frame_time
             elif not self.sp.is_docking:
                 self.sp.frame = 34
-                camera = get_camera()
-                camera.camera_enter_mine()
                 self.sp.docked_mine.reveal()
                 self.sp.is_docking = True
                 common.player.is_docked = True
+                common.cam.apply_camera_settings()
 
     def draw(self):
         camera = get_camera()
@@ -221,8 +220,7 @@ class SpUndock:
         event_set.reset_all_flags()
 
     def exit(self, e):
-        camera = get_camera()
-        camera.camera_exit_mine()
+        common.cam.apply_camera_settings()
         return True
 
     def do(self):
@@ -240,7 +238,7 @@ class SpUndock:
                                        SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL, view_x, view_y, draw_w, draw_h)
 
 class RoboSpider:
-    def __init__(self, x = 960, y = 540):
+    def __init__(self, x = 1920 / 2, y = 1080 / 2):
         self.image_move = load_image('Assets/Sprites/Spider/Spider_Moving.png')
         self.image_dock = load_image('Assets/Sprites/Spider/Spider_Docking.png')
         self.image_undock = load_image('Assets/Sprites/Spider/Spider_Undocking.png')

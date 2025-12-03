@@ -1,4 +1,5 @@
 import event_set
+import common
 from physics_data import WIN_WIDTH, WIN_HEIGHT
 
 class Camera:
@@ -6,9 +7,6 @@ class Camera:
         # 월드 좌표계에서 카메라의 중심 위치
         self.world_x = 0
         self.world_y = 0
-
-        self.screen_width = win_width
-        self.screen_height = win_height
 
         # 뷰 좌표계에서 카메라의 중심 위치
         self.view_x = win_width // 2
@@ -18,8 +16,7 @@ class Camera:
         self.offset_x = 0
         self.offset_y = 0
 
-        self.zoom = win_width / 1920 * 2.0
-        # self.zoom = win_width / 1920 * 1.4
+        self.zoom = win_width / 1920 * 1.4
         self.lock = False
         self.lock_target = None
 
@@ -74,11 +71,37 @@ class Camera:
             if self.zoom < 0.2:
                 self.zoom = 0.2
 
-    def camera_enter_mine(self):
-        self.zoom = self.screen_width / 1920 * 3.5
-        self.offset_x = 0
-        self.offset_y = 0
+    def apply_camera_settings(self):
+        # 우선순위 1: 플레이어가 광산에 들어갔을 때
+        if common.player and common.player.engage:
+            self.lock = True
+            self.lock_target = common.player
+            self.zoom = WIN_WIDTH / 1920 * 3.5
+            self.offset_x = 0
+            self.offset_y = 0
+            return
 
-    def camera_exit_mine(self):
-        self.zoom = self.screen_width / 1920 * 1.4
+        # 우선순위 2: 웨이브 진행 중일 때
+        if common.wave_manager and common.wave_manager.waveRunning:
+            self.lock = True
+            self.lock_target = common.spider
+            self.zoom = WIN_WIDTH / 1920 * 0.9
+            self.offset_x = WIN_WIDTH // 3
+            self.offset_y = 0
+            return
+
+        # 우선순위 3: 스파이더가 광산에 도킹중일 때
+        if common.spider and common.spider.is_docking:
+            self.lock = True
+            self.lock_target = common.spider
+            self.zoom = WIN_WIDTH / 1920 * 3.5
+            self.offset_x = 0
+            self.offset_y = 0
+            return
+
+        # 우선순위 4: 기본 상태
+        self.lock = True
+        self.lock_target = common.spider
+        self.zoom = WIN_WIDTH / 1920 * 1.4
         self.offset_x = WIN_WIDTH // 3
+        self.offset_y = 0

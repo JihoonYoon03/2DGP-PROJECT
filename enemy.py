@@ -363,6 +363,7 @@ class WaveManager:
     def start_wave(self):
         if self.current_wave < len(self.waves):
             self.waveRunning = True
+            common.cam.apply_camera_settings()
 
     def update(self):
         if self.waveRunning:
@@ -372,9 +373,9 @@ class WaveManager:
                     new_enemy = None
 
                     if enemy_type == InfantryTier0:
-                        new_enemy = InfantryTier0(common.spider.x + 72, common.spider.y - 400, common.spider)
+                        new_enemy = InfantryTier0(common.spider.x + 72, common.spider.y + (-1 if amount % 2 == 0 else 1) * 1080, common.spider)
                     elif enemy_type == SpitterTier0:
-                        new_enemy = SpitterTier0(common.spider.x - 600, common.spider.y - 100, common.spider)
+                        new_enemy = SpitterTier0(common.spider.x - 1920 - 100, common.spider.y, common.spider)
 
                     if new_enemy is not None:
                         self.last_spawn_time[enemy_type] -= self.spawn_interval[self.current_wave][enemy_type]
@@ -391,6 +392,7 @@ class WaveManager:
                 self.wave_timer = 0.0
                 self.last_spawn_time = {InfantryTier0: 0.0, SpitterTier0: 0.0}
                 self.cur_enemies = []
+                common.cam.apply_camera_settings()
         else:
             self.wave_timer += game_framework.frame_time
             if self.wave_timer > WAVE_MAX_TIME:

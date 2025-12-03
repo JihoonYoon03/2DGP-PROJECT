@@ -168,12 +168,10 @@ class Move:
                              % Move.frames_per_action)
 
         if self.player.x > common.spider.x + 100:
-            camera = get_camera()
-            camera.cam_lock(self.player)
+            common.cam.apply_camera_settings()
             self.player.engage = True
         else:
-            camera = get_camera()
-            camera.cam_lock(common.spider)
+            common.cam.apply_camera_settings()
             self.player.engage = False
 
     def draw(self):

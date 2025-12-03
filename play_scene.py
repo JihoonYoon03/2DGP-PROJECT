@@ -40,7 +40,7 @@ def init():
     game_world.add_object(enemy_test1, 2)
 
     common.spider.mine_list = ground.get_mine_list()
-    common.cam.cam_lock(common.spider, WIN_WIDTH // 3)
+    common.cam.apply_camera_settings()  # 기본 상태(스파이더 추적) 적용
 
     common.wave_manager = WaveManager()
 
