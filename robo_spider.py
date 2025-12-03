@@ -264,10 +264,11 @@ class RoboSpider:
 
         self.turret = Turret(self)
 
-        self.collision_range = self.w * 1.2  # 외부 충돌 반경
-        self.collision_range_offset = (120, 10)
+        self.collision_range = self.w * 1.16  # 외부 충돌 반경
+        self.collision_range_offset = (130, 4)
         self.collider_spider = Collider_range(self, self.collision_range_offset[0], self.collision_range_offset[1], self.collision_range)
         game_world.add_collision_pair_range('spider:enemy_melee', self.collider_spider, None)
+        game_world.add_collision_pair_range('spider:SpitterShot', self.collider_spider, None)
 
          # 충돌 범위 제한
         self.degree_start = 90
@@ -358,7 +359,7 @@ class RoboSpider:
         return self.x - half_w, self.y - half_h, self.x + half_w, self.y + half_h
 
     def handle_collision(self, group, other):
-        if group == 'spider:enemy_melee':
+        if group == 'spider:enemy_melee' or group == 'spider:SpitterShot':
             if self.shield > 0:
                 self.shield -= other.owner.dmg  # 충돌 대상이 enemy의 collider_range 객체이므로 owner로 접근
                 if self.shield < 0:

@@ -24,6 +24,7 @@ class Projectile(metaclass=ABCMeta):
         self.vy = vy
         self.velocity = velocity
         self.layer = 2
+        self.owner = self
 
         self.dmg = dmg
 
@@ -111,11 +112,11 @@ class SpitterShot(Projectile):
 
         super().__init__(x, y, rad, vx, vy, velocity, 'SpitterShot', dmg)
 
-        game_world.add_collision_pair_range('Spitter_shot:spider', self, None)
+        game_world.add_collision_pair_range('spider:SpitterShot', None, self)
         game_world.add_collision_pair_bb('bullet:ground', self, None)
 
     def handle_collision(self, group, other):
-        if group == 'Spitter_shot:spider':
+        if group == 'spider:SpitterShot':
             game_world.remove_collision_object(self)
             self.inactive = True
         if group == 'bullet:ground':
@@ -133,5 +134,5 @@ class SpitterShot(Projectile):
         normalizing = math.sqrt(self.vx * self.vx + self.vy * self.vy)
         self.vx /= normalizing
         self.vy /= normalizing
-        game_world.add_collision_pair_range('Spitter_shot:enemy', self, None)
+        game_world.add_collision_pair_range('spider:SpitterShot', None, self)
         self.inactive = False

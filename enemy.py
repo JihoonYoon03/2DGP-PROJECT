@@ -119,7 +119,7 @@ class InfantryTier0(EnemyBase):
             '',
 
             'Walk',
-            2,
+            INFANTRY_RUN_SPEED_MPS,
             INFANTRY_HP,
             INFANTRY_ATTACK_DAMAGE,
             0
@@ -151,7 +151,7 @@ class InfantryTier0(EnemyBase):
         if 4 < self.frame < 5 and not self.attacked: # 공격 프레임에서 데미지 적용
             self.attacked = True
             if self.attack_collider is None:
-                self.attack_collider = Collider_range(self, 0, self.collision_range * (-1 if self.flip else 1) , self.collision_range // 2)
+                self.attack_collider = Collider_range(self, 0, self.collision_range * (-1 if self.flip else 1), self.collision_range // 2)
                 game_world.add_collision_pair_range('spider:enemy_melee', None, self.attack_collider)
 
         return BehaviorTree.SUCCESS
@@ -159,6 +159,9 @@ class InfantryTier0(EnemyBase):
     def set_target_location(self, target):
         if target is None:
             raise ValueError('목적지가 설정되어야 합니다.')
+        if self.attack_collider:
+            game_world.remove_collision_object(self.attack_collider)
+            self.attack_collider = None
         self.state = 'Walk'
         self.tx = target.x
         self.ty = target.y
@@ -230,7 +233,7 @@ class SpitterTier0(EnemyBase):
 
 
             'Walk',
-            SPIDER_RUN_SPEED_PPS * 1.3 / PIXEL_PER_METER,
+            SPITTER_RUN_SPEED_MPS,
             SPITTER_HP,
             0,
             SPITTER_ATTACK_RANGE * PIXEL_PER_METER
@@ -269,7 +272,7 @@ class SpitterTier0(EnemyBase):
         if int(self.frame) == 0:
             self.attacked = False
 
-        if 11 < self.frame < 12 and not self.attacked: # 공격 프레임에서 데미지 적용
+        if 10 < self.frame < 11 and not self.attacked: # 공격 프레임에서 데미지 적용
             self.attacked = True
             rad = math.atan2(target.y - self.y, target.x - self.x)
             if rad < 0:
