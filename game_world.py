@@ -27,6 +27,8 @@ def add_objects(objs, layer = 0):
 def update():
     if common.cam:
         common.cam.update()
+    if common.wave_manager:
+        common.wave_manager.update()
     for layer in world:
         for obj in layer:
             obj.update()

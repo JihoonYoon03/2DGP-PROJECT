@@ -42,6 +42,8 @@ def init():
     common.spider.mine_list = ground.get_mine_list()
     common.cam.cam_lock(common.spider, WIN_WIDTH // 3)
 
+    common.wave_manager = WaveManager()
+
     common.UI_ResourceData = UIResourceData()
     game_world.add_object(common.UI_ResourceData, 10)
 

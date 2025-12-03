@@ -85,6 +85,18 @@ class EnemyBase(metaclass=ABCMeta):
     def handle_event(self, event):
         pass
 
+    def handle_collision(self, group, other):
+        if group == 'spider:enemy_melee':
+            if self.attack_collider is not None:
+                game_world.remove_collision_object(self.attack_collider)
+                self.attack_collider = None
+        elif group == 'Machine_gun_bullet:enemy':
+            self.hp -= other.dmg
+            if self.hp <= 0:
+                # 사망 모션
+                self.hp = 0
+                game_world.remove_object(self)
+
     def get_bb(self):
         pass
 
@@ -126,17 +138,6 @@ class InfantryTier0(EnemyBase):
         )
 
         game_world.add_collision_pair_range('Machine_gun_bullet:enemy', None, self)
-
-    def handle_collision(self, group, other):
-        if group == 'spider:enemy_melee':
-            if self.attack_collider is not None:
-                game_world.remove_collision_object(self.attack_collider)
-                self.attack_collider = None
-        elif group == 'Machine_gun_bullet:enemy':
-            self.hp -= other.dmg
-            if self.hp <= 0:
-                # 사망 모션
-                game_world.remove_object(self)
 
     def target_in_range(self, target, r=0.5):
         if self.distance_less_than(self.x, target.y, self.x, self.y, r):
@@ -249,12 +250,6 @@ class SpitterTier0(EnemyBase):
 
         game_world.add_collision_pair_range('Machine_gun_bullet:enemy', None, self)
 
-    def handle_collision(self, group, other):
-        if group == 'Machine_gun_bullet:enemy':
-            self.hp -= other.dmg
-            if self.hp <= 0:
-                # 사망 모션
-                game_world.remove_object(self)
 
     def target_in_range(self, target, r=0.5):
         if self.distance_less_than(target.x, target.y, self.x, self.y, r):
@@ -342,3 +337,61 @@ class SpitterTier0(EnemyBase):
 
         root = Selector('Attack or Chase', attack, chase)
         self.bt = BehaviorTree(root)
+
+
+
+class WaveManager:
+    def __init__(self):
+        self.current_wave = 0
+        self.wave_timer = 0.0
+        self.waves = (
+            # 각 웨이브마다 스폰할 적 유닛 개수
+            { InfantryTier0 : 6, SpitterTier0 : 3 },
+            { InfantryTier0 : 10, SpitterTier0 : 8 },
+        )
+        self.spawn_interval = (
+            # 웨이브의 적 유닛별 스폰 간격 (초)
+            { InfantryTier0 : 1.5, SpitterTier0 : 2.0 },
+            { InfantryTier0 : 1.5, SpitterTier0 : 2.0 }
+        )
+        self.last_spawn_time = {InfantryTier0: 0.0, SpitterTier0: 0.0}
+        self.cur_enemies = []
+        self.waveRunning = False
+
+    def start_wave(self):
+        if self.current_wave < len(self.waves):
+            self.waveRunning = True
+
+    def update(self):
+        if self.waveRunning:
+            for enemy_type, amount in self.waves[self.current_wave].items():
+                self.last_spawn_time[enemy_type] += game_framework.frame_time
+                if amount > 0 and self.last_spawn_time[enemy_type] >= self.spawn_interval[self.current_wave][enemy_type]:
+                    new_enemy = None
+
+                    if enemy_type == InfantryTier0:
+                        new_enemy = InfantryTier0(common.spider.x + 72, common.spider.y - 400, common.spider)
+                    elif enemy_type == SpitterTier0:
+                        new_enemy = SpitterTier0(common.spider.x - 600, common.spider.y - 100, common.spider)
+
+                    if new_enemy is not None:
+                        self.last_spawn_time[enemy_type] -= self.spawn_interval[self.current_wave][enemy_type]
+                        self.cur_enemies.append(new_enemy)
+                        game_world.add_object(new_enemy, 3)
+
+                    amount -= 1
+
+            # 웨이브 클리어 조건: 모든 적 유닛이 스폰되고 모두 제거됨
+            all_spawned = all(v == 0 for v in self.waves[self.current_wave].values())
+            all_dead = all(enemy.hp == 0 for enemy in self.cur_enemies)
+            if all_spawned and all_dead:
+                self.waveRunning = False
+                self.current_wave += 1
+                self.wave_timer = 0.0
+                self.last_spawn_time = {InfantryTier0: 0.0, SpitterTier0: 0.0}
+                self.cur_enemies = []
+        else:
+            self.wave_timer += game_framework.frame_time
+            if self.wave_timer > WAVE_MAX_TIME:
+                self.wave_timer = WAVE_MAX_TIME
+                self.start_wave()

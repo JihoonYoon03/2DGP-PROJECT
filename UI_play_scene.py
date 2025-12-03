@@ -119,25 +119,16 @@ class UISpiderStatus():
         self.cur_bar_ratio = [1.0, 1.0, 0.0]
         self.x = WIN_WIDTH * 0.05
         self.y = WIN_HEIGHT * 0.1
-        self.wave_timer = 0.0
 
     def update(self):
         # 안전장치
-        if common.spider is None:
+        if common.spider is None or common.wave_manager is None:
             return
-
-        self.wave_timer += game_framework.frame_time
-        if self.wave_timer > WAVE_MAX_TIME:
-            self.wave_timer = WAVE_MAX_TIME
-            # common.wave_manager.start_wave()
 
         # 현재 바 비율 계산
         self.cur_bar_ratio[0] = common.spider.health / SPIDER_BASE_HP
         self.cur_bar_ratio[1] = common.spider.shield / SPIDER_BASE_SHIELD
-        self.cur_bar_ratio[2] = min(self.wave_timer / WAVE_BASE_TIME, 1.0)
-
-    def clear_wave_timer(self):
-        self.wave_timer = 0.0
+        self.cur_bar_ratio[2] = common.wave_manager.wave_timer / WAVE_BASE_TIME
 
     def draw(self):
         for i in range(3):
