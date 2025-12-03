@@ -1,9 +1,9 @@
 from pico2d import *
 
-import physics_data
+import common
+import game_framework
 from physics_data import *
 from state_machine import StateMachine
-import common
 
 UI_BAR_RATIO = [1, 0.5, 0.5]  # 체력, 실드, 웨이브 바 비율
 
@@ -111,21 +111,33 @@ class UISpiderStatus():
         self.image_wave = load_image('Assets/Sprites/UI/Window_GameInfo_Daytime_Bar.png')
         self.image_wave_icon = load_image('Assets/Sprites/UI/Window_GameInfo_Daytime_Icon.png')
         self.ratio = (WIN_WIDTH / WIN_HEIGHT) / (1920 / 1080) * 1.5
+        # 바 최대 비율 계산
         self.base_bar_ratio = [SPIDER_MAX_HP / SPIDER_BASE_HP * UI_BAR_RATIO[0],
                             SPIDER_MAX_SHIELD / SPIDER_BASE_SHIELD * UI_BAR_RATIO[1],
-                               1.0 * UI_BAR_RATIO[2]]
+                               WAVE_MAX_TIME / WAVE_BASE_TIME * UI_BAR_RATIO[2]]
+        # 현재 바 비율
         self.cur_bar_ratio = [1.0, 1.0, 0.0]
         self.x = WIN_WIDTH * 0.05
         self.y = WIN_HEIGHT * 0.1
+        self.wave_timer = 0.0
 
     def update(self):
+        # 안전장치
         if common.spider is None:
             return
-        for i in range(3):
-            if i == 0:
-                self.cur_bar_ratio[i] = common.spider.health / SPIDER_BASE_HP
-            elif i == 1:
-                self.cur_bar_ratio[i] = common.spider.shield / SPIDER_BASE_SHIELD
+
+        self.wave_timer += game_framework.frame_time
+        if self.wave_timer > WAVE_MAX_TIME:
+            self.wave_timer = WAVE_MAX_TIME
+            # common.wave_manager.start_wave()
+
+        # 현재 바 비율 계산
+        self.cur_bar_ratio[0] = common.spider.health / SPIDER_BASE_HP
+        self.cur_bar_ratio[1] = common.spider.shield / SPIDER_BASE_SHIELD
+        self.cur_bar_ratio[2] = min(self.wave_timer / WAVE_BASE_TIME, 1.0)
+
+    def clear_wave_timer(self):
+        self.wave_timer = 0.0
 
     def draw(self):
         for i in range(3):
