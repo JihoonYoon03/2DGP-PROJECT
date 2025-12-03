@@ -551,7 +551,7 @@ class Turret:
                 bullet_x = self.spider.x + 60 + (self.radius + self.image.w // 2) * math.cos(self.cur_angle)
                 bullet_y = self.spider.y + (self.radius + self.image.w // 2) * math.sin(self.cur_angle)
                 # 총알 발사. x, y, rad 인자 필요
-                common.obj_pool.get_object(MachineGunProjectile, bullet_x, bullet_y, self.cur_angle)
+                common.obj_pool.get_object(MachineGunProjectile, bullet_x, bullet_y, self.cur_angle, MACHINE_GUN_BULLET_DAMAGE)
 
     def draw(self):
         camera = get_camera()

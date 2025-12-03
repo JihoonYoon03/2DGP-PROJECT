@@ -9,10 +9,12 @@ import random
 
 
 class Projectile(metaclass=ABCMeta):
-    image = dict()
+    image = {}
     def __init__(self, x, y, rad, vx, vy, velocity, weapon_type, dmg):
         if len(Projectile.image) == 0:
-            Projectile.image.setdefault(weapon_type, load_image('Assets/Sprites/Bullets/Bullet_MachineGun.png'))
+            Projectile.image['MachineGun'] = load_image('Assets/Sprites/Bullets/Bullet_MachineGun.png')
+            Projectile.image['SpitterShot'] = load_image('Assets/Sprites/Bullets/fireball 8x8.png')
+
         self.type = weapon_type
         self.inactive = False
         self.x = x
@@ -51,7 +53,9 @@ class Projectile(metaclass=ABCMeta):
                                                            view_x, view_y, draw_w, draw_h)
 
     def get_bb(self):
-        pass
+        half_w = self.w / 2
+        half_h = self.h / 2
+        return self.x - half_w, self.y - half_h, self.x + half_w, self.y + half_h
 
     def handle_event(self, event):
         pass
@@ -60,7 +64,7 @@ class Projectile(metaclass=ABCMeta):
         pass
 
 class MachineGunProjectile(Projectile):
-    def __init__(self, x, y, rad):
+    def __init__(self, x, y, rad, dmg):
         r = rad + random.uniform(-MACHINE_GUN_SPREAD_RAD, MACHINE_GUN_SPREAD_RAD)
         vx = math.cos(r)
         vy = math.sin(r)
@@ -71,7 +75,7 @@ class MachineGunProjectile(Projectile):
 
         velocity = MACHINE_GUN_BULLET_SPEED_MPS * PIXEL_PER_METER
 
-        super().__init__(x, y, r, vx, vy, velocity, 'MachineGun', MACHINE_GUN_BULLET_DAMAGE)
+        super().__init__(x, y, r, vx, vy, velocity, 'MachineGun', dmg)
 
         game_world.add_collision_pair_range('Machine_gun_bullet:enemy', self, None)
 
@@ -81,10 +85,11 @@ class MachineGunProjectile(Projectile):
             self.inactive = True
 
 
-    def reactivate(self, x, y, rad):
+    def reactivate(self, x, y, rad, dmg):
         self.x = x
         self.y = y
         self.rad = rad + random.uniform(-MACHINE_GUN_SPREAD_RAD, MACHINE_GUN_SPREAD_RAD)
+        self.dmg = dmg
         self.vx = math.cos(self.rad)
         self.vy = math.sin(self.rad)
         normalizing = math.sqrt(self.vx * self.vx + self.vy * self.vy)
@@ -94,7 +99,7 @@ class MachineGunProjectile(Projectile):
         self.inactive = False
 
 class SpitterShot(Projectile):
-    def __init__(self, x, y, rad):
+    def __init__(self, x, y, rad, dmg):
         vx = math.cos(rad)
         vy = math.sin(rad)
 
@@ -104,20 +109,25 @@ class SpitterShot(Projectile):
 
         velocity = MACHINE_GUN_BULLET_SPEED_MPS * PIXEL_PER_METER
 
-        super().__init__(x, y, rad, vx, vy, velocity, 'MachineGun', MACHINE_GUN_BULLET_DAMAGE)
+        super().__init__(x, y, rad, vx, vy, velocity, 'SpitterShot', dmg)
 
         game_world.add_collision_pair_range('Spitter_shot:spider', self, None)
+        game_world.add_collision_pair_bb('bullet:ground', self, None)
 
     def handle_collision(self, group, other):
         if group == 'Spitter_shot:spider':
             game_world.remove_collision_object(self)
             self.inactive = True
+        if group == 'bullet:ground':
+            game_world.remove_collision_object(self)
+            self.inactive = True
 
 
-    def reactivate(self, x, y, rad):
+    def reactivate(self, x, y, rad, dmg):
         self.x = x
         self.y = y
-        self.rad = rad + random.uniform(-MACHINE_GUN_SPREAD_RAD, MACHINE_GUN_SPREAD_RAD)
+        self.rad = rad
+        self.dmg = dmg
         self.vx = math.cos(self.rad)
         self.vy = math.sin(self.rad)
         normalizing = math.sqrt(self.vx * self.vx + self.vy * self.vy)

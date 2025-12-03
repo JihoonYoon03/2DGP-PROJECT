@@ -200,9 +200,7 @@ class Ground:
 
         self.mines = list()
 
-        # self.IDLE = Idle(self)
-        #
-        # self.stateMachine = StateMachine(self.IDLE, {})
+        game_world.add_collision_pair_bb('bullet:ground', None, self)
 
     def update(self):
         camera = get_camera()
@@ -236,6 +234,13 @@ class Ground:
 
     def handle_event(self, event):
         pass
+
+    def handle_collision(self, group, other):
+        pass
+
+    def get_bb(self):
+        return (self.x - TILE_SIZE_PIXEL // 2, self.y - 1080,
+                self.x + TILE_SIZE_PIXEL // 2, self.y + 1080)
 
     # 광산 위치 정보 추가
     def add_mines(self, mine_list):
@@ -440,6 +445,7 @@ class Tile:
             game_world.add_collision_pair_bb('player:tile', None, self)
             game_world.add_collision_pair_bb('ore:tile', None, self)
             game_world.add_collision_pair_ray_cast('hoover_laser:tile', None, self)
+            game_world.add_collision_pair_bb('bullet:tile', None, self)
 
         self.IDLE = TileDefault(self)
         self.DELETE = TileDelete(self)

@@ -120,8 +120,8 @@ class InfantryTier0(EnemyBase):
 
             'Walk',
             2,
-            100,
-            10,
+            INFANTRY_HP,
+            INFANTRY_ATTACK_DAMAGE,
             0
         )
 
@@ -133,7 +133,6 @@ class InfantryTier0(EnemyBase):
                 game_world.remove_collision_object(self.attack_collider)
                 self.attack_collider = None
         elif group == 'Machine_gun_bullet:enemy':
-            print('enemy hit by bullet, dmg:', other.dmg)
             self.hp -= other.dmg
             if self.hp <= 0:
                 # 사망 모션
@@ -232,7 +231,7 @@ class SpitterTier0(EnemyBase):
 
             'Walk',
             SPIDER_RUN_SPEED_PPS * 1.3 / PIXEL_PER_METER,
-            100,
+            SPITTER_HP,
             0,
             SPITTER_ATTACK_RANGE * PIXEL_PER_METER
         )
@@ -243,13 +242,12 @@ class SpitterTier0(EnemyBase):
         self.last_target_x = 0
         self.last_target_y = 0
         self.movNext = False
-        self.attack_count = 3
+        self.attack_count = SPITTER_ATTACK_COUNT
 
         game_world.add_collision_pair_range('Machine_gun_bullet:enemy', None, self)
 
     def handle_collision(self, group, other):
         if group == 'Machine_gun_bullet:enemy':
-            print('enemy hit by bullet, dmg:', other.dmg)
             self.hp -= other.dmg
             if self.hp <= 0:
                 # 사망 모션
@@ -276,7 +274,7 @@ class SpitterTier0(EnemyBase):
             rad = math.atan2(target.y - self.y, target.x - self.x)
             if rad < 0:
                 rad += math.pi * 2
-            common.obj_pool.get_object(SpitterShot, self.x, self.y, rad + math.radians(random.uniform(-10, 10)))
+            common.obj_pool.get_object(SpitterShot, self.x, self.y, rad + math.radians(random.uniform(-10, 10)), SPITTER_ATTACK_DAMAGE)
             self.attack_count -= 1
 
         return BehaviorTree.SUCCESS
