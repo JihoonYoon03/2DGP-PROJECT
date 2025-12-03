@@ -7,6 +7,8 @@ import game_world
 import game_framework
 import math
 import random
+import common
+from projectile import *
 from abc import abstractmethod, ABCMeta
 
 class EnemyBase(metaclass=ABCMeta):
@@ -229,10 +231,10 @@ class SpitterTier0(EnemyBase):
 
 
             'Walk',
-            3,
+            SPIDER_RUN_SPEED_PPS * 1.3 / PIXEL_PER_METER,
             100,
             0,
-            PIXEL_PER_METER * 20
+            SPITTER_ATTACK_RANGE * PIXEL_PER_METER
         )
         # tx, ty 오프셋
         self.offset_x = 0
@@ -241,6 +243,7 @@ class SpitterTier0(EnemyBase):
         self.last_target_x = 0
         self.last_target_y = 0
         self.movNext = False
+        self.attack_count = 3
 
         game_world.add_collision_pair_range('Machine_gun_bullet:enemy', None, self)
 
@@ -263,12 +266,18 @@ class SpitterTier0(EnemyBase):
             return BehaviorTree.SUCCESS
         return BehaviorTree.FAIL
 
-    def attack_target(self):
+    def shoot_bullet(self, target):
         self.state = 'Attack'
         if int(self.frame) == 0:
             self.attacked = False
 
-        # if 4 < self.frame < 5 and not self.attacked: # 공격 프레임에서 데미지 적용
+        if 11 < self.frame < 12 and not self.attacked: # 공격 프레임에서 데미지 적용
+            self.attacked = True
+            rad = math.atan2(target.y - self.y, target.x - self.x)
+            if rad < 0:
+                rad += math.pi * 2
+            common.obj_pool.get_object(SpitterShot, self.x, self.y, rad + math.radians(random.uniform(-10, 10)))
+            self.attack_count -= 1
 
         return BehaviorTree.SUCCESS
 
@@ -276,7 +285,7 @@ class SpitterTier0(EnemyBase):
         if target is None:
             raise ValueError('목적지가 설정되어야 합니다.')
         self.state = 'Walk'
-        angle = random.uniform(math.radians(120), math.radians(240))
+        angle = random.uniform(math.radians(160), math.radians(200))
         radius = random.uniform(self.attack_range * 0.8 + self.spider.collision_range, self.attack_range + self.spider.collision_range)
         self.offset_x = math.cos(angle) * radius
         self.offset_y = math.sin(angle) * radius
@@ -285,6 +294,7 @@ class SpitterTier0(EnemyBase):
         self.last_target_x = target.x
         self.last_target_y = target.y
         self.movNext = True
+        self.attack_count = SPITTER_ATTACK_COUNT
         return BehaviorTree.SUCCESS
 
     def distance_less_than(self, x1, y1, x2, y2, r):
@@ -318,8 +328,8 @@ class SpitterTier0(EnemyBase):
         # 1. 목표지점 도달 / 2. 타겟이 사거리 내에 있음 / 3. 공격 횟수 남음 / 4. 공격
         c1 = Condition('Target location reached', self.reached_target_location)
         c2 = Condition('Target in range', self.target_in_range, self.spider, (self.spider.collision_range + self.attack_range) / PIXEL_PER_METER)
-        c3 = Condition('Attack count left', lambda: BehaviorTree.SUCCESS)
-        a1 = Action('Shoot projectile', self.attack_target)
+        c3 = Condition('Attack count left', lambda: BehaviorTree.SUCCESS if self.attack_count > 0 else BehaviorTree.FAIL)
+        a1 = Action('Shoot projectile', self.shoot_bullet, self.spider)
         attack = Sequence('Attack', c1, c2, c3, a1)
 
         c4 = Condition('Target location not set', lambda: BehaviorTree.FAIL  if self.movNext else BehaviorTree.SUCCESS)

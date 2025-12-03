@@ -92,3 +92,36 @@ class MachineGunProjectile(Projectile):
         self.vy /= normalizing
         game_world.add_collision_pair_range('Machine_gun_bullet:enemy', self, None)
         self.inactive = False
+
+class SpitterShot(Projectile):
+    def __init__(self, x, y, rad):
+        vx = math.cos(rad)
+        vy = math.sin(rad)
+
+        normalizing = math.sqrt(vx * vx + vy * vy)
+        vx /= normalizing
+        vy /= normalizing
+
+        velocity = MACHINE_GUN_BULLET_SPEED_MPS * PIXEL_PER_METER
+
+        super().__init__(x, y, rad, vx, vy, velocity, 'MachineGun', MACHINE_GUN_BULLET_DAMAGE)
+
+        game_world.add_collision_pair_range('Spitter_shot:spider', self, None)
+
+    def handle_collision(self, group, other):
+        if group == 'Spitter_shot:spider':
+            game_world.remove_collision_object(self)
+            self.inactive = True
+
+
+    def reactivate(self, x, y, rad):
+        self.x = x
+        self.y = y
+        self.rad = rad + random.uniform(-MACHINE_GUN_SPREAD_RAD, MACHINE_GUN_SPREAD_RAD)
+        self.vx = math.cos(self.rad)
+        self.vy = math.sin(self.rad)
+        normalizing = math.sqrt(self.vx * self.vx + self.vy * self.vy)
+        self.vx /= normalizing
+        self.vy /= normalizing
+        game_world.add_collision_pair_range('Spitter_shot:enemy', self, None)
+        self.inactive = False
