@@ -6,6 +6,7 @@ from state_machine import StateMachine
 from game_world import get_camera
 import game_framework
 import game_world
+import common
 
 
 class Idle:
@@ -113,9 +114,9 @@ class Ore:
     def draw(self):
         self.stateMachine.draw()
 
-        camera = get_camera()
-        view_x, view_y = camera.world_to_view(self.x, self.y)
-        draw_circle(view_x, view_y, int(self.collision_range * camera.zoom), 255)
+        if common.debug_mode:
+            view_x, view_y = common.cam.world_to_view(self.x, self.y)
+            draw_circle(view_x, view_y, int(self.collision_range * common.cam.zoom), 255)
 
     def handle_event(self, event):
         pass

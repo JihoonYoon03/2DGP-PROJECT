@@ -243,11 +243,11 @@ class Player:
         if common.spider.is_docking:
             self.stateMachine.draw()
 
-            camera = get_camera()
-            x1, y1, x2, y2 = self.get_bb()
-            view_x1, view_y1 = camera.world_to_view(x1, y1)
-            view_x2, view_y2 = camera.world_to_view(x2, y2)
-            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
+            if common.debug_mode:
+                x1, y1, x2, y2 = self.get_bb()
+                view_x1, view_y1 = common.cam.world_to_view(x1, y1)
+                view_x2, view_y2 = common.cam.world_to_view(x2, y2)
+                draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
     def handle_event(self, event):
         prev_moving = (self.move_x != 0 or self.move_y != 0)
@@ -353,3 +353,4 @@ class Player:
                 self.x += self.delta_x * 0.5
             if not y_collide:
                 self.y += self.delta_y * 0.5
+

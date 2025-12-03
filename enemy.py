@@ -73,16 +73,18 @@ class EnemyBase(metaclass=ABCMeta):
                                                        self.draw_angle, self.flip,
                                                        view_x, view_y,
                                                        draw_w, draw_h)
-        draw_circle(view_x, view_y, int(self.collision_range * camera.zoom), 255, 0, 0)
-        draw_circle(view_x, view_y, int(self.attack_range * camera.zoom), 255, 255, 0)
-        view_x, view_y = camera.world_to_view(self.tx, self.ty)
-        draw_circle(view_x, view_y, int(10 * camera.zoom), 255, 0, 255)
 
-        if self.attack_collider is not None:
-            x, y = self.attack_collider.get_position()
-            x, y = camera.world_to_view(x, y)
-            r = int(self.attack_collider.collision_range * camera.zoom)
-            draw_circle(x, y, r, 255, 0, 0)
+        if common.debug_mode:
+            draw_circle(view_x, view_y, int(self.collision_range * camera.zoom), 255, 0, 0)
+            draw_circle(view_x, view_y, int(self.attack_range * camera.zoom), 255, 255, 0)
+            view_x, view_y = camera.world_to_view(self.tx, self.ty)
+            draw_circle(view_x, view_y, int(10 * camera.zoom), 255, 0, 255)
+
+            if self.attack_collider is not None:
+                x, y = self.attack_collider.get_position()
+                x, y = camera.world_to_view(x, y)
+                r = int(self.attack_collider.collision_range * camera.zoom)
+                draw_circle(x, y, r, 255, 0, 0)
 
     def handle_event(self, event):
         pass

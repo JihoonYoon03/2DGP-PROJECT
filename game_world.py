@@ -3,6 +3,7 @@ import heapq
 import object_pool
 import physics_data
 import common
+import event_set
 from physics_data import *
 
 world = [[]]
@@ -40,6 +41,11 @@ def render():
     # common.obj_pool.print_pool_status()
 
 def handle_event(event):
+    # 디버그 모드 토글
+    if event_set.slash_pressed(('INPUT', event)):
+        common.debug_mode = not common.debug_mode
+        print(f"Debug mode: {'ON' if common.debug_mode else 'OFF'}")
+
     if common.cam:
         common.cam.handle_event(event)
     for layer in world:

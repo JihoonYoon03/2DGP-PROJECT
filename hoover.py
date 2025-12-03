@@ -246,9 +246,9 @@ class Hoover:
         if self.player.is_docked:
             return
         self.stateMachine.draw()
-        camera = get_camera()
-        view_x, view_y = camera.world_to_view(self.x, self.y)
-        draw_circle(view_x, view_y, int(camera.value_to_view(self.radius_vacuum)), 100, 255, 0)
+        if common.debug_mode:
+            view_x, view_y = common.cam.world_to_view(self.x, self.y)
+            draw_circle(view_x, view_y, int(common.cam.value_to_view(self.radius_vacuum)), 100, 255, 0)
 
     def handle_event(self, event):
         if mouse_motion(('INPUT', event)):

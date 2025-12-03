@@ -310,9 +310,9 @@ class RoboSpider:
     def draw(self):
         self.turret.draw()
         self.stateMachine.draw()
-        camera = get_camera()
-        view_x, view_y = camera.world_to_view(self.x + self.collision_range_offset[0], self.y + self.collision_range_offset[1])
-        draw_circle(view_x, view_y, int(self.collision_range * camera.zoom), 255, 0, 0)
+        if common.debug_mode:
+            view_x, view_y = common.cam.world_to_view(self.x + self.collision_range_offset[0], self.y + self.collision_range_offset[1])
+            draw_circle(view_x, view_y, int(self.collision_range * common.cam.zoom), 255, 0, 0)
 
     def handle_event(self, event):
         if not self.is_docking and self.stateMachine.cur_state != self.DOCK:
@@ -492,25 +492,25 @@ class RoboSpiderIn:
         if self.sp.is_docking:
             self.stateMachine.draw()
 
-            cam = get_camera()
-            x1, y1, x2, y2 = self.sp.collider_entrance_up.get_bb()
-            view_x1, view_y1 = cam.world_to_view(x1, y1)
-            view_x2, view_y2 = cam.world_to_view(x2, y2)
-            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
+            if common.debug_mode:
+                x1, y1, x2, y2 = self.sp.collider_entrance_up.get_bb()
+                view_x1, view_y1 = common.cam.world_to_view(x1, y1)
+                view_x2, view_y2 = common.cam.world_to_view(x2, y2)
+                draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
-            x1, y1, x2, y2 = self.sp.collider_entrance_down.get_bb()
-            view_x1, view_y1 = cam.world_to_view(x1, y1)
-            view_x2, view_y2 = cam.world_to_view(x2, y2)
-            draw_rectangle(view_x1, view_y1, view_x2, view_y2)
+                x1, y1, x2, y2 = self.sp.collider_entrance_down.get_bb()
+                view_x1, view_y1 = common.cam.world_to_view(x1, y1)
+                view_x2, view_y2 = common.cam.world_to_view(x2, y2)
+                draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
-            x1, y1, x2, y2 = self.sp.barrier.get_bb()
-            view_x1, view_y1 = cam.world_to_view(x1, y1)
-            view_x2, view_y2 = cam.world_to_view(x2, y2)
-            draw_rectangle(view_x1, view_y1, view_x2, view_y2, 150, 200, 255)
+                x1, y1, x2, y2 = self.sp.barrier.get_bb()
+                view_x1, view_y1 = common.cam.world_to_view(x1, y1)
+                view_x2, view_y2 = common.cam.world_to_view(x2, y2)
+                draw_rectangle(view_x1, view_y1, view_x2, view_y2, 150, 200, 255)
 
-            # 2, 3사분면 반원 그리기 (디버그용)
-            view_x, view_y = cam.world_to_view(self.sp.x + self.sp.range_inner_offset[0], self.sp.y)
-            draw_circle(view_x, view_y, int(cam.value_to_view(self.sp.range_inner)), 255, 0, 0)
+                # 2, 3사분면 반원 그리기 (디버그용)
+                view_x, view_y = common.cam.world_to_view(self.sp.x + self.sp.range_inner_offset[0], self.sp.y)
+                draw_circle(view_x, view_y, int(common.cam.value_to_view(self.sp.range_inner)), 255, 0, 0)
 
     def handle_event(self, event):
         pass

@@ -8,3 +8,6 @@ UI_SpiderStatus = None
 
 obj_pool = None
 wave_manager = None
+
+# 디버그 모드 플래그
+debug_mode = False

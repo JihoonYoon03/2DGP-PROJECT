@@ -5,6 +5,7 @@ import event_set
 from physics_data import *
 import game_world
 import game_framework
+import common
 from game_world import get_camera
 from physics_data import TILE_SIZE_PIXEL, TILE_W_H
 from state_machine import StateMachine
@@ -353,10 +354,10 @@ class TileDefault:
                 view_x, view_y, draw_w, draw_h
             )
 
-        if self.tile.is_exposed:
+        if common.debug_mode and self.tile.is_exposed:
             x1, y1, x2, y2 = self.tile.get_bb()
-            view_x1, view_y1 = camera.world_to_view(x1, y1)
-            view_x2, view_y2 = camera.world_to_view(x2, y2)
+            view_x1, view_y1 = common.cam.world_to_view(x1, y1)
+            view_x2, view_y2 = common.cam.world_to_view(x2, y2)
             draw_rectangle(view_x1, view_y1, view_x2, view_y2)
 
 class TileDelete:
@@ -526,3 +527,4 @@ class Tile:
         self.has_resource = True
         self.resource_type = res_type
         self.res_image = Tile.image_resource[res_type]
+

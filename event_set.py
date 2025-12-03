@@ -66,6 +66,9 @@ def minus_pressed(e):
 def minus_released(e):
     return e[0] == 'INPUT' and e[1].type == sdl2.SDL_KEYUP and e[1].key == sdl2.SDLK_MINUS
 
+def slash_pressed(e):
+    return e[0] == 'INPUT' and e[1].type == sdl2.SDL_KEYDOWN and e[1].key == sdl2.SDLK_SLASH
+
 def mouse_motion(e):
     return e[0] == 'INPUT' and e[1].type == sdl2.SDL_MOUSEMOTION
 
