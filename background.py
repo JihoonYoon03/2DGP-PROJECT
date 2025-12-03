@@ -1,6 +1,7 @@
 from pico2d import *
 from state_machine import StateMachine
 from game_world import get_camera
+from physics_data import *
 
 class Idle:
     def __init__(self, bg):
@@ -23,6 +24,9 @@ class Idle:
         camera = get_camera()
         draw_w, draw_h = camera.get_draw_size(self.bg.image.w, self.bg.image.h)
 
+        # 광산 디폴트 배경
+        self.bg.image_tile.clip_draw(0, 452, TILE_W_H, TILE_W_H, WIN_WIDTH / 2, WIN_HEIGHT / 2, TILE_W_H * WIN_WIDTH, TILE_W_H * WIN_HEIGHT)
+
         # 중앙
         view_x, view_y = camera.world_to_view(self.bg.x, self.bg.y + self.bg.image.h)
         self.bg.image.clip_draw(0, 0, self.bg.image.w, self.bg.image.h, view_x, view_y, draw_w, draw_h)
@@ -41,6 +45,7 @@ class Background:
         self.x = 0
         self.y = 0
         self.image = load_image('Assets/Sprites/Background/NightBackground.png')
+        self.image_tile = load_image('Assets/Sprites/Tile/Tex_Bedrock.png') # (0, 452)만 사용
 
         self.IDLE = Idle(self)
         self.stateMachine = StateMachine(self.IDLE, {})

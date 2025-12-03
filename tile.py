@@ -232,6 +232,7 @@ class Ground:
             self.image.clip_draw(tile_x, tile_y, TILE_W_H, TILE_W_H,
                                       view_x, view_y, draw_w, draw_h)
 
+
     def handle_event(self, event):
         pass
 
