@@ -313,7 +313,7 @@ class RoboSpider:
         self.stateMachine.draw()
         camera = get_camera()
         view_x, view_y = camera.world_to_view(self.x + self.collision_range_offset[0], self.y + self.collision_range_offset[1])
-        draw_circle(view_x, view_y, int(camera.value_to_view(self.collision_range)), 255, 0, 0)
+        draw_circle(view_x, view_y, int(self.collision_range * camera.zoom), 255, 0, 0)
 
     def handle_event(self, event):
         if not self.is_docking and self.stateMachine.cur_state != self.DOCK:
@@ -359,8 +359,14 @@ class RoboSpider:
 
     def handle_collision(self, group, other):
         if group == 'spider:enemy_melee':
-            self.health -= other.owner.dmg  # 충돌 대상이 enemy의 collider_range 객체이므로 owner로 접근
-            print('RoboSpider HP:', self.health)
+            if self.shield > 0:
+                self.shield -= other.owner.dmg  # 충돌 대상이 enemy의 collider_range 객체이므로 owner로 접근
+                if self.shield < 0:
+                    self.shield = 0
+                print('RoboSpider Shield:', self.shield)
+            else:
+                self.health -= other.owner.dmg  # 충돌 대상이 enemy의 collider_range 객체이므로 owner로 접근
+                print('RoboSpider HP:', self.health)
 
     # 도킹 시 근처 광산을 찾는 함수
     def find_nearby_mine(self):

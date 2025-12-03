@@ -63,23 +63,23 @@ def get_hoover_laser_action_per_time(frame_count):
 class Collider_bb:
     def __init__(self, owner, offset_x, offset_y, width, height):
         self.owner = owner
-        self.x = owner.x
-        self.y = owner.y
+        self.x = owner.x + offset_x
+        self.y = owner.y + offset_y
         self.offset_x = offset_x
         self.offset_y = offset_y
         self.w = width
         self.h = height
 
     def get_bb(self):
-        x, y = self.owner.x, self.owner.y
-        return (x + self.offset_x - self.w // 2,
-                y + self.offset_y - self.h // 2,
-                x + self.offset_x + self.w // 2,
-                y + self.offset_y + self.h // 2)
+        x, y = self.owner.x + self.offset_x, self.owner.y + self.offset_y
+        return (self.x - self.w // 2,
+                self.y - self.h // 2,
+                self.x + self.w // 2,
+                self.y + self.h // 2)
 
     def update(self):
-        self.x = self.owner.x
-        self.y = self.owner.y
+        self.x = self.owner.x + self.offset_x
+        self.y = self.owner.y + self.offset_y
 
     def handle_collision(self, group, other):
         self.owner.handle_collision(group, other)
@@ -87,20 +87,18 @@ class Collider_bb:
 class Collider_range:
     def __init__(self, owner, offset_x, offset_y, radius):
         self.owner = owner
-        self.x = owner.x
-        self.y = owner.y
+        self.x = owner.x + offset_x
+        self.y = owner.y + offset_y
         self.offset_x = offset_x
         self.offset_y = offset_y
         self.collision_range = radius
 
     def get_position(self):
-        x = self.owner.x + self.offset_x
-        y = self.owner.y + self.offset_y
-        return x, y
+        return self.x, self.y
 
     def update(self):
-        self.x = self.owner.x
-        self.y = self.owner.y
+        self.x = self.owner.x + self.offset_x
+        self.y = self.owner.y + self.offset_y
 
     def handle_collision(self, group, other):
         self.owner.handle_collision(group, other)

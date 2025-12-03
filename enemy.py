@@ -10,10 +10,10 @@ import common
 from abc import abstractmethod, ABCMeta
 
 class EnemyBase(metaclass=ABCMeta):
-    def __init__(self, x, y, spider, name, frame_data, w, h, frame, frame_count, frame_per_time, draw_angle, flip, state, speed, hp, dmg=0):
+    def __init__(self, x, y, spider, name, frame_data, w, h, frame, frame_count, frame_per_time, draw_angle, flip, state, speed, hp, dmg, range):
         self.x = x
         self.y = y
-        self.spider = spider
+        self.spider = spider.collider_spider
         self.name = name
 
         self.image ={   'Walk' : load_image('Assets/Sprites/Zyrex/' + name + 'WalkTileset.png'),
@@ -39,20 +39,24 @@ class EnemyBase(metaclass=ABCMeta):
         self.speed = speed # m/s
         self.hp = hp
         self.dmg = dmg  # 근접 유닛 데미지(원거리는 총알 데미지로 처리)
+        self.attack_range = range if range > 0 else self.collision_range # 공격 사거리 (근접은 콜라이더 범위로 처리, 0)
         self.attack_collider = None
         self.attacked = False   # 현재 프레임 사이클에서 공격 수행했는지 여부
 
         self.build_behavior_tree()
 
-    def update(self):
-        self.frame = (self.frame + self.frame_per_time[self.state] * game_framework.frame_time) % self.frame_count[self.state]
+    def check_state(self):
         if self.last_state != self.state:
             self.frame = 0
-            self.last_state = self.state
+        self.last_state = self.state
+
+    def update(self):
+        self.bt.run()
+        self.check_state()
+        self.frame = (self.frame + self.frame_per_time[self.state] * game_framework.frame_time) % self.frame_count[self.state]
         if self.attack_collider is not None:
             self.attack_collider.update()
 
-        self.bt.run()
 
     def draw(self):
         camera = get_camera()
@@ -66,6 +70,7 @@ class EnemyBase(metaclass=ABCMeta):
                                                        view_x, view_y,
                                                        draw_w, draw_h)
         draw_circle(view_x, view_y, int(self.collision_range * camera.zoom), 255, 0, 0)
+        draw_circle(view_x, view_y, int(self.attack_range * camera.zoom), 255, 255, 0)
 
         if self.attack_collider is not None:
             x, y = self.attack_collider.get_position()
@@ -112,7 +117,8 @@ class InfantryTier0(EnemyBase):
             'Walk',
             2,
             100,
-            10
+            10,
+            0
         )
 
         game_world.add_collision_pair_range('Machine_gun_bullet:enemy', None, self)
@@ -135,8 +141,7 @@ class InfantryTier0(EnemyBase):
         return BehaviorTree.FAIL
 
     def attack_target(self):
-        self.last_state = self.state
-        self.state = 'Attack'  # 디버그 출력
+        self.state = 'Attack'
         if int(self.frame) == 0:
             self.attacked = False
 
@@ -151,6 +156,7 @@ class InfantryTier0(EnemyBase):
     def set_target_location(self, target):
         if target is None:
             raise ValueError('목적지가 설정되어야 합니다.')
+        self.state = 'Walk'
         self.tx = target.x
         self.ty = target.y
         if self.ty < self.y:
@@ -173,18 +179,117 @@ class InfantryTier0(EnemyBase):
     def move_to_target(self, r=0.5):
         if self.distance_less_than(self.x, self.ty, self.x, self.y, r):
             return BehaviorTree.SUCCESS
-        self.last_state = self.state
-        self.state = 'Walk' # 디버그 출력
         self.move_little_to(self.x, self.ty) # 목적지로 조금 이동
         return BehaviorTree.RUNNING
 
     def build_behavior_tree(self):
-        c1 = Condition('Target in range', self.target_in_range, self.spider, (self.spider.collision_range - 30 + self.collision_range) / PIXEL_PER_METER)
+        c1 = Condition('Target in range', self.target_in_range, self.spider, (self.spider.collision_range + self.attack_range) / PIXEL_PER_METER)
         a1 = Action('Attack Target', self.attack_target)
         attack = Sequence('Attack', c1, a1)
 
         a2 = Action('Set Target Location', self.set_target_location, self.spider)
-        a3 = Action('Move to Target', self.move_to_target, (self.spider.collision_range - 30 + self.collision_range) / PIXEL_PER_METER)
+        a3 = Action('Move to Target', self.move_to_target, (self.spider.collision_range + self.attack_range) / PIXEL_PER_METER)
+        chase_target = Sequence('Chase Target', a2, a3)
+
+        root = Selector('Attack or Chase', attack, chase_target)
+        self.bt = BehaviorTree(root)
+
+
+
+class SpitterTier0(EnemyBase):
+    def __init__(self, x, y, spider):
+        super().__init__(
+            x, y, spider,'Spitter',
+
+    {'Walk' :(
+                (0, 0), (44, 0),
+                (0, 34), (44, 34),
+                (0, 68), (44, 68),
+                (0, 102),
+                ),
+                'Attack': (
+                    (0, 0), (44, 0), (88, 0), (132, 0), (176, 0),
+                    (0, 43), (44, 43), (88, 43), (132, 43), (176, 43),
+                    (0, 86), (44, 86), (88, 86)
+                ),
+                'Death' :()
+                },
+
+        {'Walk': 44, 'Attack' : 44, 'Death' : 40},
+        {'Walk': 34, 'Attack' : 43, 'Death' : 50},
+
+            0,
+            {'Walk' : 7, 'Attack' : 13, 'Death': 8},
+            {'Walk' : 7, 'Attack' : 7, 'Death': 8},
+            0,
+            '',
+
+
+
+            'Walk',
+            3,
+            100,
+            0,
+            100
+        )
+
+
+        game_world.add_collision_pair_range('Machine_gun_bullet:enemy', None, self)
+
+    def handle_collision(self, group, other):
+        if group == 'Machine_gun_bullet:enemy':
+            print('enemy hit by bullet, dmg:', other.dmg)
+            self.hp -= other.dmg
+            if self.hp <= 0:
+                # 사망 모션
+                game_world.remove_object(self)
+
+    def target_in_range(self, target, r=0.5):
+        if self.distance_less_than(target.x, target.y, self.x, self.y, r):
+            return BehaviorTree.SUCCESS
+        return BehaviorTree.FAIL
+
+    def attack_target(self):
+        self.state = 'Attack'
+        if int(self.frame) == 0:
+            self.attacked = False
+
+        # if 4 < self.frame < 5 and not self.attacked: # 공격 프레임에서 데미지 적용
+
+        return BehaviorTree.SUCCESS
+
+    def set_target_location(self, target):
+        if target is None:
+            raise ValueError('목적지가 설정되어야 합니다.')
+        self.state = 'Walk'
+        self.tx = target.x
+        self.ty = target.y
+        return BehaviorTree.SUCCESS
+
+    def distance_less_than(self, x1, y1, x2, y2, r):
+        distance2 = (x1 - x2) ** 2 + (y1 - y2) ** 2
+        return distance2 <= (PIXEL_PER_METER * r) ** 2
+
+    def move_little_to(self, tx, ty):
+        # 여기를 채우시오.
+        distance = self.speed * PIXEL_PER_METER * game_framework.frame_time
+        self.dir = math.atan2(ty - self.y, tx - self.x)
+        self.x += distance * math.cos(self.dir)
+        self.y += distance * math.sin(self.dir)
+
+    def move_to_target(self, r=0.5):
+        if self.distance_less_than(self.tx, self.ty, self.x, self.y, r):
+            return BehaviorTree.SUCCESS
+        self.move_little_to(self.tx, self.ty) # 목적지로 조금 이동
+        return BehaviorTree.RUNNING
+
+    def build_behavior_tree(self):
+        c1 = Condition('Target in range', self.target_in_range, self.spider, (self.spider.collision_range + self.attack_range) / PIXEL_PER_METER)
+        a1 = Action('Attack Target', self.attack_target)
+        attack = Sequence('Attack', c1, a1)
+
+        a2 = Action('Set Target Location', self.set_target_location, self.spider)
+        a3 = Action('Move to Target', self.move_to_target, (self.spider.collision_range + self.attack_range) / PIXEL_PER_METER)
         chase_target = Sequence('Chase Target', a2, a3)
 
         root = Selector('Attack or Chase', attack, chase_target)

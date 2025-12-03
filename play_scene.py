@@ -34,8 +34,10 @@ def init():
     common.player = Player()
     game_world.add_object(common.player, 2)
 
-    enemy_test = InfantryTier0(common.spider.x + 72, common.spider.y - 400, common.spider)
-    game_world.add_object(enemy_test, 2)
+    enemy_test0 = InfantryTier0(common.spider.x + 72, common.spider.y - 400, common.spider)
+    enemy_test1 = SpitterTier0(common.spider.x - 600, common.spider.y - 100, common.spider)
+    game_world.add_object(enemy_test0, 2)
+    game_world.add_object(enemy_test1, 2)
 
     common.spider.mine_list = ground.get_mine_list()
     common.cam.cam_lock(common.spider, WIN_WIDTH // 3)
