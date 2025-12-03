@@ -80,6 +80,25 @@ def remove_object(obj):
 
     raise Exception("object not found in any layer")
 
+def check_object_in_collision(o):
+    for pairs in collision_pairs_bb.values():
+        if o in pairs[0] or o in pairs[1]:
+            return True
+
+    for pairs in collision_pairs_radius_limited.values():
+        if o in pairs[0] or o in pairs[1]:
+            return True
+
+    for pairs in collision_pairs_ray_cast.values():
+        if o in pairs[0] or o in pairs[1]:
+            return True
+
+    for pairs in collision_pairs_range.values():
+        if o in pairs[0] or o in pairs[1]:
+            return True
+
+    return False
+
 def clear():
     for layer in world:
         layer.clear()

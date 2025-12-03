@@ -47,6 +47,8 @@ class EnemyBase(metaclass=ABCMeta):
 
         self.build_behavior_tree()
 
+        game_world.add_collision_pair_range('Machine_gun_bullet:enemy', None, self)
+
     def check_state(self):
         if self.last_state != self.state:
             self.frame = 0
@@ -85,17 +87,21 @@ class EnemyBase(metaclass=ABCMeta):
     def handle_event(self, event):
         pass
 
+    # 총알에서 호출
+    def getDamage(self, dmg):
+        self.hp -= dmg
+        if self.hp <= 0:
+            self.hp = 0
+            # 사망 모션
+            game_world.remove_object(self)
+
     def handle_collision(self, group, other):
         if group == 'spider:enemy_melee':
             if self.attack_collider is not None:
                 game_world.remove_collision_object(self.attack_collider)
                 self.attack_collider = None
         elif group == 'Machine_gun_bullet:enemy':
-            self.hp -= other.dmg
-            if self.hp <= 0:
-                # 사망 모션
-                self.hp = 0
-                game_world.remove_object(self)
+            pass
 
     def get_bb(self):
         pass
@@ -136,8 +142,6 @@ class InfantryTier0(EnemyBase):
             INFANTRY_ATTACK_DAMAGE,
             0
         )
-
-        game_world.add_collision_pair_range('Machine_gun_bullet:enemy', None, self)
 
     def target_in_range(self, target, r=0.5):
         if self.distance_less_than(self.x, target.y, self.x, self.y, r):
@@ -247,8 +251,6 @@ class SpitterTier0(EnemyBase):
         self.last_target_y = 0
         self.movNext = False
         self.attack_count = SPITTER_ATTACK_COUNT
-
-        game_world.add_collision_pair_range('Machine_gun_bullet:enemy', None, self)
 
 
     def target_in_range(self, target, r=0.5):
@@ -378,8 +380,7 @@ class WaveManager:
                         self.last_spawn_time[enemy_type] -= self.spawn_interval[self.current_wave][enemy_type]
                         self.cur_enemies.append(new_enemy)
                         game_world.add_object(new_enemy, 3)
-
-                    amount -= 1
+                    self.waves[self.current_wave][enemy_type] -= 1
 
             # 웨이브 클리어 조건: 모든 적 유닛이 스폰되고 모두 제거됨
             all_spawned = all(v == 0 for v in self.waves[self.current_wave].values())

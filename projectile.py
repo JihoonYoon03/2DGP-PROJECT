@@ -82,9 +82,13 @@ class MachineGunProjectile(Projectile):
 
     def handle_collision(self, group, other):
         if group == 'Machine_gun_bullet:enemy':
-            game_world.remove_collision_object(self)
+            if self.inactive:  # 이미 제거된 총알이면 무시
+                return
+            # 데미지 적용
+            other.getDamage(self.dmg)
+            # 총알 제거
             self.inactive = True
-
+            game_world.remove_collision_object(self)
 
     def reactivate(self, x, y, rad, dmg):
         self.x = x
