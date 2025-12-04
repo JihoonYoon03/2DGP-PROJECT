@@ -197,10 +197,10 @@ class Ore:
         contact_vel_tangent = (self.vx * tangent[0] + self.vy * tangent[1])
 
         # 속도가 매우 작으면 완전 정지
-        velocity_threshold = 5.0  # 픽셀/초
+        velocity_threshold = 1.0  # 픽셀/초
         if abs(contact_vel_tangent) < velocity_threshold:
-            self.vx -= tangent[0] * contact_vel_tangent
-            self.vy -= tangent[1] * contact_vel_tangent
+            self.vx -= tangent[0] * contact_vel_tangent * ORE_FRICTION
+            self.vy -= tangent[1] * contact_vel_tangent * ORE_FRICTION
 
     def resolve_collision(self, body1, body2, dx, dy, dist):
         """광석끼리의 충돌 처리"""
