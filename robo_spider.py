@@ -214,6 +214,7 @@ class SpUndock:
 
     def enter(self, e):
         self.sp.is_docking = False
+        self.docked_mine = None
         self.sp.move_dir = 0
         self.sp.last_move_dir = 0
         self.sp.frame = 0
@@ -280,7 +281,7 @@ class RoboSpider:
 
         # 광산 레퍼런스 리스트와 현재 도킹된 광산 입구 위치
         self.mine_list = list()
-        self.docked_mine = 0
+        self.docked_mine = None
 
         # 스파이더 내부
         self.inner = RoboSpiderIn(self)
@@ -369,7 +370,6 @@ class RoboSpider:
 
     # 도킹 시 근처 광산을 찾는 함수
     def find_nearby_mine(self):
-        cam = get_camera()
         # 도킹 시 광산 입구와의 최대 거리
         max_distance = TILE_SIZE_PIXEL * 5
         for mine in self.mine_list:
@@ -410,9 +410,9 @@ class SpInIdle:
                 self.sp_in.rh_frame += self.sp_in.rh_per_time * game_framework.frame_time
                 if self.sp_in.rh_frame > self.sp_in.rh_frame_count:
                     self.sp_in.rh_frame = 0
-        else:
-            self.sp_in.docker_x = self.sp_in.sp.x - 16
-            self.sp_in.docker_y = self.sp_in.sp.y
+
+        self.sp_in.docker_x = self.sp_in.sp.x - 16
+        self.sp_in.docker_y = self.sp_in.sp.y
 
     def draw(self):
         camera = get_camera()

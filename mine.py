@@ -82,6 +82,17 @@ class Mine:
         self.entrance_tile_top.stateMachine.draw()
         self.entrance_tile_bottom.stateMachine.draw()
 
+        # 광산 크기 사각 그리기
+        if common.debug_mode and not self.revealed:
+            width_tiles, height_tiles = data_set[1]['size']
+            mine_width = width_tiles * TILE_SIZE_PIXEL
+            mine_height = height_tiles * TILE_SIZE_PIXEL
+
+            view_x, view_y = camera.world_to_view(self.begin_x + mine_width // 2, self.begin_y)
+            draw_w, draw_h = camera.get_draw_size(mine_width, mine_height)
+
+            draw_rectangle(view_x - draw_w // 2, view_y - draw_h // 2, view_x + draw_w // 2, view_y + draw_h // 2, 0, 0, 255)
+
     def handle_event(self, event):
         pass
 

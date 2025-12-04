@@ -1,3 +1,5 @@
+import random
+
 from pico2d import *
 from physics_data import WIN_WIDTH, WIN_HEIGHT
 
@@ -20,7 +22,7 @@ def init():
 
     common.cam = Camera(WIN_WIDTH, WIN_HEIGHT)
 
-    mines = [Mine(1, 5)]
+    mines = [Mine(1, 5, x = 1920 / 2, y = TILE_SIZE_PIXEL * 20 * (i // 2) * 2 * (-1) ** i + random.randint(0, int(TILE_SIZE_PIXEL * 6))) for i in range(1, 7)]
     game_world.add_objects(mines, 5)
 
     ground = Ground()
@@ -34,10 +36,10 @@ def init():
     common.player = Player()
     game_world.add_object(common.player, 2)
 
-    enemy_test0 = InfantryTier0(common.spider.x + 72, common.spider.y - 400, common.spider)
-    enemy_test1 = SpitterTier0(common.spider.x - 600, common.spider.y - 100, common.spider)
-    game_world.add_object(enemy_test0, 2)
-    game_world.add_object(enemy_test1, 2)
+    # enemy_test0 = InfantryTier0(common.spider.x + 72, common.spider.y - 400, common.spider)
+    # enemy_test1 = SpitterTier0(common.spider.x - 600, common.spider.y - 100, common.spider)
+    # game_world.add_object(enemy_test0, 2)
+    # game_world.add_object(enemy_test1, 2)
 
     common.spider.mine_list = ground.get_mine_list()
     common.cam.apply_camera_settings()  # 기본 상태(스파이더 추적) 적용
