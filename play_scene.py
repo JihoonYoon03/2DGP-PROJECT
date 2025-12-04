@@ -16,7 +16,12 @@ import common
 import game_world
 import game_framework
 
+mouse_x, mouse_y = 0, 0
+
 def init():
+    global cursor_image
+    hide_cursor()
+    cursor_image = load_image('Assets/Sprites/UI/Cursor_Target.png')
     background = Background()
     game_world.add_object(background, 0)
 
@@ -62,8 +67,11 @@ def handle_events():
             game_framework.quit()
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             game_framework.quit()
-        else:
-            game_world.handle_event(event)
+        elif event.type == SDL_MOUSEMOTION:
+            global mouse_x, mouse_y
+            mouse_x, mouse_y = event.x, WIN_HEIGHT - event.y
+
+        game_world.handle_event(event)
 
 
 def update():
@@ -74,6 +82,7 @@ def update():
 def draw():
     clear_canvas()
     game_world.render()
+    cursor_image.draw(mouse_x, mouse_y, cursor_image.w * WIN_W_RATIO * 3.4, cursor_image.h * WIN_H_RATIO * 3.4)
     update_canvas()
 
 def pause():
