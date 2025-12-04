@@ -61,7 +61,7 @@ class UIResourceData:
             load_image('Assets/Sprites/UI/RareRes8_Icon.png'),
         )
         self.ratio = (WIN_WIDTH / WIN_HEIGHT) / (1920 / 1080) * 1.5
-        self.font = load_font('Assets/Fonts/ARIAL.ttf', int(11 * self.ratio))
+        self.font = load_font('Assets/Fonts/Fifaks10Dev1.ttf', int(28 * WIN_W_RATIO))
         self.w = self.image.w * self.ratio
         self.h = self.image.h * self.ratio
         self.x = WIN_WIDTH - self.w // 2 - 10

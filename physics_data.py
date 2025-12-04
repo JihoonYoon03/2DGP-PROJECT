@@ -1,6 +1,11 @@
 import math
 
 
+WIN_WIDTH = 1280
+WIN_HEIGHT = 720
+WIN_W_RATIO = WIN_WIDTH / 1980
+WIN_H_RATIO = WIN_HEIGHT / 1080
+
 PIXEL_PER_METER = 20.0  # 20 pixel / 1m
 
 GRAVITY = 9.81 * PIXEL_PER_METER
@@ -59,9 +64,6 @@ MAX_ORE_FALLING_SPEED = GRAVITY * 4.0
 ORE_RESTITUTION = 0.1 # 광석 튕김(반발) 계수
 ORE_MASS = 0.5  # 광석 질량
 ORE_FRICTION = 0.995  # 광석 마찰 계수
-
-WIN_WIDTH = 1200
-WIN_HEIGHT = 800
 
 def get_spider_action_per_time(frame_count):
     return (SPIDER_BASE_FRAMES / frame_count) * SPIDER_BASE_ACTION_PER_TIME
