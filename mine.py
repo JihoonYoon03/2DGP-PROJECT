@@ -36,7 +36,7 @@ class Mine:
         self.mine_upper = abs(self.entrance_y - 1)
         self.mine_lower = mine_data['size'][1] - self.mine_upper - 1 # 입구 타일 포함 안함
 
-        self.tile_set = TileSet(mine_data['image'], mine_data['size'], mine_data['tiles'], self.begin_x, self.begin_y, layer)
+        self.tile_set = TileSet(self, mine_data['image'], mine_data['size'], mine_data['tiles'], self.begin_x, self.begin_y, layer)
         # 광물 타일 분포 계산 및 생성
         total_tiles = len(self.tile_set.tiles)
         bedrock_tiles = 0
@@ -53,15 +53,15 @@ class Mine:
                 while True:
                     tile_index = random.randint(0, total_tiles - 1)
                     tile = self.tile_set.tiles[tile_index]
-                    if tile.is_bedrock or tile.has_resource:
+                    if tile.is_bedrock or tile.hasResource:
                         continue
                     tile.get_resource(mineral[0])
                     break
 
         # 입구 위아래 타일
-        self.entrance_tile_top = Tile(self.tile_set, self.begin_x, self.begin_y, -1,  self.entrance_tile_y - 1, F_L,
+        self.entrance_tile_top = Tile(self.tile_set, self, self.begin_x, self.begin_y, -1,  self.entrance_tile_y - 1, F_L,
                                       mine_data['tiles']['entrance'], True)
-        self.entrance_tile_bottom = Tile(self.tile_set, self.begin_x, self.begin_y, -1, self.entrance_tile_y + 1, F_L,
+        self.entrance_tile_bottom = Tile(self.tile_set, self, self.begin_x, self.begin_y, -1, self.entrance_tile_y + 1, F_L,
                                       mine_data['tiles']['entrance'], True)
 
         game_world.add_collision_pair_bb('player:tile', None, self.entrance_tile_top)
@@ -79,13 +79,16 @@ class Mine:
             Mine.image_entrance.clip_composite_draw(0, 0, TILE_SIZE_PIXEL, TILE_SIZE_PIXEL, 0, '', view_x, view_y, draw_w, draw_h)
 
         # 입구 위아래 기반암
-        self.entrance_tile_top.draw()
-        self.entrance_tile_bottom.draw()
+        self.entrance_tile_top.stateMachine.draw()
+        self.entrance_tile_bottom.stateMachine.draw()
 
     def handle_event(self, event):
         pass
 
     def reveal(self):
         self.revealed = True
+        self.tile_set.tiles_location[(self.entrance_tile_y, self.entrance_tile_x)].update_flags(F_L)
+        self.tile_set.tiles_location[(self.entrance_tile_y + 1, self.entrance_tile_x)].update_flags(C_LU)
+        self.tile_set.tiles_location[(self.entrance_tile_y - 1, self.entrance_tile_x)].update_flags(C_LD)
         self.entrance_tile_top.update_flags(F_L | F_D)
         self.entrance_tile_bottom.update_flags(F_L | F_U)

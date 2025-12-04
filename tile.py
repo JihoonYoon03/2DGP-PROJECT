@@ -254,7 +254,7 @@ class Ground:
 
 
 class TileSet:
-    def __init__(self, image_path, mine_size, tile_info, begin_x, begin_y, layer):
+    def __init__(self, mine, image_path, mine_size, tile_info, begin_x, begin_y, layer):
         self.image = load_image(image_path)
         self.layer = layer
         self.tiles = list()
@@ -264,7 +264,7 @@ class TileSet:
         for row in range(mine_size[1]):
             for col in range(mine_size[0]):
                 if tile_info['location'][row][col] is False: continue
-                self.tiles.append(Tile(self, begin_x, begin_y, col, row, tile_info['flag'][row][col], tile_info['entrance'], tile_info['bedrock'][row][col]))
+                self.tiles.append(Tile(self, mine, begin_x, begin_y, col, row, tile_info['flag'][row][col], tile_info['entrance'], tile_info['bedrock'][row][col]))
                 # 타일 위치 기록
                 self.tiles_location.setdefault((row, col), self.tiles[-1])
 
@@ -283,13 +283,15 @@ class TileSet:
 
     def tile_destroyed(self, tile):
         for d_row in range(tile.row - 1, tile.row + 2):
-            # 범위 벗어남
             if d_row < 0 or d_row >= len(self.tiles_location):
+                # 범위 벗어남
                 continue
+
             for d_col in range(tile.col - 1, tile.col + 2):
-                # 범위 벗어남 or tile 본인 위치
                 if d_col < 0 or d_col >= len(self.tiles_location) or (d_row == tile.row and d_col == tile.col):
+                    # 범위 벗어남 or tile 본인 위치
                     continue
+
                 if (d_row, d_col) in self.tiles_location:
                     self.tiles_location[(d_row, d_col)].nearby_destroyed(tile)
 
@@ -318,14 +320,6 @@ class TileDefault:
         if camera.draw_clipping(view_x, view_y, draw_w, draw_h):
             return
 
-        if not self.tile.is_exposed:
-            image_x, image_y = TILES[0]  # 비노출 타일
-            Tile.image_bedrock.clip_draw(
-                image_x, image_y, TILE_W_H, TILE_W_H,
-                view_x, view_y, draw_w, draw_h
-            )
-            return
-
         if self.tile.is_bedrock:
             image = Tile.image_bedrock
         else:
@@ -336,7 +330,7 @@ class TileDefault:
             view_x, view_y, draw_w, draw_h
         )
 
-        if self.tile.has_resource:
+        if self.tile.hasResource:
             res_clip_w = self.tile.res_image.w
             res_clip_h = self.tile.res_image.h
             res_draw_w, res_draw_h = camera.get_draw_size(res_clip_w, res_clip_h)
@@ -403,7 +397,7 @@ class Tile:
     image_bedrock = None
     image_crack = None
     image_resource = list()
-    def __init__(self, tile_set, begin_x, begin_y, col, row, flags, entrance_index, is_bedrock):
+    def __init__(self, tile_set, mine, begin_x, begin_y, col, row, flags, entrance_index, is_bedrock):
         if Tile.image_bedrock is None:
             Tile.image_bedrock = load_image('Assets/Sprites/Tile/Tex_Bedrock.png')
         if Tile.image_crack is None:
@@ -412,6 +406,7 @@ class Tile:
             Tile.image_resource.append(load_image('Assets/Sprites/Tile/CommonResource_Tile.png'))
             Tile.image_resource.append(load_image('Assets/Sprites/Tile/RareRes1_Tile.png'))
 
+        self.mine = mine
         self.col = col
         self.row = row
 
@@ -439,7 +434,7 @@ class Tile:
         self.crack_level = 0
 
         # 광물 보유 여부, 전체 광산 타일 생성 후 배정됨
-        self.has_resource = False
+        self.hasResource = False
         self.resource_type = None
         self.res_image = None
 
@@ -494,6 +489,11 @@ class Tile:
             game_world.add_collision_pair_ray_cast('hoover_laser:tile', None, self)
 
     def update_flags(self, flags):
+        if self.raw_flags == 0 and flags != 0:
+            self.is_exposed = True
+            game_world.add_collision_pair_bb('player:tile', None, self)
+            game_world.add_collision_pair_bb('ore:tile', None, self)
+            game_world.add_collision_pair_ray_cast('hoover_laser:tile', None, self)
         self.raw_flags = flags
         self.TILES_index = tile_index_from_flags(normalize_tile_flags(flags))
         self.image_x, self.image_y = TILES[self.TILES_index]
@@ -502,6 +502,8 @@ class Tile:
         self.stateMachine.update()
 
     def draw(self):
+        if not self.mine.revealed or not self.is_exposed:
+            return
         self.stateMachine.draw()
 
     def handle_event(self, event):
@@ -517,14 +519,14 @@ class Tile:
                 self.hp -= other.damage * game_framework.frame_time
                 if self.hp <= 0:
                     # game_world.UI_ResourceData.add_resource_amount(self.resource_type, 1)
-                    if self.has_resource:
+                    if self.hasResource:
                         game_world.add_object(Ore(self.x, self.y, self.resource_type), self.tileset.layer)
                     game_world.remove_collision_object(self)
                     self.stateMachine.handle_state_event(('DEAD', None))
                     self.tileset.tile_destroyed(self)
 
     def get_resource(self, res_type):
-        self.has_resource = True
+        self.hasResource = True
         self.resource_type = res_type
         self.res_image = Tile.image_resource[res_type]
 
