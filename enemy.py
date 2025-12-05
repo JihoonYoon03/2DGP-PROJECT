@@ -55,9 +55,16 @@ class EnemyBase(metaclass=ABCMeta):
         self.last_state = self.state
 
     def update(self):
-        self.bt.run()
-        self.check_state()
-        self.frame = (self.frame + self.frame_per_time[self.state] * game_framework.frame_time) % self.frame_count[self.state]
+        if self.state != 'Death':
+            self.bt.run()
+            self.check_state()
+        self.frame += self.frame_per_time[self.state] * game_framework.frame_time
+        if self.frame >= self.frame_count[self.state]:
+            if self.state == 'Death':
+                self.frame = 0
+                game_world.remove_object(self)
+            else:
+                self.frame %= self.frame_count[self.state]
         if self.attack_collider is not None:
             self.attack_collider.update()
 
@@ -95,7 +102,9 @@ class EnemyBase(metaclass=ABCMeta):
         if self.hp <= 0:
             self.hp = 0
             # 사망 모션
-            game_world.remove_object(self)
+            game_world.remove_collision_object(self)
+            self.frame = 0
+            self.state = 'Death'
 
     def handle_collision(self, group, other):
         if group == 'spider:enemy_melee':
@@ -122,15 +131,18 @@ class InfantryTier0(EnemyBase):
                 (0, 40), (40, 40), (80, 40),
                 (0, 80), (40, 80), (80, 80)
                 ),
-                'Attack' :( # 60*44
+                'Attack' :(
                     (0, 3), (60, 3), (120, 3), (180, 3),
                     (0, 47), (60, 47), (120, 47), (180, 47)
                 ),
-                'Death' :()
+                'Death' :(
+                    (0, 14), (52, 14), (104, 14), (156, 14),
+                    (0, 68), (52, 68), (104, 68), (156, 68)
+                )
                 },
 
-        {'Walk': 40, 'Attack' : 54, 'Death' : 40},
-        {'Walk': 40, 'Attack' : 44, 'Death' : 50},
+        {'Walk': 40, 'Attack' : 54, 'Death' : 52},
+        {'Walk': 40, 'Attack' : 44, 'Death' : 44},
 
             0,
             {'Walk' : 8, 'Attack' : 8, 'Death': 8},
@@ -225,15 +237,18 @@ class SpitterTier0(EnemyBase):
                     (0, 43), (44, 43), (88, 43), (132, 43), (176, 43),
                     (0, 86), (44, 86), (88, 86)
                 ),
-                'Death' :()
+                'Death' :(
+                    (0, 0), (44, 0), (88, 0), (132, 0), (176, 0),
+                    (0, 43), (44, 43), (88, 43), (132, 43), (176, 43),
+                    (0, 86), (44, 86), (88, 86))
                 },
 
-        {'Walk': 44, 'Attack' : 44, 'Death' : 40},
-        {'Walk': 34, 'Attack' : 43, 'Death' : 50},
+        {'Walk': 44, 'Attack' : 44, 'Death' : 44},
+        {'Walk': 34, 'Attack' : 43, 'Death' : 43},
 
             0,
             {'Walk' : 7, 'Attack' : 13, 'Death': 8},
-            {'Walk' : 7, 'Attack' : 7, 'Death': 8},
+            {'Walk' : 7, 'Attack' : 7, 'Death': 7},
             0,
             '',
 

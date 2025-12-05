@@ -308,6 +308,10 @@ class RoboSpider:
         self.collider_entrance_up.update()
         self.collider_entrance_down.update()
         self.barrier.update()
+        if self.shield >= SPIDER_MAX_SHIELD:
+            self.shield = SPIDER_MAX_SHIELD
+        elif not common.wave_manager.waveRunning:
+            self.shield += SPIDER_SHIELD_REGEN_PPS * game_framework.frame_time
 
     def draw(self):
         self.turret.draw()
