@@ -1,6 +1,6 @@
 from pico2d import *
 import game_framework
-import title_scene as start_scene
+import play_scene as start_scene
 from physics_data import WIN_WIDTH, WIN_HEIGHT
 
 

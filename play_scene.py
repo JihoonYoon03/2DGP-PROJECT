@@ -82,6 +82,9 @@ def draw():
     common.cursor_image.draw(common.mouse_x, common.mouse_y, common.cursor_image.w * WIN_W_RATIO * 3.4, common.cursor_image.h * WIN_H_RATIO * 3.4)
     update_canvas()
 
+def draw_no_clear():
+    game_world.render()
+
 def pause():
     pass
 
