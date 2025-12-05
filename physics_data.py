@@ -10,7 +10,7 @@ PIXEL_PER_METER = 20.0  # 20 pixel / 1m
 
 GRAVITY = 9.81 * PIXEL_PER_METER
 
-SPIDER_RUN_SPEED_KMPH = 18.0 * 4 # Km / Hour
+SPIDER_RUN_SPEED_KMPH = 18.0 # Km / Hour
 SPIDER_RUN_SPEED_PPS = (SPIDER_RUN_SPEED_KMPH * 1000.0 / 3600.0) * PIXEL_PER_METER
 
 SPIDER_BASE_FRAMES = 16
@@ -29,7 +29,7 @@ SPIDER_TURRET_ROTATE_SPEED = 75.0  # 도 단위 / 초
 MACHINE_GUN_BULLET_SPEED_MPS = 20.0
 UPGRADE_GUN_BULLET_DAMAGE = 1.0
 UPGRADE_GUN_BULLET_DAMAGE_PERCENT = 1.0
-MACHINE_GUN_BULLET_DAMAGE = 120.0  # 한 발당 데미지
+MACHINE_GUN_BULLET_DAMAGE = 20.0  # 한 발당 데미지
 UPGRADE_GUN_FIRE_RATE = 1.0
 MACHINE_GUN_FIRE_RATE = 0.25  # 초 단위
 UPGRADE_GUN_SPREAD = 1.0
@@ -41,7 +41,6 @@ WAVE_MAX_TIME = 30.0
 UPGRADE_MINE_RUN_SPEED = 1.0
 PLAYER_RUN_SPEED_KMPH = 14.0  # Km / Hour
 PLAYER_RUN_SPEED_PPS = (PLAYER_RUN_SPEED_KMPH * 1000.0 / 3600.0) * PIXEL_PER_METER
-
 PLAYER_BASE_FRAMES = 13
 PLAYER_BASE_ACTION_PER_TIME = PLAYER_RUN_SPEED_KMPH / PLAYER_BASE_FRAMES
 
@@ -57,12 +56,12 @@ HOOVER_LASER_DAMAGE_PER_TIME = 100  # 초 단위 데미지
 INFANTRY_RUN_SPEED_KMPH = 12.0
 INFANTRY_RUN_SPEED_MPS = INFANTRY_RUN_SPEED_KMPH * 1000.0 / 3600.0
 INFANTRY_HP = 100.0
-INFANTRY_ATTACK_DAMAGE = 10
+INFANTRY_ATTACK_DAMAGE = 8
 
 SPITTER_RUN_SPEED_KMPH = 24.0
 SPITTER_RUN_SPEED_MPS = SPITTER_RUN_SPEED_KMPH * 1000.0 / 3600.0
 SPITTER_HP = 80.0
-SPITTER_ATTACK_DAMAGE = 15  # 한 발당 데미지
+SPITTER_ATTACK_DAMAGE = 10  # 한 발당 데미지
 SPITTER_ATTACK_RANGE = 30  # 공격 사거리, m
 SPITTER_ATTACK_COUNT = 3    # 공격 횟수
 
@@ -126,3 +125,49 @@ class Collider_range:
 
     def handle_collision(self, group, other):
         self.owner.handle_collision(group, other)
+
+def print_upgrade_stats():
+    print("=== Upgrade Stats ===")
+    print(f"Gun Bullet Damage Multiplier: {UPGRADE_GUN_BULLET_DAMAGE}")
+    print(f"Gun Bullet Damage Percent: {UPGRADE_GUN_BULLET_DAMAGE_PERCENT}")
+    print(f"Gun Fire Rate Multiplier: {UPGRADE_GUN_FIRE_RATE}")
+    print(f"Gun Spread Multiplier: {UPGRADE_GUN_SPREAD}")
+    print(f"Laser Damage Bonus: {UPGRADE_LASER_DAMAGE}")
+    print(f"Laser Damage Percent: {UPGRADE_LASER_DAMAGE_PERCENT}")
+    print(f"Repair Efficiency Multiplier: {UPGRADE_REPAIR_EFFICIENCY}")
+    print(f"Turret Rotate Speed Multiplier: {UPGRADE_TURRET_ROTATE_SPEED}")
+    print(f"Mine Run Speed Multiplier: {UPGRADE_MINE_RUN_SPEED}")
+    print("=====================")
+
+def apply_upgrade_stats(upgrade_data):
+    global UPGRADE_GUN_BULLET_DAMAGE
+    global UPGRADE_GUN_BULLET_DAMAGE_PERCENT
+    global UPGRADE_GUN_FIRE_RATE
+    global UPGRADE_GUN_SPREAD
+    global UPGRADE_LASER_DAMAGE
+    global UPGRADE_LASER_DAMAGE_PERCENT
+    global UPGRADE_REPAIR_EFFICIENCY
+    global UPGRADE_TURRET_ROTATE_SPEED
+    global UPGRADE_MINE_RUN_SPEED
+
+    value = upgrade_data[0]
+    target = upgrade_data[1]
+
+    if target == 'UPGRADE_GUN_BULLET_DAMAGE':
+        UPGRADE_GUN_BULLET_DAMAGE += value
+    elif target == 'UPGRADE_GUN_BULLET_DAMAGE_PERCENT':
+        UPGRADE_GUN_BULLET_DAMAGE_PERCENT += value
+    elif target == 'UPGRADE_GUN_FIRE_RATE':
+        UPGRADE_GUN_FIRE_RATE += value
+    elif target == 'UPGRADE_GUN_SPREAD':
+        UPGRADE_GUN_SPREAD += value
+    elif target == 'UPGRADE_LASER_DAMAGE':
+        UPGRADE_LASER_DAMAGE += value
+    elif target == 'UPGRADE_LASER_DAMAGE_PERCENT':
+        UPGRADE_LASER_DAMAGE_PERCENT += value
+    elif target == 'UPGRADE_REPAIR_EFFICIENCY':
+        UPGRADE_REPAIR_EFFICIENCY += value
+    elif target == 'UPGRADE_TURRET_ROTATE_SPEED':
+        UPGRADE_TURRET_ROTATE_SPEED += value
+    elif target == 'UPGRADE_MINE_RUN_SPEED':
+        UPGRADE_MINE_RUN_SPEED += value

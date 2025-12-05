@@ -46,16 +46,16 @@ class Mine:
         print('Total tiles: ', total_tiles)
         print('Bedrock tiles: ', bedrock_tiles)
 
-        for mineral in mine_data['minerals'].items():
-            amount = int((total_tiles - bedrock_tiles) * mineral[1] / 100)
-            print(f'Mineral {mineral[0]}: {amount} tiles')
+        for type, mineral in mine_data['minerals'].items():
+            amount = int((total_tiles - bedrock_tiles) * mineral / 100)
+            print(f'Mineral {type}: {amount} tiles')
             for i in range(0, amount):
                 while True:
                     tile_index = random.randint(0, total_tiles - 1)
                     tile = self.tile_set.tiles[tile_index]
                     if tile.is_bedrock or tile.hasResource:
                         continue
-                    tile.get_resource(mineral[0])
+                    tile.get_resource(type)
                     break
 
         # 입구 위아래 타일

@@ -8,6 +8,7 @@ import game_framework
 import common
 from game_world import get_camera
 from physics_data import TILE_SIZE_PIXEL, TILE_W_H
+from physics_data import TILE_SIZE_PIXEL, TILE_W_H
 from state_machine import StateMachine
 from ore import Ore
 
@@ -405,6 +406,13 @@ class Tile:
         if len(Tile.image_resource) == 0:
             Tile.image_resource.append(load_image('Assets/Sprites/Tile/CommonResource_Tile.png'))
             Tile.image_resource.append(load_image('Assets/Sprites/Tile/RareRes1_Tile.png'))
+            Tile.image_resource.append(load_image('Assets/Sprites/Tile/RareRes2_Tile.png'))
+            Tile.image_resource.append(load_image('Assets/Sprites/Tile/RareRes3_Tile.png'))
+            Tile.image_resource.append(load_image('Assets/Sprites/Tile/RareRes4_Tile.png'))
+            Tile.image_resource.append(load_image('Assets/Sprites/Tile/RareRes5_Tile.png'))
+            Tile.image_resource.append(load_image('Assets/Sprites/Tile/RareRes6_Tile.png'))
+            Tile.image_resource.append(load_image('Assets/Sprites/Tile/RareRes7_Tile.png'))
+            Tile.image_resource.append(load_image('Assets/Sprites/Tile/RareRes8_Tile.png'))
 
         self.mine = mine
         self.col = col
@@ -529,4 +537,3 @@ class Tile:
         self.hasResource = True
         self.resource_type = res_type
         self.res_image = Tile.image_resource[res_type]
-

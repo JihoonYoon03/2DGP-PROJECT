@@ -51,7 +51,7 @@ class UIFrame:
         self.frame = 0
         self.frame_dir = 1
         self.frame_len = 11
-        self.frame_speed = 16  # frames per second
+        self.frame_speed = 20  # frames per second
         self.w = 1104
         self.h = 620
         self.w_ratio = WIN_WIDTH / self.w
@@ -75,14 +75,12 @@ class UIFrame:
                 int(frame_left + frame_width * 3 / 6), y, frame_width * 0.25, '엑소슈트',
                 layout_keys={
                     0: ['플라즈마 커터 (1)', '플라즈마 커터 (2)', '플라즈마 커터 (3)'],
-                    1: ['플라즈마 커터 (4)', '플라즈마 커터 (5)', '플라즈마 커터 (6)'],
-                    2: ['플라즈마 안정성 (1)', '플라즈마 안정성 (2)'],
+                    1: ['리펄서 (1)', '리펄서 (2)', '리펄서 (3)'],
                 }
             ),
             UpgradeType(
                 int(frame_left + frame_width * 5 / 6), y, frame_width * 0.25, '로보스파이더',
                 layout_keys={
-                    0: ['리펄서 (1)', '리펄서 (2)', '리펄서 (3)'],
                     1: ['수리'],
                     2: ['효과적인 수리 (1)', '효과적인 수리 (2)', '효과적인 수리 (3)'],
                 }
@@ -300,8 +298,8 @@ class UpgradeButton:
     def draw(self):
         if upgrade_complete[self.upgrade_name]:
             clip_draw_frame(self.image_bought,
-                            self.x, self.y,
                             0, 0, self.image_bought.w, self.image_bought.h,
+                            self.x, self.y,
                             self.image_bought.w * WIN_W_RATIO * self.offset,
                             self.image_bought.h * WIN_H_RATIO * self.offset)
         else:
@@ -317,7 +315,13 @@ class UpgradeButton:
                         self.icon_w * WIN_W_RATIO * self.offset,
                         self.icon_h * WIN_H_RATIO * self.offset
                         )
+
+        if upgrade_complete[self.upgrade_name]:
+            return
+
         i = 0
+        red = (255, 100, 100)
+        orange = (255, 200, 0)
         for res_type, cost in upgrade_info[self.upgrade_name]['cost'].items():
             clip_draw_frame(self.image_cost[res_type],
                         0, 0,
@@ -326,7 +330,11 @@ class UpgradeButton:
                         self.image_cost[res_type].w * WIN_W_RATIO * self.offset_cost,
                         self.image_cost[res_type].h * WIN_H_RATIO * self.offset_cost
                         )
-            self.font.draw(self.x - self.icon_w * WIN_W_RATIO + self.icon_w * i, self.y - self.icon_h * WIN_H_RATIO * 0.8, f' {cost}', (255, 200, 0))
+            if common.UI_ResourceData.res_amount[res_type] < cost:
+                color = red
+            else:
+                color = orange
+            self.font.draw(self.x - self.icon_w * WIN_W_RATIO + self.icon_w * i, self.y - self.icon_h * WIN_H_RATIO * 0.8, f' {cost}', color)
             i += 1
         if self.selected:
             clip_draw_frame(self.image_selector,
@@ -339,6 +347,8 @@ class UpgradeButton:
 
     def handle_click(self):
         # 마우스 좌표 체크 후 선택 상태로 변경
+        if upgrade_complete[self.upgrade_name]:
+            return
         if (self.x - self.image_selling.w / 2 * WIN_W_RATIO <= common.mouse_x <= self.x + self.image_selling.w / 2 * WIN_W_RATIO and
             self.y - self.image_selling.h / 2 * WIN_H_RATIO <= common.mouse_y <= self.y + self.image_selling.h / 2 * WIN_H_RATIO):
 
@@ -357,7 +367,9 @@ class UpgradeButton:
                     common.UI_ResourceData.res_amount[res_type] -= cost
 
                 # 업그레이드 적용
-                self.apply_upgrade(upgrade_amount, upgrade_type)
+                self.apply_upgrade(upgrade_amount)
+                upgrade_complete[self.upgrade_name] = True
+                print_upgrade_stats()
 
             else:
                 global name, comment
@@ -367,14 +379,14 @@ class UpgradeButton:
         else:
             self.selected = False
 
-    def apply_upgrade(self, upgrade_amount, *args):
+    def apply_upgrade(self, upgrade_amount):
         if self.upgrade_name == '수리':
             common.spider.health += upgrade_amount
             if common.spider.health > SPIDER_MAX_HP:
                 common.spider.health = SPIDER_MAX_HP
             return
-        for upgrade_value in args:
-            upgrade_value += upgrade_amount  # 퍼센트 or 수치
+
+        apply_upgrade_stats(upgrade_info[self.upgrade_name]['value'])
 
 
 class MenuBar:
@@ -446,17 +458,17 @@ def finish():
 
 
 upgrade_info = {
-    "베어링 향상 (1)": {'coord': (0, 0),   'cost': {0: 4},         'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED), 'comment' : '총기 회전 속도 +30%'},
-    "베어링 향상 (2)": {'coord': (32, 0),  'cost': {0: 8},         'value': (0.2, UPGRADE_TURRET_ROTATE_SPEED), 'comment' : '총기 회전 속도 +20%'},
-    "베어링 향상 (3)": {'coord': (64, 0),  'cost': {0: 25, 2: 2},  'value': (0.2, UPGRADE_TURRET_ROTATE_SPEED), 'comment' : '총기 회전 속도 +20%'},
+    "베어링 향상 (1)": {'coord': (0, 0),   'cost': {0: 4},         'value': (0.3, 'UPGRADE_TURRET_ROTATE_SPEED'), 'comment' : '총기 회전 속도 +30%'},
+    "베어링 향상 (2)": {'coord': (32, 0),  'cost': {0: 8},         'value': (0.2, 'UPGRADE_TURRET_ROTATE_SPEED'), 'comment' : '총기 회전 속도 +20%'},
+    "베어링 향상 (3)": {'coord': (64, 0),  'cost': {0: 25, 2: 2},  'value': (0.2, 'UPGRADE_TURRET_ROTATE_SPEED'), 'comment' : '총기 회전 속도 +20%'},
 
-    "머신건 벨트 (1)": {'coord': (96, 0),  'cost': {0: 6},         'value': (-0.25, UPGRADE_GUN_FIRE_RATE), 'comment' : '머신건 발사 속도 +25%'},
-    "머신건 벨트 (2)": {'coord': (128, 0), 'cost': {0: 14},        'value': (-0.15, UPGRADE_GUN_FIRE_RATE), 'comment' : '머신건 발사 속도 +15%'},
-    "머신건 벨트 (3)": {'coord': (160, 0), 'cost': {0: 18, 2: 2},  'value': (-0.1, UPGRADE_GUN_FIRE_RATE), 'comment' : '머신건 발사 속도 +10%'},
+    "머신건 벨트 (1)": {'coord': (96, 0),  'cost': {0: 6},         'value': (-0.25, 'UPGRADE_GUN_FIRE_RATE'), 'comment' : '머신건 발사 속도 +25%'},
+    "머신건 벨트 (2)": {'coord': (128, 0), 'cost': {0: 14},        'value': (-0.15, 'UPGRADE_GUN_FIRE_RATE'), 'comment' : '머신건 발사 속도 +15%'},
+    "머신건 벨트 (3)": {'coord': (160, 0), 'cost': {0: 18, 2: 2},  'value': (-0.1, 'UPGRADE_GUN_FIRE_RATE'), 'comment' : '머신건 발사 속도 +10%'},
 
-    "확장탄 (1)":     {'coord': (192, 0), 'cost': {0: 8, 1: 2},   'value': (0.35, UPGRADE_GUN_BULLET_DAMAGE_PERCENT), 'comment' : '총탄당 피해 +35%'},
-    "확장탄 (2)":     {'coord': (224, 0), 'cost': {0: 12, 1: 6},  'value': (30, UPGRADE_GUN_BULLET_DAMAGE), 'comment' : '총탄당 피해 +30'},
-    "확장탄 (3)":     {'coord': (256, 0), 'cost': {0: 40, 2: 4},  'value': (0.25, UPGRADE_GUN_BULLET_DAMAGE_PERCENT), 'comment' : '총탄당 피해 +25%'},
+    "확장탄 (1)":     {'coord': (192, 0), 'cost': {0: 8, 1: 2},   'value': (0.35, 'UPGRADE_GUN_BULLET_DAMAGE_PERCENT'), 'comment' : '총탄당 피해 +35%'},
+    "확장탄 (2)":     {'coord': (224, 0), 'cost': {0: 12, 1: 6},  'value': (30, 'UPGRADE_GUN_BULLET_DAMAGE'), 'comment' : '총탄당 피해 +30'},
+    "확장탄 (3)":     {'coord': (256, 0), 'cost': {0: 40, 2: 4},  'value': (0.25, 'UPGRADE_GUN_BULLET_DAMAGE_PERCENT'), 'comment' : '총탄당 피해 +25%'},
 
     # "확장 구경 (1)":  {'coord': (288, 0), 'cost': {0: 4},                     'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
     # "확장 구경 (2)":  {'coord': (320, 0), 'cost': {0: 4, 1: 8},               'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
@@ -465,28 +477,28 @@ upgrade_info = {
     # "철갑탄 (1)":     {'coord': (384, 0), 'cost': {0: 4},                     'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
     # "철갑탄 (2)":     {'coord': (416, 0), 'cost': {0: 4, 1: 8},               'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
 
-    "컴펜세이터 (1)": {'coord': (448, 0), 'cost': {0: 4},         'value': (-0.4, UPGRADE_GUN_SPREAD), 'comment' : '총탄 분산 -40%'},
-    "컴펜세이터 (2)": {'coord': (480, 0), 'cost': {0: 4, 1: 8},   'value': (-0.45, UPGRADE_GUN_SPREAD), 'comment' : '총탄 분산 -45%'},
+    "컴펜세이터 (1)": {'coord': (448, 0), 'cost': {0: 4},         'value': (-0.4, 'UPGRADE_GUN_SPREAD'), 'comment' : '총탄 분산 -40%'},
+    "컴펜세이터 (2)": {'coord': (480, 0), 'cost': {0: 4, 1: 8},   'value': (-0.45, 'UPGRADE_GUN_SPREAD'), 'comment' : '총탄 분산 -45%'},
 
-    "리펄서 (1)":     {'coord': (64, 160),'cost': {0: 8},        'value': (0.2, UPGRADE_MINE_RUN_SPEED), 'comment' : '엑소슈트 속도 +20%'},
-    "리펄서 (2)":     {'coord': (96, 160),'cost': {0: 12},       'value': (0.25, UPGRADE_MINE_RUN_SPEED), 'comment' : '엑소슈트 속도 +25%'},
-    "리펄서 (3)":     {'coord': (128,160),'cost': {0: 20, 2: 6}, 'value': (0.3, UPGRADE_MINE_RUN_SPEED), 'comment' : '엑소슈트 속도 +30%'},
+    "리펄서 (1)":     {'coord': (64, 160),'cost': {0: 8},        'value': (0.2, 'UPGRADE_MINE_RUN_SPEED'), 'comment' : '엑소슈트 속도 +20%'},
+    "리펄서 (2)":     {'coord': (96, 160),'cost': {0: 12},       'value': (0.25, 'UPGRADE_MINE_RUN_SPEED'), 'comment' : '엑소슈트 속도 +25%'},
+    "리펄서 (3)":     {'coord': (128,160),'cost': {0: 20, 2: 6}, 'value': (0.3, 'UPGRADE_MINE_RUN_SPEED'), 'comment' : '엑소슈트 속도 +30%'},
 
     # "플라즈마 안정성 (1)": {'coord': (160,160),'cost': {0: 4},                 'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
     # "플라즈마 안정성 (2)": {'coord': (192,160),'cost': {0: 4, 1: 8},           'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
 
-    "플라즈마 커터 (1)": {'coord': (224,160),'cost': {0: 6},       'value': (5, UPGRADE_LASER_DAMAGE), 'comment' : '시추 효율 +5'},
-    "플라즈마 커터 (2)": {'coord': (256,160),'cost': {0: 16, 1: 4},'value': (0.15, UPGRADE_LASER_DAMAGE_PERCENT), 'comment' : '시추 효율 +15%'},
-    "플라즈마 커터 (3)": {'coord': (288,160),'cost': {0: 25, 2: 4},'value': (25, UPGRADE_LASER_DAMAGE), 'comment' : '시추 효율 +25'},
+    "플라즈마 커터 (1)": {'coord': (224,160),'cost': {0: 6},       'value': (5, 'UPGRADE_LASER_DAMAGE'), 'comment' : '시추 효율 +5'},
+    "플라즈마 커터 (2)": {'coord': (256,160),'cost': {0: 16, 1: 4},'value': (0.15, 'UPGRADE_LASER_DAMAGE_PERCENT'), 'comment' : '시추 효율 +15%'},
+    "플라즈마 커터 (3)": {'coord': (288,160),'cost': {0: 25, 2: 4},'value': (25, 'UPGRADE_LASER_DAMAGE'), 'comment' : '시추 효율 +25'},
     # "플라즈마 커터 (4)": {'coord': (320,160),'cost': {0: 4, 1: 8, 2: 12, 3: 16}, 'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
     # "플라즈마 커터 (5)": {'coord': (352,160),'cost': {0: 4, 1: 8, 2: 12, 3: 16, 4: 20}, 'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
     # "플라즈마 커터 (6)": {'coord': (384,160),'cost': {0: 4, 1: 8, 2: 12, 3: 16, 4: 20, 5: 24}, 'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
 
-    "수리":            {'coord': (640,160),'cost': {0: 4},        'value': (SPIDER_MAX_HP * 0.15 * UPGRADE_REPAIR_EFFICIENCY, None), 'comment' : "체력 15% 회복. 무제한 사용이 가능합니다"},
+    "수리":            {'coord': (640,160),'cost': {2: 3},        'value': (SPIDER_MAX_HP * 0.15 * UPGRADE_REPAIR_EFFICIENCY, None), 'comment' : "체력 15% 회복. 무제한 사용이 가능합니다"},
 
-    "효과적인 수리 (1)": {'coord': (0, 192), 'cost': {0: 20, 1: 5},       'value': (0.05, UPGRADE_REPAIR_EFFICIENCY), 'comment' : "모든 유형의 수리 효율 +5%. 영구 적용됩니다"},
-    "효과적인 수리 (2)": {'coord': (32,192), 'cost': {0: 20, 1: 10},      'value': (0.05, UPGRADE_REPAIR_EFFICIENCY), 'comment' : "모든 유형의 수리 효율 +5%. 영구 적용됩니다"},
-    "효과적인 수리 (3)": {'coord': (64,192), 'cost': {0: 20, 2: 8},       'value': (0.05, UPGRADE_REPAIR_EFFICIENCY), 'comment' : "모든 유형의 수리 효율 +5%. 영구 적용됩니다"},
+    "효과적인 수리 (1)": {'coord': (0, 192), 'cost': {0: 20, 1: 5},       'value': (0.05, 'UPGRADE_REPAIR_EFFICIENCY'), 'comment' : "모든 유형의 수리 효율 +5%. 영구 적용됩니다"},
+    "효과적인 수리 (2)": {'coord': (32,192), 'cost': {0: 20, 1: 10},      'value': (0.05, 'UPGRADE_REPAIR_EFFICIENCY'), 'comment' : "모든 유형의 수리 효율 +5%. 영구 적용됩니다"},
+    "효과적인 수리 (3)": {'coord': (64,192), 'cost': {0: 20, 2: 8},       'value': (0.05, 'UPGRADE_REPAIR_EFFICIENCY'), 'comment' : "모든 유형의 수리 효율 +5%. 영구 적용됩니다"},
 }
 
 upgrade_complete = { key : False for key in upgrade_info.keys() }
