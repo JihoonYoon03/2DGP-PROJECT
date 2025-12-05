@@ -21,8 +21,15 @@ class UIFrame:
         self.w_ratio = WIN_WIDTH / self.w
         self.h_ratio = WIN_HEIGHT / self.h
 
+        frame_width = self.w * 0.8 * self.w_ratio
+        frame_left = WIN_WIDTH // 2 - frame_width // 2 * 1.05
+        frame_height = self.h * 0.8 * self.h_ratio
+        frame_top = WIN_HEIGHT // 2 + frame_height // 2
+        y = frame_top - frame_height * 0.2
         self.upgrade_menu = [
-            UpgradeType(WIN_WIDTH // 2, WIN_HEIGHT // 2, 'MachineGun'),
+            UpgradeType(int(frame_left + frame_width * 1 / 6), y, '머신건'),
+            UpgradeType(int(frame_left + frame_width * 3 / 6), y, '엑소슈트'),
+            UpgradeType(int(frame_left + frame_width * 5 / 6), y, '로보스파이더'),
         ]
 
         self.sprite_coord =(
@@ -62,13 +69,22 @@ class UpgradeType:
     image_branch = None
     image_branch_back = None
 
+    font = None
+    font_size = int(24 * WIN_W_RATIO)
+
     sprite_coord = {
-        'MachineGun': (0, 0),
-        'Player': (0, 64),
-        'Spider': (64, 64)
+        '머신건': (0, 0),
+        '엑소슈트': (0, 64),
+        '로보스파이더': (64, 64)
     }
 
+    icon_w = 64
+    icon_h = 64
+    header_offset_y = int(-icon_h * 0.64 * WIN_H_RATIO)
+
     def __init__(self, x, y, image_path):
+        if UpgradeType.font is None:
+            UpgradeType.font = load_font('Assets/Fonts/NeoDunggeunmoPro-Regular.ttf', self.font_size)
         if UpgradeType.image_icon is None:
             UpgradeType.image_icon = load_image('Assets/Sprites/UI/BranchIcons.png')
         if UpgradeType.image_header is None:
@@ -82,20 +98,29 @@ class UpgradeType:
         if UpgradeType.image_branch_back is None:
             UpgradeType.image_branch_back = load_image('Assets/Sprites/UI/Window_Talent_Branch_Background.png')
 
+        self.image_path = image_path
         self.x = x
         self.y = y
         self.icon_clip_x = UpgradeType.sprite_coord[image_path][0]
         self.icon_clip_y = UpgradeType.sprite_coord[image_path][1]
-        self.icon_w = 64
-        self.icon_h = 64
+        self.branch_y = self.y - 80 * WIN_H_RATIO
+        self.offset = 1.5
 
     def draw(self):
-        UpgradeType.image_branch[0].draw(self.x, self.y)
-        UpgradeType.image_branch[1].draw(self.x, self.y)
-        UpgradeType.image_branch[2].draw(self.x, self.y)
-        UpgradeType.image_branch_back.clip_composite_draw(0, 0, self.image_branch_back.w, self.image_branch_back.h, math.pi / 2, '', self.x, self.y)
-        UpgradeType.image_header.draw(self.x, self.y)
-        UpgradeType.image_icon.clip_draw(self.icon_clip_x, self.image_icon.h - self.icon_w - self.icon_clip_y, self.icon_w, self.icon_h, self.x, self.y)
+        # UpgradeType.image_branch_back.clip_composite_draw(0, 0, self.image_branch_back.w, self.image_branch_back.h, math.pi / 2, '', self.x, self.y)
+        UpgradeType.image_branch[0].draw(self.x, self.branch_y)
+        UpgradeType.image_branch[1].draw(self.x, self.branch_y)
+        UpgradeType.image_branch[2].draw(self.x, self.branch_y)
+        # image_header를 image_icon 하단에 출력
+        UpgradeType.image_header.draw(self.x, self.y + UpgradeType.header_offset_y,
+                                      self.image_header.w * WIN_W_RATIO * self.offset, self.image_header.h * WIN_H_RATIO * self.offset)
+        UpgradeType.image_icon.clip_draw(self.icon_clip_x, self.image_icon.h - self.icon_h - self.icon_clip_y,
+                                        UpgradeType.icon_w, UpgradeType.icon_h,
+                                         self.x, self.y,
+                                         self.icon_w * WIN_W_RATIO * self.offset, self.icon_h * WIN_H_RATIO * self.offset)
+        self.font.draw(self.x - len(self.image_path) * self.font_size / 2,
+                       self.y - self.icon_h // 2 - self.font_size,
+                       self.image_path, (255, 200, 0))
 
 
 class UpgradeButton:
