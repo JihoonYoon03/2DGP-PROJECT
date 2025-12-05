@@ -102,6 +102,6 @@ class Camera:
         # 우선순위 4: 기본 상태
         self.lock = True
         self.lock_target = common.spider
-        self.zoom = WIN_WIDTH / 1920 * 1.4
+        self.zoom = WIN_WIDTH / 1920 * 1.7
         self.offset_x = WIN_WIDTH // 3
         self.offset_y = 0

@@ -4,6 +4,7 @@ import common
 import event_set
 import game_framework
 import play_scene
+import math
 from physics_data import *
 
 class UIFrame:
@@ -19,6 +20,10 @@ class UIFrame:
         self.h = 620
         self.w_ratio = WIN_WIDTH / self.w
         self.h_ratio = WIN_HEIGHT / self.h
+
+        self.upgrade_menu = [
+            UpgradeType(WIN_WIDTH // 2, WIN_HEIGHT // 2, 'MachineGun'),
+        ]
 
         self.sprite_coord =(
             (0, 0), (1104, 0), (2208, 0),
@@ -44,18 +49,60 @@ class UIFrame:
         else:
             self.image_back.draw(WIN_WIDTH // 2, WIN_HEIGHT // 2, self.w * self.w_ratio, self.h * self.h_ratio)
             self.image_const.draw(WIN_WIDTH // 2, WIN_HEIGHT // 2, self.w * self.w_ratio, self.h * self.h_ratio)
+            for upgrade in self.upgrade_menu:
+                upgrade.draw()
 
     def exit(self):
         self.frame_dir = -1
 
 
 class UpgradeType:
-    def __init__(self, x, y, w, h, image_path):
-        pass
+    image_icon = None
+    image_header = None
+    image_branch = None
+    image_branch_back = None
+
+    sprite_coord = {
+        'MachineGun': (0, 0),
+        'Player': (0, 64),
+        'Spider': (64, 64)
+    }
+
+    def __init__(self, x, y, image_path):
+        if UpgradeType.image_icon is None:
+            UpgradeType.image_icon = load_image('Assets/Sprites/UI/BranchIcons.png')
+        if UpgradeType.image_header is None:
+            UpgradeType.image_header = load_image('Assets/Sprites/UI/Window_Talent_Branch_Header_Background.png')
+        if UpgradeType.image_branch is None:
+            UpgradeType.image_branch = (
+                load_image('Assets/Sprites/UI/Window_Talent_TierPlate_Path_Triple.png'),
+                load_image('Assets/Sprites/UI/Window_Talent_TierPlate_Path_DownLeft.png'),
+                load_image('Assets/Sprites/UI/Window_Talent_TierPlate_Path_DownRight.png')
+            )
+        if UpgradeType.image_branch_back is None:
+            UpgradeType.image_branch_back = load_image('Assets/Sprites/UI/Window_Talent_Branch_Background.png')
+
+        self.x = x
+        self.y = y
+        self.icon_clip_x = UpgradeType.sprite_coord[image_path][0]
+        self.icon_clip_y = UpgradeType.sprite_coord[image_path][1]
+        self.icon_w = 64
+        self.icon_h = 64
+
+    def draw(self):
+        UpgradeType.image_branch[0].draw(self.x, self.y)
+        UpgradeType.image_branch[1].draw(self.x, self.y)
+        UpgradeType.image_branch[2].draw(self.x, self.y)
+        UpgradeType.image_branch_back.clip_composite_draw(0, 0, self.image_branch_back.w, self.image_branch_back.h, math.pi / 2, '', self.x, self.y)
+        UpgradeType.image_header.draw(self.x, self.y)
+        UpgradeType.image_icon.clip_draw(self.icon_clip_x, self.image_icon.h - self.icon_w - self.icon_clip_y, self.icon_w, self.icon_h, self.x, self.y)
+
 
 class UpgradeButton:
+    image = None
     def __init__(self):
-        pass
+        if UpgradeButton.image is None:
+            UpgradeButton.image = load_image('Assets/Sprites/UI/TalentIcons.png')
 
 class MenuBar:
     def __init__(self):
