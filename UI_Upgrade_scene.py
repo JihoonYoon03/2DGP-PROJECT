@@ -427,7 +427,7 @@ def handle_events():
             common.spider.move_dir += 1
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             frame.exit()
-        elif event.type == SDL_MOUSEBUTTONDOWN:
+        elif event.type == SDL_MOUSEBUTTONUP:
             for upgrade in frame.upgrade_menu:
                 for button in upgrade.upgrade_icon_list:
                     button.handle_click()

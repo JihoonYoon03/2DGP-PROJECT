@@ -97,7 +97,7 @@ def handle_events():
             game_framework.quit()
         elif event.type == SDL_MOUSEMOTION:
             common.mouse_x, common.mouse_y = event.x, WIN_HEIGHT - event.y
-        elif event.type == SDL_MOUSEBUTTONDOWN:
+        elif event.type == SDL_MOUSEBUTTONUP:
             if menu_bar.mouse_hovering:
                 game_framework.change_scene(main_scene)
 
