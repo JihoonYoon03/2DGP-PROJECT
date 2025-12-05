@@ -66,7 +66,7 @@ class Projectile(metaclass=ABCMeta):
 
 class MachineGunProjectile(Projectile):
     def __init__(self, x, y, rad, dmg):
-        r = rad + random.uniform(-MACHINE_GUN_SPREAD_RAD, MACHINE_GUN_SPREAD_RAD)
+        r = rad + random.uniform(-MACHINE_GUN_SPREAD_RAD * UPGRADE_GUN_SPREAD, MACHINE_GUN_SPREAD_RAD * UPGRADE_GUN_SPREAD)
         vx = math.cos(r)
         vy = math.sin(r)
 
@@ -93,7 +93,7 @@ class MachineGunProjectile(Projectile):
     def reactivate(self, x, y, rad, dmg):
         self.x = x
         self.y = y
-        self.rad = rad + random.uniform(-MACHINE_GUN_SPREAD_RAD, MACHINE_GUN_SPREAD_RAD)
+        self.rad = rad + random.uniform(-MACHINE_GUN_SPREAD_RAD * UPGRADE_GUN_SPREAD, MACHINE_GUN_SPREAD_RAD * UPGRADE_GUN_SPREAD)
         self.dmg = dmg
         self.vx = math.cos(self.rad)
         self.vy = math.sin(self.rad)

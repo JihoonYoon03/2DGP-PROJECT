@@ -218,7 +218,7 @@ class Hoover:
 
         # 화면 표시용 레이저 사거리
         self.radius_display = self.radius_max
-        self.damage = HOOVER_LASER_DAMAGE_PER_TIME
+        self.damage = HOOVER_LASER_DAMAGE_PER_TIME * UPGRADE_LASER_DAMAGE_PERCENT + UPGRADE_LASER_DAMAGE
         self.penetration = 0
         self.Vacuuming = False
         self.shooting = False
@@ -241,6 +241,7 @@ class Hoover:
 
     def update(self):
         self.stateMachine.update()
+        self.damage = HOOVER_LASER_DAMAGE_PER_TIME * UPGRADE_LASER_DAMAGE_PERCENT + UPGRADE_LASER_DAMAGE
 
     def draw(self):
         if self.player.is_docked:

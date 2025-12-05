@@ -6,6 +6,7 @@ import game_framework
 import play_scene
 from physics_data import *
 
+name, comment = '', ''
 
 def clip_draw_frame(image, clip_x, clip_y, clip_w, clip_h, draw_x, draw_y, draw_w, draw_h):
     frame_w = WIN_WIDTH * 1104 / WIN_WIDTH
@@ -36,12 +37,17 @@ def clip_draw_frame(image, clip_x, clip_y, clip_w, clip_h, draw_x, draw_y, draw_
                         draw_w, draw_h)
 
 class UIFrame:
-    font_size = int(24 * WIN_W_RATIO)
     def __init__(self):
+        self.font_size_title = int(24 * WIN_W_RATIO)
+        self.font_size_name = int(16 * WIN_W_RATIO * 2.2)
+        self.font_size_comment = int(12 * WIN_W_RATIO * 2.2)
         self.image_anim = load_image('Assets/Sprites/UI/Open_Window_Talent_Animation.png')
         self.image_const = load_image('Assets/Sprites/UI/Window_Talent_Frame.png')
         self.image_back = load_image('Assets/Sprites/UI/Window_Talent_Background.png')
-        self.font = load_font('Assets/Fonts/NeoDunggeunmoPro-Regular.ttf', self.font_size)
+        self.font_discription = load_font('Assets/Fonts/NeoDunggeunmoPro-Regular.ttf', self.font_size_name)
+        self.font = load_font('Assets/Fonts/NeoDunggeunmoPro-Regular.ttf', self.font_size_title)
+
+
         self.frame = 0
         self.frame_dir = 1
         self.frame_len = 11
@@ -105,11 +111,15 @@ class UIFrame:
                                       WIN_WIDTH // 2, WIN_HEIGHT // 2,
                                       self.w * self.w_ratio, self.h * self.h_ratio)
         else:
+            global name, comment
             self.image_back.draw(WIN_WIDTH // 2, WIN_HEIGHT // 2, self.w * self.w_ratio, self.h * self.h_ratio)
-            self.font.draw(WIN_WIDTH // 2 - len('업그레이드') * self.font_size, WIN_HEIGHT // 2 + self.h // 2 * 0.9, '업그레이드', (255, 200, 0))
+            self.font.draw(WIN_WIDTH // 2 - len('업그레이드') * self.font_size_title, WIN_HEIGHT // 2 + self.h // 2 * 0.9, '업그레이드', (255, 200, 0))
             for upgrade in self.upgrade_menu:
                 upgrade.draw()
             self.image_const.draw(WIN_WIDTH // 2, WIN_HEIGHT // 2, self.w * self.w_ratio, self.h * self.h_ratio)
+
+            self.font_discription.draw(WIN_WIDTH * 0.42, WIN_HEIGHT * 0.12, name, (255, 200, 0))
+            self.font_discription.draw(WIN_WIDTH * 0.42, WIN_HEIGHT * 0.08, comment, (255, 255, 0))
 
     def exit(self):
         self.frame_dir = -1
@@ -173,16 +183,10 @@ class UpgradeType:
         if self.layout_keys:
             for col, keys in self.layout_keys.items():
                 for r, key in enumerate(keys):
-                    if key in sprite_coord:
+                    if key in upgrade_info:
                         button_x = self.x - self.branch_back_w // 2 + 66 * WIN_W_RATIO + (self.branch_back_w // 3 * col)
                         button_y = self.branch_y - 120 * WIN_H_RATIO - 80 * r
                         self.upgrade_icon_list.append(UpgradeButton(button_x, button_y, key))
-        else:
-            for col, row in self.row_col.items():
-                for r in range(row):
-                    button_x = self.x - self.branch_back_w // 2 + 66 * WIN_W_RATIO + (self.branch_back_w // 3 * col)
-                    button_y = self.branch_y - 120 * WIN_H_RATIO - 80 * r
-                    self.upgrade_icon_list.append(UpgradeButton(button_x, button_y, '베어링 향상 (1)'))
 
     def draw(self):# branch_back 길이 설정 (중앙 파트 반복 개수)
         part_h = 12
@@ -251,8 +255,9 @@ class UpgradeButton:
     image_selling = None
     image_bought = None
     image_cost = None
+    image_selector = None
     font = None
-    font_size = int(10 * WIN_W_RATIO * 2.2)
+    font_size_cost = int(10 * WIN_W_RATIO * 2.2)
     def __init__(self, x, y, upgrade_name, parent=None):
         if UpgradeButton.image_icon is None:
             UpgradeButton.image_icon = load_image('Assets/Sprites/UI/TalentIcons.png')
@@ -261,7 +266,7 @@ class UpgradeButton:
         if UpgradeButton.image_bought is None:
             UpgradeButton.image_bought = load_image('Assets/Sprites/UI/Window_Talent_TierPlate_Bought.png')
         if UpgradeButton.font is None:
-            UpgradeButton.font = load_font('Assets/Fonts/ARIAL.ttf', self.font_size)
+            UpgradeButton.font = load_font('Assets/Fonts/ARIAL.ttf', self.font_size_cost)
         if UpgradeButton.image_cost is None:
             UpgradeButton.image_cost = (
                 load_image('Assets/Sprites/UI/CommonResource_Icon.png'),
@@ -274,20 +279,26 @@ class UpgradeButton:
                 load_image('Assets/Sprites/UI/RareRes7_Icon.png'),
                 load_image('Assets/Sprites/UI/RareRes8_Icon.png'),
             )
+        if UpgradeButton.image_selector is None:
+            UpgradeButton.image_selector = load_image('Assets/Sprites/UI/Window_Talent_TierPlate_Selected.png')
 
         self.x = x
         self.y = y
         self.upgrade_name = upgrade_name
-        self.icon_x = sprite_coord[upgrade_name]['coord'][0]
-        self.icon_y = sprite_coord[upgrade_name]['coord'][1]
+        self.icon_x = upgrade_info[upgrade_name]['coord'][0]
+        self.icon_y = upgrade_info[upgrade_name]['coord'][1]
         self.icon_w = 30
         self.icon_h = 30
         self.parent = parent
         self.offset = 1.5
         self.offset_cost = 2.2
+        self.selected = False
+        self.name = upgrade_name
+        self.comment = upgrade_info[upgrade_name]['comment']
+        self.button = MenuBar(self.x, self.y)
 
     def draw(self):
-        if self.parent and upgrade_complete[self.parent] and upgrade_complete[self.upgrade_name]:
+        if upgrade_complete[self.upgrade_name]:
             clip_draw_frame(self.image_bought,
                             self.x, self.y,
                             0, 0, self.image_bought.w, self.image_bought.h,
@@ -306,50 +317,83 @@ class UpgradeButton:
                         self.icon_w * WIN_W_RATIO * self.offset,
                         self.icon_h * WIN_H_RATIO * self.offset
                         )
-        for res_type, cost in sprite_coord[self.upgrade_name]['cost'].items():
+        i = 0
+        for res_type, cost in upgrade_info[self.upgrade_name]['cost'].items():
             clip_draw_frame(self.image_cost[res_type],
                         0, 0,
                         self.image_cost[res_type].w, self.image_cost[res_type].h,
-                        self.x - self.icon_w * WIN_W_RATIO * 0.2, self.y - self.icon_h * WIN_H_RATIO * 0.8,
+                        self.x - self.icon_w * WIN_W_RATIO + self.icon_w * i, self.y - self.icon_h * WIN_H_RATIO * 0.8,
                         self.image_cost[res_type].w * WIN_W_RATIO * self.offset_cost,
                         self.image_cost[res_type].h * WIN_H_RATIO * self.offset_cost
                         )
-            self.font.draw(self.x - self.icon_w * WIN_W_RATIO * 0.1, self.y - self.icon_h * WIN_H_RATIO * 0.8, f' {cost}', (255, 200, 0))
+            self.font.draw(self.x - self.icon_w * WIN_W_RATIO + self.icon_w * i, self.y - self.icon_h * WIN_H_RATIO * 0.8, f' {cost}', (255, 200, 0))
+            i += 1
+        if self.selected:
+            clip_draw_frame(self.image_selector,
+                            0, 0, self.image_selector.w, self.image_selector.h,
+                            self.x, self.y,
+                            self.image_selector.w * WIN_W_RATIO * self.offset,
+                            self.image_selector.h * WIN_H_RATIO * self.offset)
+            self.button.draw()
 
-    def apply_upgrade(self, base_value, upgrade_value, upgrade_amount, is_percent):
-        upgrade_value += upgrade_amount  # 퍼센트 or 수치
-        if is_percent:
-            base_value *= upgrade_value
+
+    def handle_click(self):
+        # 마우스 좌표 체크 후 선택 상태로 변경
+        if (self.x - self.image_selling.w / 2 * WIN_W_RATIO <= common.mouse_x <= self.x + self.image_selling.w / 2 * WIN_W_RATIO and
+            self.y - self.image_selling.h / 2 * WIN_H_RATIO <= common.mouse_y <= self.y + self.image_selling.h / 2 * WIN_H_RATIO):
+
+            if self.selected:
+                # 자원 체크
+                for res_type, cost in upgrade_info[self.upgrade_name]['cost'].items():
+                    if common.UI_ResourceData.res_amount[res_type] < cost:
+                        return
+
+                upgrade_amount, upgrade_type = upgrade_info[self.upgrade_name]['value']
+                if self.upgrade_name == '수리' and common.spider.health == SPIDER_MAX_HP:
+                    return
+
+                # 자원 차감
+                for res_type, cost in upgrade_info[self.upgrade_name]['cost'].items():
+                    common.UI_ResourceData.res_amount[res_type] -= cost
+
+                # 업그레이드 적용
+                self.apply_upgrade(upgrade_amount, upgrade_type)
+
+            else:
+                global name, comment
+                name = self.name
+                comment = self.comment
+                self.selected = True
         else:
-            base_value += upgrade_value
+            self.selected = False
+
+    def apply_upgrade(self, upgrade_amount, *args):
+        if self.upgrade_name == '수리':
+            common.spider.health += upgrade_amount
+            if common.spider.health > SPIDER_MAX_HP:
+                common.spider.health = SPIDER_MAX_HP
+            return
+        for upgrade_value in args:
+            upgrade_value += upgrade_amount  # 퍼센트 or 수치
 
 
 class MenuBar:
-    def __init__(self):
-        self.image_unselect = load_image('Assets/Sprites/UI/button_unselect.png')
+    def __init__(self, x, y):
         self.image_select = load_image('Assets/Sprites/UI/button_select.png')
-        self.font = load_font('Assets/Fonts/Fifaks10Dev1.ttf', int(40 * WIN_W_RATIO))
-        self.x = WIN_WIDTH // 2
-        self.y = WIN_HEIGHT // 8
-        self.w = self.image_unselect.w * 3.5
-        self.h = self.image_unselect.h * 3.5
+        self.font_size = int(20 * WIN_W_RATIO)
+        self.font = load_font('Assets/Fonts/NeoDunggeunmoPro-Regular.ttf', self.font_size)
+        self.x = x
+        self.y = y
+        self.w = self.image_select.w
+        self.h = self.image_select.h
         self.mouse_hovering = False
 
     def update(self):
-        global mouse_x, mouse_y
-        if (self.x - self.w / 2 * WIN_W_RATIO <= mouse_x <= self.x + self.w / 2 * WIN_W_RATIO and
-            self.y - self.h / 2 * WIN_H_RATIO <= mouse_y <= self.y + self.h / 2 * WIN_H_RATIO):
-            self.mouse_hovering = True
-        else:
-            self.mouse_hovering = False
+        pass
 
     def draw(self):
-        if self.mouse_hovering:
-            self.image_select.draw(self.x, self.y, self.w * WIN_W_RATIO, self.h * WIN_H_RATIO)
-            self.font.draw(self.x - 100 * WIN_W_RATIO, self.y - 4 * WIN_H_RATIO, 'GAME START', (0, 0, 0))
-        else:
-            self.image_unselect.draw(self.x, self.y, self.w * WIN_W_RATIO, self.h * WIN_H_RATIO)
-            self.font.draw(self.x - 100 * WIN_W_RATIO, self.y - 4 * WIN_H_RATIO, 'GAME START', (255, 255, 255))
+        self.image_select.draw(self.x, self.y, self.w * WIN_W_RATIO, self.h * WIN_H_RATIO)
+        self.font.draw(self.x - len('구매') * self.font_size / 2, self.y, '구매', (0, 0, 0))
 
 def init():
     global frame
@@ -371,6 +415,10 @@ def handle_events():
             common.spider.move_dir += 1
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             frame.exit()
+        elif event.type == SDL_MOUSEBUTTONDOWN:
+            for upgrade in frame.upgrade_menu:
+                for button in upgrade.upgrade_icon_list:
+                    button.handle_click()
 
 
 def update():
@@ -397,48 +445,48 @@ def finish():
     pass
 
 
-sprite_coord = {
-    "베어링 향상 (1)": {'coord': (0, 0),   'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "베어링 향상 (2)": {'coord': (32, 0),  'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "베어링 향상 (3)": {'coord': (64, 0),  'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+upgrade_info = {
+    "베어링 향상 (1)": {'coord': (0, 0),   'cost': {0: 4},         'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED), 'comment' : '총기 회전 속도 +30%'},
+    "베어링 향상 (2)": {'coord': (32, 0),  'cost': {0: 8},         'value': (0.2, UPGRADE_TURRET_ROTATE_SPEED), 'comment' : '총기 회전 속도 +20%'},
+    "베어링 향상 (3)": {'coord': (64, 0),  'cost': {0: 25, 2: 2},  'value': (0.2, UPGRADE_TURRET_ROTATE_SPEED), 'comment' : '총기 회전 속도 +20%'},
 
-    "머신건 벨트 (1)": {'coord': (96, 0),  'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "머신건 벨트 (2)": {'coord': (128, 0), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "머신건 벨트 (3)": {'coord': (160, 0), 'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "머신건 벨트 (1)": {'coord': (96, 0),  'cost': {0: 6},         'value': (-0.25, UPGRADE_GUN_FIRE_RATE), 'comment' : '머신건 발사 속도 +25%'},
+    "머신건 벨트 (2)": {'coord': (128, 0), 'cost': {0: 14},        'value': (-0.15, UPGRADE_GUN_FIRE_RATE), 'comment' : '머신건 발사 속도 +15%'},
+    "머신건 벨트 (3)": {'coord': (160, 0), 'cost': {0: 18, 2: 2},  'value': (-0.1, UPGRADE_GUN_FIRE_RATE), 'comment' : '머신건 발사 속도 +10%'},
 
-    "확장탄 (1)":     {'coord': (192, 0), 'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "확장탄 (2)":     {'coord': (224, 0), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "확장탄 (3)":     {'coord': (256, 0), 'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "확장탄 (1)":     {'coord': (192, 0), 'cost': {0: 8, 1: 2},   'value': (0.35, UPGRADE_GUN_BULLET_DAMAGE_PERCENT), 'comment' : '총탄당 피해 +35%'},
+    "확장탄 (2)":     {'coord': (224, 0), 'cost': {0: 12, 1: 6},  'value': (30, UPGRADE_GUN_BULLET_DAMAGE), 'comment' : '총탄당 피해 +30'},
+    "확장탄 (3)":     {'coord': (256, 0), 'cost': {0: 40, 2: 4},  'value': (0.25, UPGRADE_GUN_BULLET_DAMAGE_PERCENT), 'comment' : '총탄당 피해 +25%'},
 
-    "확장 구경 (1)":  {'coord': (288, 0), 'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "확장 구경 (2)":  {'coord': (320, 0), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "확장 구경 (3)":  {'coord': (352, 0), 'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    # "확장 구경 (1)":  {'coord': (288, 0), 'cost': {0: 4},                     'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
+    # "확장 구경 (2)":  {'coord': (320, 0), 'cost': {0: 4, 1: 8},               'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
+    # "확장 구경 (3)":  {'coord': (352, 0), 'cost': {0: 4, 1: 8, 2: 12},        'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
 
-    "철갑탄 (1)":     {'coord': (384, 0), 'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "철갑탄 (2)":     {'coord': (416, 0), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    # "철갑탄 (1)":     {'coord': (384, 0), 'cost': {0: 4},                     'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
+    # "철갑탄 (2)":     {'coord': (416, 0), 'cost': {0: 4, 1: 8},               'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
 
-    "컴펜세이터 (1)": {'coord': (448, 0), 'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "컴펜세이터 (2)": {'coord': (480, 0), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "컴펜세이터 (1)": {'coord': (448, 0), 'cost': {0: 4},         'value': (-0.4, UPGRADE_GUN_SPREAD), 'comment' : '총탄 분산 -40%'},
+    "컴펜세이터 (2)": {'coord': (480, 0), 'cost': {0: 4, 1: 8},   'value': (-0.45, UPGRADE_GUN_SPREAD), 'comment' : '총탄 분산 -45%'},
 
-    "리펄서 (1)":     {'coord': (64, 160),'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "리펄서 (2)":     {'coord': (96, 160),'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "리펄서 (3)":     {'coord': (128,160),'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "리펄서 (1)":     {'coord': (64, 160),'cost': {0: 8},        'value': (0.2, UPGRADE_MINE_RUN_SPEED), 'comment' : '엑소슈트 속도 +20%'},
+    "리펄서 (2)":     {'coord': (96, 160),'cost': {0: 12},       'value': (0.25, UPGRADE_MINE_RUN_SPEED), 'comment' : '엑소슈트 속도 +25%'},
+    "리펄서 (3)":     {'coord': (128,160),'cost': {0: 20, 2: 6}, 'value': (0.3, UPGRADE_MINE_RUN_SPEED), 'comment' : '엑소슈트 속도 +30%'},
 
-    "플라즈마 안정성 (1)": {'coord': (160,160),'cost': {0: 4},                 'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "플라즈마 안정성 (2)": {'coord': (192,160),'cost': {0: 4, 1: 8},           'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    # "플라즈마 안정성 (1)": {'coord': (160,160),'cost': {0: 4},                 'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
+    # "플라즈마 안정성 (2)": {'coord': (192,160),'cost': {0: 4, 1: 8},           'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
 
-    "플라즈마 커터 (1)": {'coord': (224,160),'cost': {0: 4},                  'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "플라즈마 커터 (2)": {'coord': (256,160),'cost': {0: 4, 1: 8},            'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "플라즈마 커터 (3)": {'coord': (288,160),'cost': {0: 4, 1: 8, 2: 12},     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "플라즈마 커터 (4)": {'coord': (320,160),'cost': {0: 4, 1: 8, 2: 12, 3: 16}, 'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "플라즈마 커터 (5)": {'coord': (352,160),'cost': {0: 4, 1: 8, 2: 12, 3: 16, 4: 20}, 'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "플라즈마 커터 (6)": {'coord': (384,160),'cost': {0: 4, 1: 8, 2: 12, 3: 16, 4: 20, 5: 24}, 'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "플라즈마 커터 (1)": {'coord': (224,160),'cost': {0: 6},       'value': (5, UPGRADE_LASER_DAMAGE), 'comment' : '시추 효율 +5'},
+    "플라즈마 커터 (2)": {'coord': (256,160),'cost': {0: 16, 1: 4},'value': (0.15, UPGRADE_LASER_DAMAGE_PERCENT), 'comment' : '시추 효율 +15%'},
+    "플라즈마 커터 (3)": {'coord': (288,160),'cost': {0: 25, 2: 4},'value': (25, UPGRADE_LASER_DAMAGE), 'comment' : '시추 효율 +25'},
+    # "플라즈마 커터 (4)": {'coord': (320,160),'cost': {0: 4, 1: 8, 2: 12, 3: 16}, 'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
+    # "플라즈마 커터 (5)": {'coord': (352,160),'cost': {0: 4, 1: 8, 2: 12, 3: 16, 4: 20}, 'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
+    # "플라즈마 커터 (6)": {'coord': (384,160),'cost': {0: 4, 1: 8, 2: 12, 3: 16, 4: 20, 5: 24}, 'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
 
-    "수리":            {'coord': (640,160),'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "수리":            {'coord': (640,160),'cost': {0: 4},        'value': (SPIDER_MAX_HP * 0.15 * UPGRADE_REPAIR_EFFICIENCY, None), 'comment' : "체력 15% 회복. 무제한 사용이 가능합니다"},
 
-    "효과적인 수리 (1)": {'coord': (0, 192), 'cost': {0: 4},                  'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "효과적인 수리 (2)": {'coord': (32,192), 'cost': {0: 4, 1: 8},            'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "효과적인 수리 (3)": {'coord': (64,192), 'cost': {0: 4, 1: 8, 2: 12},     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "효과적인 수리 (1)": {'coord': (0, 192), 'cost': {0: 20, 1: 5},       'value': (0.05, UPGRADE_REPAIR_EFFICIENCY), 'comment' : "모든 유형의 수리 효율 +5%. 영구 적용됩니다"},
+    "효과적인 수리 (2)": {'coord': (32,192), 'cost': {0: 20, 1: 10},      'value': (0.05, UPGRADE_REPAIR_EFFICIENCY), 'comment' : "모든 유형의 수리 효율 +5%. 영구 적용됩니다"},
+    "효과적인 수리 (3)": {'coord': (64,192), 'cost': {0: 20, 2: 8},       'value': (0.05, UPGRADE_REPAIR_EFFICIENCY), 'comment' : "모든 유형의 수리 효율 +5%. 영구 적용됩니다"},
 }
 
-upgrade_complete = { key : False for key in sprite_coord.keys() }
+upgrade_complete = { key : False for key in upgrade_info.keys() }
