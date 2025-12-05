@@ -7,6 +7,35 @@ import play_scene
 import math
 from physics_data import *
 
+
+def clip_draw_frame(image, clip_x, clip_y, clip_w, clip_h, draw_x, draw_y, draw_w, draw_h):
+    frame_w = WIN_WIDTH * 1104 / WIN_WIDTH
+    frame_h = WIN_HEIGHT * 620 / WIN_HEIGHT
+    left = draw_x - draw_w // 2
+    right = draw_x + draw_w // 2
+    top = draw_y + draw_h // 2
+    bottom = draw_y - draw_h // 2
+    if left < (WIN_WIDTH - frame_w) // 2:
+        draw_w -= (frame_w // 2 - draw_x + left)
+        clip_x += (frame_w // 2 - draw_x + left) * (clip_w / draw_w)
+        left = (WIN_WIDTH - frame_w) // 2
+    elif right < (WIN_WIDTH - frame_w) // 2:
+        draw_w -= (right - (WIN_WIDTH + frame_w) // 2)
+        clip_w -= (right - (WIN_WIDTH + frame_w) // 2) * (clip_w / draw_w)
+        right = (WIN_WIDTH + frame_w) // 2
+    if bottom < (WIN_HEIGHT - frame_h) // 2:
+        draw_h -= (frame_h // 2 - draw_y + bottom)
+        clip_y += (frame_h // 2 - draw_y + bottom) * (clip_h / draw_h)
+        bottom = (WIN_HEIGHT - frame_h) // 2
+    elif top < (WIN_HEIGHT - frame_h) // 2:
+        draw_h -= (top - (WIN_HEIGHT + frame_h) // 2)
+        clip_h -= (top - (WIN_HEIGHT + frame_h) // 2) * (clip_h / draw_h)
+        top = (WIN_HEIGHT + frame_h) // 2
+    if draw_w > 0 and draw_h > 0:
+        image.clip_draw(int(clip_x), int(clip_y), int(clip_w), int(clip_h),
+                        (left + right) // 2, (top + bottom) // 2,
+                        draw_w, draw_h)
+
 class UIFrame:
     def __init__(self):
         self.image_anim = load_image('Assets/Sprites/UI/Open_Window_Talent_Animation.png')
@@ -24,12 +53,12 @@ class UIFrame:
         frame_width = self.w * 0.8 * self.w_ratio
         frame_left = WIN_WIDTH // 2 - frame_width // 2 * 1.05
         frame_height = self.h * 0.8 * self.h_ratio
-        frame_top = WIN_HEIGHT // 2 + frame_height // 2
+        frame_top = WIN_HEIGHT // 2 + frame_height // 2 * 1.1
         y = frame_top - frame_height * 0.2
         self.upgrade_menu = [
-            UpgradeType(int(frame_left + frame_width * 1 / 6), y, '머신건'),
-            UpgradeType(int(frame_left + frame_width * 3 / 6), y, '엑소슈트'),
-            UpgradeType(int(frame_left + frame_width * 5 / 6), y, '로보스파이더'),
+            UpgradeType(int(frame_left + frame_width * 1 / 6), y, frame_width * 0.25, '머신건'),
+            UpgradeType(int(frame_left + frame_width * 3 / 6), y, frame_width * 0.25, '엑소슈트'),
+            UpgradeType(int(frame_left + frame_width * 5 / 6), y, frame_width * 0.25, '로보스파이더'),
         ]
 
         self.sprite_coord =(
@@ -55,9 +84,9 @@ class UIFrame:
                                       self.w * self.w_ratio, self.h * self.h_ratio)
         else:
             self.image_back.draw(WIN_WIDTH // 2, WIN_HEIGHT // 2, self.w * self.w_ratio, self.h * self.h_ratio)
-            self.image_const.draw(WIN_WIDTH // 2, WIN_HEIGHT // 2, self.w * self.w_ratio, self.h * self.h_ratio)
             for upgrade in self.upgrade_menu:
                 upgrade.draw()
+            self.image_const.draw(WIN_WIDTH // 2, WIN_HEIGHT // 2, self.w * self.w_ratio, self.h * self.h_ratio)
 
     def exit(self):
         self.frame_dir = -1
@@ -81,8 +110,14 @@ class UpgradeType:
     icon_w = 64
     icon_h = 64
     header_offset_y = int(-icon_h * 0.64 * WIN_H_RATIO)
+    branch_y = 0
+    branch_back_w = 0
+    branch_back_h = 0
 
-    def __init__(self, x, y, image_path):
+    frame_w = 0
+    frame_h = 0
+
+    def __init__(self, x, y, back_w, image_path, row=12):
         if UpgradeType.font is None:
             UpgradeType.font = load_font('Assets/Fonts/NeoDunggeunmoPro-Regular.ttf', self.font_size)
         if UpgradeType.image_icon is None:
@@ -97,37 +132,81 @@ class UpgradeType:
             )
         if UpgradeType.image_branch_back is None:
             UpgradeType.image_branch_back = load_image('Assets/Sprites/UI/Window_Talent_Branch_Background.png')
+        self.branch_y = y - (self.icon_h + self.image_branch[0].h) * WIN_H_RATIO
 
         self.image_path = image_path
         self.x = x
         self.y = y
+        self.button_row = row
         self.icon_clip_x = UpgradeType.sprite_coord[image_path][0]
         self.icon_clip_y = UpgradeType.sprite_coord[image_path][1]
-        self.branch_y = self.y - 80 * WIN_H_RATIO
         self.offset = 1.5
+        self.branch_back_w = back_w
+        self.branch_back_h = 44
 
-    def draw(self):
-        # UpgradeType.image_branch_back.clip_composite_draw(0, 0, self.image_branch_back.w, self.image_branch_back.h, math.pi / 2, '', self.x, self.y)
-        UpgradeType.image_branch[0].draw(self.x, self.branch_y)
-        UpgradeType.image_branch[1].draw(self.x, self.branch_y)
-        UpgradeType.image_branch[2].draw(self.x, self.branch_y)
+    def draw(self):# branch_back 길이 설정 (중앙 파트 반복 개수)
+        part_h = 12
+        part_w = self.image_branch_back.w
+        img_h = self.image_branch_back.h
+        start_y = self.branch_y - (self.image_branch[0].h // 2 + self.branch_back_h) * WIN_H_RATIO
+
+        # 앞 파트
+        clip_draw_frame(
+            self.image_branch_back,
+            0, img_h - part_h, part_w, part_h,
+            self.x, start_y,
+            self.branch_back_w, self.branch_back_h,
+        )
+
+        # 중앙 파트 반복 출력 (y값 감소)
+        i = 0
+        for i in range(self.button_row):
+            clip_draw_frame(
+                self.image_branch_back,
+                0, img_h - part_h - 44, part_w, part_h,
+                self.x, start_y - part_h - 44 * (i + 1) * WIN_H_RATIO,
+                self.branch_back_w, 44
+            )
+        # 뒤 파트
+        clip_draw_frame(
+            self.image_branch_back,
+            0, 0, part_w, part_h,
+            self.x, start_y - part_h - 44 * (i + 2) * WIN_H_RATIO,
+            self.branch_back_w, self.branch_back_h
+        )
+        clip_draw_frame(
+            self.image_branch[0],
+            0, 0, self.image_branch[0].w, self.image_branch[0].h,
+            self.x, self.branch_y,
+            self.image_branch[0].w * WIN_W_RATIO * self.offset,
+            self.image_branch[0].h * WIN_H_RATIO * self.offset
+        )
+
         # image_header를 image_icon 하단에 출력
-        UpgradeType.image_header.draw(self.x, self.y + UpgradeType.header_offset_y,
-                                      self.image_header.w * WIN_W_RATIO * self.offset, self.image_header.h * WIN_H_RATIO * self.offset)
-        UpgradeType.image_icon.clip_draw(self.icon_clip_x, self.image_icon.h - self.icon_h - self.icon_clip_y,
-                                        UpgradeType.icon_w, UpgradeType.icon_h,
-                                         self.x, self.y,
-                                         self.icon_w * WIN_W_RATIO * self.offset, self.icon_h * WIN_H_RATIO * self.offset)
+        clip_draw_frame(
+            self.image_header,
+            0, 0, self.image_header.w, self.image_header.h,
+            self.x, self.y + UpgradeType.header_offset_y,
+            self.image_header.w * WIN_W_RATIO * self.offset, self.image_header.h * WIN_H_RATIO * self.offset
+        )
+        clip_draw_frame(
+            self.image_icon,
+            self.icon_clip_x, self.image_icon.h - self.icon_h - self.icon_clip_y,
+            self.icon_w, self.icon_h,
+            self.x, self.y,
+            self.icon_w * WIN_W_RATIO * self.offset, self.icon_h * WIN_H_RATIO * self.offset
+        )
+
         self.font.draw(self.x - len(self.image_path) * self.font_size / 2,
                        self.y - self.icon_h // 2 - self.font_size,
                        self.image_path, (255, 200, 0))
 
 
 class UpgradeButton:
-    image = None
+    image_icon = None
     def __init__(self):
-        if UpgradeButton.image is None:
-            UpgradeButton.image = load_image('Assets/Sprites/UI/TalentIcons.png')
+        if UpgradeButton.image_icon is None:
+            UpgradeButton.image_icon = load_image('Assets/Sprites/UI/TalentIcons.png')
 
 class MenuBar:
     def __init__(self):
