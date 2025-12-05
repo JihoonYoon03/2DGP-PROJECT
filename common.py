@@ -11,3 +11,6 @@ wave_manager = None
 
 # 디버그 모드 플래그
 debug_mode = False
+
+cursor_image = None
+mouse_x, mouse_y = 0, 0

@@ -5,6 +5,7 @@ import game_framework
 import event_set
 import common
 import math
+import UI_Upgrade_scene
 from state_machine import StateMachine
 from event_set import signal_empty, signal_not_empty, r_pressed, signal_time_out
 from physics_data import *
@@ -316,10 +317,13 @@ class RoboSpider:
             draw_circle(view_x, view_y, int(self.collision_range * common.cam.zoom), 255, 0, 0)
 
     def handle_event(self, event):
+        event_tuple = ('INPUT', event)
+
+        if event_set.f_pressed(event_tuple) and common.player.is_docked:
+            game_framework.push_scene(UI_Upgrade_scene)
+
         if not self.is_docking and self.stateMachine.cur_state != self.DOCK:
             prev_moving = self.move_dir != 0
-
-            event_tuple = ('INPUT', event)
 
             if event_set.w_pressed(event_tuple):
                 event_set.flag_w = True
@@ -329,8 +333,6 @@ class RoboSpider:
                 event_set.flag_s = True
                 self.move_dir -= 1
                 self.last_move_dir = -1
-
-            # 도킹 상태에서 키 홀딩 후, 도킹 해제 뒤 키업 처리 방지 필요
 
             elif event_set.w_released(event_tuple) and event_set.flag_w:
                 event_set.flag_w = False

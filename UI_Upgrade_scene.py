@@ -1,8 +1,11 @@
 from pico2d import *
-from physics_data import *
-import game_framework
-import play_scene as main_scene
+
 import common
+import event_set
+import game_framework
+from physics_data import *
+
+mouse_x, mouse_y = 0, 0
 
 class MainImage:
     def __init__(self):
@@ -67,8 +70,9 @@ class MenuBar:
         self.mouse_hovering = False
 
     def update(self):
-        if (self.x - self.w / 2 * WIN_W_RATIO <= common.mouse_x <= self.x + self.w / 2 * WIN_W_RATIO and
-            self.y - self.h / 2 * WIN_H_RATIO <= common.mouse_y <= self.y + self.h / 2 * WIN_H_RATIO):
+        global mouse_x, mouse_y
+        if (self.x - self.w / 2 * WIN_W_RATIO <= mouse_x <= self.x + self.w / 2 * WIN_W_RATIO and
+            self.y - self.h / 2 * WIN_H_RATIO <= mouse_y <= self.y + self.h / 2 * WIN_H_RATIO):
             self.mouse_hovering = True
         else:
             self.mouse_hovering = False
@@ -97,9 +101,14 @@ def handle_events():
             game_framework.quit()
         elif event.type == SDL_MOUSEMOTION:
             common.mouse_x, common.mouse_y = event.x, WIN_HEIGHT - event.y
-        elif event.type == SDL_MOUSEBUTTONDOWN:
-            if menu_bar.mouse_hovering:
-                game_framework.change_scene(main_scene)
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_f:
+            game_framework.pop_scene()
+        elif event.type == SDL_KEYUP and event.key == SDLK_w:
+            event_set.flag_w = False
+            common.spider.move_dir -= 1
+        elif event.type == SDL_KEYUP and event.key == SDLK_s:
+            event_set.flag_s = False
+            common.spider.move_dir += 1
 
 
 def update():
@@ -114,6 +123,7 @@ def draw():
     main_image.draw()
     logo_image.draw()
     menu_bar.draw()
+    common.cursor_image.draw(common.mouse_x, common.mouse_y, common.cursor_image.w * WIN_W_RATIO * 3.4, common.cursor_image.h * WIN_H_RATIO * 3.4)
     update_canvas()
 
 def pause():

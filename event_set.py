@@ -53,6 +53,9 @@ def d_released(e):
 def r_pressed(e):
     return e[0] == 'INPUT' and e[1].type == sdl2.SDL_KEYDOWN and e[1].key == sdl2.SDLK_r
 
+def f_pressed(e):
+    return e[0] == 'INPUT' and e[1].type == sdl2.SDL_KEYDOWN and e[1].key == sdl2.SDLK_f
+
 # =
 def equals_pressed(e):
     return e[0] == 'INPUT' and e[1].type == sdl2.SDL_KEYDOWN and e[1].key == sdl2.SDLK_EQUALS

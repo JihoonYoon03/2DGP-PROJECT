@@ -10,18 +10,16 @@ from tile import Ground
 from mine import Mine
 from camera import Camera
 from UI_play_scene import UIResourceData, UISpiderStatus
+import UI_Upgrade_scene
 from object_pool import ObjectPool
 from enemy import *
 import common
 import game_world
 import game_framework
 
-mouse_x, mouse_y = 0, 0
-
 def init():
-    global cursor_image
     hide_cursor()
-    cursor_image = load_image('Assets/Sprites/UI/Cursor_Target.png')
+    common.cursor_image = load_image('Assets/Sprites/UI/Cursor_Target.png')
     background = Background()
     game_world.add_object(background, 0)
 
@@ -68,8 +66,7 @@ def handle_events():
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             game_framework.quit()
         elif event.type == SDL_MOUSEMOTION:
-            global mouse_x, mouse_y
-            mouse_x, mouse_y = event.x, WIN_HEIGHT - event.y
+            common.mouse_x, common.mouse_y = event.x, WIN_HEIGHT - event.y
 
         game_world.handle_event(event)
 
@@ -82,7 +79,7 @@ def update():
 def draw():
     clear_canvas()
     game_world.render()
-    cursor_image.draw(mouse_x, mouse_y, cursor_image.w * WIN_W_RATIO * 3.4, cursor_image.h * WIN_H_RATIO * 3.4)
+    common.cursor_image.draw(common.mouse_x, common.mouse_y, common.cursor_image.w * WIN_W_RATIO * 3.4, common.cursor_image.h * WIN_H_RATIO * 3.4)
     update_canvas()
 
 def pause():
