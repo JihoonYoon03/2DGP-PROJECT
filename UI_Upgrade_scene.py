@@ -37,10 +37,12 @@ def clip_draw_frame(image, clip_x, clip_y, clip_w, clip_h, draw_x, draw_y, draw_
                         draw_w, draw_h)
 
 class UIFrame:
+    font_size = int(24 * WIN_W_RATIO)
     def __init__(self):
         self.image_anim = load_image('Assets/Sprites/UI/Open_Window_Talent_Animation.png')
         self.image_const = load_image('Assets/Sprites/UI/Window_Talent_Frame.png')
         self.image_back = load_image('Assets/Sprites/UI/Window_Talent_Background.png')
+        self.font = load_font('Assets/Fonts/NeoDunggeunmoPro-Regular.ttf', self.font_size)
         self.frame = 0
         self.frame_dir = 1
         self.frame_len = 11
@@ -84,6 +86,7 @@ class UIFrame:
                                       self.w * self.w_ratio, self.h * self.h_ratio)
         else:
             self.image_back.draw(WIN_WIDTH // 2, WIN_HEIGHT // 2, self.w * self.w_ratio, self.h * self.h_ratio)
+            self.font.draw(WIN_WIDTH // 2 - len('업그레이드') * self.font_size, WIN_HEIGHT // 2 + self.h // 2 * 0.9, '업그레이드', (255, 200, 0))
             for upgrade in self.upgrade_menu:
                 upgrade.draw()
             self.image_const.draw(WIN_WIDTH // 2, WIN_HEIGHT // 2, self.w * self.w_ratio, self.h * self.h_ratio)
@@ -144,6 +147,10 @@ class UpgradeType:
         self.branch_back_w = back_w
         self.branch_back_h = 44
 
+        self.upgrade_icon_list = [
+            UpgradeButton(self.x, self.branch_y, '베어링 향상 (1)'),
+        ]
+
     def draw(self):# branch_back 길이 설정 (중앙 파트 반복 개수)
         part_h = 12
         part_w = self.image_branch_back.w
@@ -201,12 +208,55 @@ class UpgradeType:
                        self.y - self.icon_h // 2 - self.font_size,
                        self.image_path, (255, 200, 0))
 
+        for button in self.upgrade_icon_list:
+            button.draw()
+
 
 class UpgradeButton:
     image_icon = None
-    def __init__(self):
+    image_selling = None
+    image_bought = None
+
+    def __init__(self, x, y, upgrade_name, parent=None):
         if UpgradeButton.image_icon is None:
             UpgradeButton.image_icon = load_image('Assets/Sprites/UI/TalentIcons.png')
+        if UpgradeButton.image_selling is None:
+            UpgradeButton.image_selling = load_image('Assets/Sprites/UI/Window_Talent_TierPlate_Background.png')
+        if UpgradeButton.image_bought is None:
+            UpgradeButton.image_bought = load_image('Assets/Sprites/UI/Window_Talent_TierPlate_Bought.png')
+
+        self.x = x
+        self.y = y
+        self.upgrade_name = upgrade_name
+        self.icon_x = sprite_coord[upgrade_name][0]
+        self.icon_y = sprite_coord[upgrade_name][1]
+        self.icon_w = 30
+        self.icon_h = 30
+        self.parent = parent
+        self.offset = 1.5
+
+    def draw(self):
+        if self.parent and upgrade_complete[self.parent] and upgrade_complete[self.upgrade_name]:
+            clip_draw_frame(self.image_bought,
+                            self.x, self.y,
+                            0, 0, self.image_bought.w, self.image_bought.h,
+                            self.image_bought.w * WIN_W_RATIO * self.offset,
+                            self.image_bought.h * WIN_H_RATIO * self.offset)
+        else:
+            clip_draw_frame(self.image_selling,
+                            0, 0, self.image_selling.w, self.image_selling.h,
+                            self.x, self.y,
+                            self.image_selling.w * WIN_W_RATIO * self.offset,
+                            self.image_selling.h * WIN_H_RATIO * self.offset)
+        clip_draw_frame(self.image_icon,
+                        self.icon_x, self.image_icon.h - self.icon_h - self.icon_y,
+                        self.icon_w, self.icon_h,
+                        self.x + self.icon_w * WIN_W_RATIO * 0.1, self.y + self.icon_h * WIN_H_RATIO * 0.6,
+                        self.icon_w * WIN_W_RATIO * self.offset,
+                        self.icon_h * WIN_H_RATIO * self.offset
+                        )
+
+
 
 class MenuBar:
     def __init__(self):
@@ -279,3 +329,59 @@ def resume():
 
 def finish():
     pass
+
+
+sprite_coord = {
+    "베어링 향상 (1)": (1, 1),    "베어링 향상 (2)": (32, 1),   "베어링 향상 (3)": (63, 1),   "머신건 벨트 (1)": (94, 1),   "머신건 벨트 (2)": (125, 1),  "머신건 벨트 (3)": (156, 1),  "확장탄 (1)": (187, 1),  "확장탄 (2)": (218, 1),
+    "확장탄 (3)": (249, 1),  "확장 구경 (1)": (280, 1),  "확장 구경 (2)": (311, 1),  "확장 구경 (3)": (342, 1),  "철갑탄 (1)": (373, 1),  "철갑탄 (2)": (404, 1),  "컴펜세이터 (1)": (435, 1),  "컴펜세이터 (2)": (466, 1),
+    # "": (497, 1),  "": (528, 1),  "": (559, 1),  "": (590, 1),  "": (621, 1),  "": (652, 1),  "": (683, 1),  "": (714, 1),
+    #
+    # "": (1, 32),   "": (32, 32),  "": (63, 32),  "": (94, 32),  "": (125, 32), "": (156, 32), "": (187, 32), "": (218, 32),
+    # "": (249, 32), "": (280, 32), "": (311, 32), "": (342, 32), "": (373, 32), "": (404, 32), "": (435, 32), "": (466, 32),
+    # "": (497, 32), "": (528, 32), "": (559, 32), "": (590, 32), "": (621, 32), "": (652, 32), "": (683, 32), "": (714, 32),
+    #
+    # "": (1, 63),   "": (32, 63),  "": (63, 63),  "": (94, 63),  "": (125, 63), "": (156, 63), "": (187, 63), "": (218, 63),
+    # "": (249, 63), "": (280, 63), "": (311, 63), "": (342, 63), "": (373, 63), "": (404, 63), "": (435, 63), "": (466, 63),
+    # "": (497, 63), "": (528, 63), "": (559, 63), "": (590, 63), "": (621, 63), "": (652, 63), "": (683, 63), "": (714, 63),
+    #
+    # "": (1, 94),   "": (32, 94),  "": (63, 94),  "": (94, 94),  "": (125, 94), "": (156, 94), "": (187, 94), "": (218, 94),
+    # "": (249, 94), "": (280, 94), "": (311, 94), "": (342, 94), "": (373, 94), "": (404, 94), "": (435, 94), "": (466, 94),
+    # "": (497, 94), "": (528, 94), "": (559, 94), "": (590, 94), "": (621, 94), "": (652, 94), "": (683, 94), "": (714, 94),
+    #
+    # "": (1, 125),  "": (32, 125), "": (63, 125), "": (94, 125), "": (125, 125),"": (156, 125),"": (187, 125),"": (218, 125),
+    # "": (249, 125),"": (280, 125),"": (311, 125),"": (342, 125),"": (373, 125),"": (404, 125),"": (435, 125),"": (466, 125),
+    # "": (497, 125),"": (528, 125),"": (559, 125),"": (590, 125),"": (621, 125),"": (652, 125),"": (683, 125),"": (714, 125),
+
+    '''"": (1, 156),  "": (32, 156),''' "리펄서 (1)": (63, 156), "리펄서 (2)": (94, 156), "리펄서 (3)": (125, 156), "플라즈마 안정성 (1)": (156, 156), "플라즈마 안정성 (2)": (187, 156), "플라즈마 커터 (1)": (218, 156),
+    "플라즈마 커터 (2)": (249, 156), "플라즈마 커터 (3)": (280, 156),"플라즈마 커터 (4)": (311, 156),"플라즈마 커터 (5)": (342, 156),"플라즈마 커터 (6)": (373, 156),'''"": (404, 156),"": (435, 156),"": (466, 156),'''
+    # "": (497, 156),"": (528, 156),"": (559, 156),"": (590, 156),"": (621, 156),
+    "수리": (652, 156),
+    # "": (683, 156),"": (714, 156),
+                                                                                                                                       
+    "효과적인 수리 (1)": (1, 187),  "효과적인 수리 (2)": (32, 187), "효과적인 수리 (3)": (63, 187),
+    # "": (94, 187), "": (125, 187),"": (156, 187),"": (187, 187),"": (218, 187),
+    # "": (249, 187),"": (280, 187),"": (311, 187),"": (342, 187),"": (373, 187),"": (404, 187),"": (435, 187),"": (466, 187),
+    # "": (497, 187),"": (528, 187),"": (559, 187),"": (590, 187),"": (621, 187),"": (652, 187),"": (683, 187),"": (714, 187),
+    #
+    # "": (1, 218),  "": (32, 218), "": (63, 218), "": (94, 218), "": (125, 218),"": (156, 218),"": (187, 218),"": (218, 218),
+    # "": (249, 218),"": (280, 218),"": (311, 218),"": (342, 218),"": (373, 218),"": (404, 218),"": (435, 218),"": (466, 218),
+    # "": (497, 218),"": (528, 218),"": (559, 218),"": (590, 218),"": (621, 218),"": (652, 218),"": (683, 218),"": (714, 218),
+    #
+    # "": (1, 249),  "": (32, 249), "": (63, 249), "": (94, 249), "": (125, 249),"": (156, 249),"": (187, 249),"": (218, 249),
+    # "": (249, 249),"": (280, 249),"": (311, 249),"": (342, 249),"": (373, 249),"": (404, 249),"": (435, 249),"": (466, 249),
+    # "": (497, 249),"": (528, 249),"": (559, 249),"": (590, 249),"": (621, 249),"": (652, 249),"": (683, 249),"": (714, 249),
+    #
+    # "": (1, 280),  "": (32, 280), "": (63, 280), "": (94, 280), "": (125, 280),"": (156, 280),"": (187, 280),"": (218, 280),
+    # "": (249, 280),"": (280, 280),"": (311, 280),"": (342, 280),"": (373, 280),"": (404, 280),"": (435, 280),"": (466, 280),
+    # "": (497, 280),"": (528, 280),"": (559, 280),"": (590, 280),"": (621, 280),"": (652, 280),"": (683, 280),"": (714, 280),
+    #
+    # "": (1, 311),  "": (32, 311), "": (63, 311), "": (94, 311), "": (125, 311),"": (156, 311),"": (187, 311),"": (218, 311),
+    # "": (249, 311),"": (280, 311),"": (311, 311),"": (342, 311),"": (373, 311),"": (404, 311),"": (435, 311),"": (466, 311),
+    # "": (497, 311),"": (528, 311),"": (559, 311),"": (590, 311),"": (621, 311),"": (652, 311),"": (683, 311),"": (714, 311),
+    #
+    # "": (1, 342),  "": (32, 342), "": (63, 342), "": (94, 342), "": (125, 342),"": (156, 342),"": (187, 342),"": (218, 342),
+    # "": (249, 342),"": (280, 342),"": (311, 342),"": (342, 342),"": (373, 342),"": (404, 342),"": (435, 342),"": (466, 342),
+    # "": (497, 342),"": (528, 342),"": (559, 342),"": (590, 342),"": (621, 342),"": (652, 342),"": (683, 342),"": (714, 342),
+}
+
+upgrade_complete = { key : False for key in sprite_coord.keys() }
