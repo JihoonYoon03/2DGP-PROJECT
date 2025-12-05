@@ -216,7 +216,9 @@ class UpgradeButton:
     image_icon = None
     image_selling = None
     image_bought = None
-
+    image_cost = None
+    font = None
+    font_size = int(10 * WIN_W_RATIO * 2.2)
     def __init__(self, x, y, upgrade_name, parent=None):
         if UpgradeButton.image_icon is None:
             UpgradeButton.image_icon = load_image('Assets/Sprites/UI/TalentIcons.png')
@@ -224,16 +226,31 @@ class UpgradeButton:
             UpgradeButton.image_selling = load_image('Assets/Sprites/UI/Window_Talent_TierPlate_Background.png')
         if UpgradeButton.image_bought is None:
             UpgradeButton.image_bought = load_image('Assets/Sprites/UI/Window_Talent_TierPlate_Bought.png')
+        if UpgradeButton.font is None:
+            UpgradeButton.font = load_font('Assets/Fonts/ARIAL.ttf', self.font_size)
+        if UpgradeButton.image_cost is None:
+            UpgradeButton.image_cost = (
+                load_image('Assets/Sprites/UI/CommonResource_Icon.png'),
+                load_image('Assets/Sprites/UI/RareRes1_Icon.png'),
+                load_image('Assets/Sprites/UI/RareRes2_Icon.png'),
+                load_image('Assets/Sprites/UI/RareRes3_Icon.png'),
+                load_image('Assets/Sprites/UI/RareRes4_Icon.png'),
+                load_image('Assets/Sprites/UI/RareRes5_Icon.png'),
+                load_image('Assets/Sprites/UI/RareRes6_Icon.png'),
+                load_image('Assets/Sprites/UI/RareRes7_Icon.png'),
+                load_image('Assets/Sprites/UI/RareRes8_Icon.png'),
+            )
 
         self.x = x
         self.y = y
         self.upgrade_name = upgrade_name
-        self.icon_x = sprite_coord[upgrade_name][0]
-        self.icon_y = sprite_coord[upgrade_name][1]
+        self.icon_x = sprite_coord[upgrade_name]['coord'][0]
+        self.icon_y = sprite_coord[upgrade_name]['coord'][1]
         self.icon_w = 30
         self.icon_h = 30
         self.parent = parent
         self.offset = 1.5
+        self.offset_cost = 2.2
 
     def draw(self):
         if self.parent and upgrade_complete[self.parent] and upgrade_complete[self.upgrade_name]:
@@ -255,7 +272,22 @@ class UpgradeButton:
                         self.icon_w * WIN_W_RATIO * self.offset,
                         self.icon_h * WIN_H_RATIO * self.offset
                         )
+        for res_type, cost in sprite_coord[self.upgrade_name]['cost'].items():
+            clip_draw_frame(self.image_cost[res_type],
+                        0, 0,
+                        self.image_cost[res_type].w, self.image_cost[res_type].h,
+                        self.x - self.icon_w * WIN_W_RATIO * 0.2, self.y - self.icon_h * WIN_H_RATIO * 0.8,
+                        self.image_cost[res_type].w * WIN_W_RATIO * self.offset_cost,
+                        self.image_cost[res_type].h * WIN_H_RATIO * self.offset_cost
+                        )
+            self.font.draw(self.x - self.icon_w * WIN_W_RATIO * 0.1, self.y - self.icon_h * WIN_H_RATIO * 0.8, f' {cost}', (255, 200, 0))
 
+    def apply_upgrade(self, base_value, upgrade_value, upgrade_amount, is_percent):
+        upgrade_value += upgrade_amount  # 퍼센트 or 수치
+        if is_percent:
+            base_value *= upgrade_value
+        else:
+            base_value += upgrade_value
 
 
 class MenuBar:
@@ -332,56 +364,47 @@ def finish():
 
 
 sprite_coord = {
-    "베어링 향상 (1)": (1, 1),    "베어링 향상 (2)": (32, 1),   "베어링 향상 (3)": (63, 1),   "머신건 벨트 (1)": (94, 1),   "머신건 벨트 (2)": (125, 1),  "머신건 벨트 (3)": (156, 1),  "확장탄 (1)": (187, 1),  "확장탄 (2)": (218, 1),
-    "확장탄 (3)": (249, 1),  "확장 구경 (1)": (280, 1),  "확장 구경 (2)": (311, 1),  "확장 구경 (3)": (342, 1),  "철갑탄 (1)": (373, 1),  "철갑탄 (2)": (404, 1),  "컴펜세이터 (1)": (435, 1),  "컴펜세이터 (2)": (466, 1),
-    # "": (497, 1),  "": (528, 1),  "": (559, 1),  "": (590, 1),  "": (621, 1),  "": (652, 1),  "": (683, 1),  "": (714, 1),
-    #
-    # "": (1, 32),   "": (32, 32),  "": (63, 32),  "": (94, 32),  "": (125, 32), "": (156, 32), "": (187, 32), "": (218, 32),
-    # "": (249, 32), "": (280, 32), "": (311, 32), "": (342, 32), "": (373, 32), "": (404, 32), "": (435, 32), "": (466, 32),
-    # "": (497, 32), "": (528, 32), "": (559, 32), "": (590, 32), "": (621, 32), "": (652, 32), "": (683, 32), "": (714, 32),
-    #
-    # "": (1, 63),   "": (32, 63),  "": (63, 63),  "": (94, 63),  "": (125, 63), "": (156, 63), "": (187, 63), "": (218, 63),
-    # "": (249, 63), "": (280, 63), "": (311, 63), "": (342, 63), "": (373, 63), "": (404, 63), "": (435, 63), "": (466, 63),
-    # "": (497, 63), "": (528, 63), "": (559, 63), "": (590, 63), "": (621, 63), "": (652, 63), "": (683, 63), "": (714, 63),
-    #
-    # "": (1, 94),   "": (32, 94),  "": (63, 94),  "": (94, 94),  "": (125, 94), "": (156, 94), "": (187, 94), "": (218, 94),
-    # "": (249, 94), "": (280, 94), "": (311, 94), "": (342, 94), "": (373, 94), "": (404, 94), "": (435, 94), "": (466, 94),
-    # "": (497, 94), "": (528, 94), "": (559, 94), "": (590, 94), "": (621, 94), "": (652, 94), "": (683, 94), "": (714, 94),
-    #
-    # "": (1, 125),  "": (32, 125), "": (63, 125), "": (94, 125), "": (125, 125),"": (156, 125),"": (187, 125),"": (218, 125),
-    # "": (249, 125),"": (280, 125),"": (311, 125),"": (342, 125),"": (373, 125),"": (404, 125),"": (435, 125),"": (466, 125),
-    # "": (497, 125),"": (528, 125),"": (559, 125),"": (590, 125),"": (621, 125),"": (652, 125),"": (683, 125),"": (714, 125),
+    "베어링 향상 (1)": {'coord': (1, 1),   'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "베어링 향상 (2)": {'coord': (32, 1),  'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "베어링 향상 (3)": {'coord': (63, 1),  'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
 
-    '''"": (1, 156),  "": (32, 156),''' "리펄서 (1)": (63, 156), "리펄서 (2)": (94, 156), "리펄서 (3)": (125, 156), "플라즈마 안정성 (1)": (156, 156), "플라즈마 안정성 (2)": (187, 156), "플라즈마 커터 (1)": (218, 156),
-    "플라즈마 커터 (2)": (249, 156), "플라즈마 커터 (3)": (280, 156),"플라즈마 커터 (4)": (311, 156),"플라즈마 커터 (5)": (342, 156),"플라즈마 커터 (6)": (373, 156),'''"": (404, 156),"": (435, 156),"": (466, 156),'''
-    # "": (497, 156),"": (528, 156),"": (559, 156),"": (590, 156),"": (621, 156),
-    "수리": (652, 156),
-    # "": (683, 156),"": (714, 156),
-                                                                                                                                       
-    "효과적인 수리 (1)": (1, 187),  "효과적인 수리 (2)": (32, 187), "효과적인 수리 (3)": (63, 187),
-    # "": (94, 187), "": (125, 187),"": (156, 187),"": (187, 187),"": (218, 187),
-    # "": (249, 187),"": (280, 187),"": (311, 187),"": (342, 187),"": (373, 187),"": (404, 187),"": (435, 187),"": (466, 187),
-    # "": (497, 187),"": (528, 187),"": (559, 187),"": (590, 187),"": (621, 187),"": (652, 187),"": (683, 187),"": (714, 187),
-    #
-    # "": (1, 218),  "": (32, 218), "": (63, 218), "": (94, 218), "": (125, 218),"": (156, 218),"": (187, 218),"": (218, 218),
-    # "": (249, 218),"": (280, 218),"": (311, 218),"": (342, 218),"": (373, 218),"": (404, 218),"": (435, 218),"": (466, 218),
-    # "": (497, 218),"": (528, 218),"": (559, 218),"": (590, 218),"": (621, 218),"": (652, 218),"": (683, 218),"": (714, 218),
-    #
-    # "": (1, 249),  "": (32, 249), "": (63, 249), "": (94, 249), "": (125, 249),"": (156, 249),"": (187, 249),"": (218, 249),
-    # "": (249, 249),"": (280, 249),"": (311, 249),"": (342, 249),"": (373, 249),"": (404, 249),"": (435, 249),"": (466, 249),
-    # "": (497, 249),"": (528, 249),"": (559, 249),"": (590, 249),"": (621, 249),"": (652, 249),"": (683, 249),"": (714, 249),
-    #
-    # "": (1, 280),  "": (32, 280), "": (63, 280), "": (94, 280), "": (125, 280),"": (156, 280),"": (187, 280),"": (218, 280),
-    # "": (249, 280),"": (280, 280),"": (311, 280),"": (342, 280),"": (373, 280),"": (404, 280),"": (435, 280),"": (466, 280),
-    # "": (497, 280),"": (528, 280),"": (559, 280),"": (590, 280),"": (621, 280),"": (652, 280),"": (683, 280),"": (714, 280),
-    #
-    # "": (1, 311),  "": (32, 311), "": (63, 311), "": (94, 311), "": (125, 311),"": (156, 311),"": (187, 311),"": (218, 311),
-    # "": (249, 311),"": (280, 311),"": (311, 311),"": (342, 311),"": (373, 311),"": (404, 311),"": (435, 311),"": (466, 311),
-    # "": (497, 311),"": (528, 311),"": (559, 311),"": (590, 311),"": (621, 311),"": (652, 311),"": (683, 311),"": (714, 311),
-    #
-    # "": (1, 342),  "": (32, 342), "": (63, 342), "": (94, 342), "": (125, 342),"": (156, 342),"": (187, 342),"": (218, 342),
-    # "": (249, 342),"": (280, 342),"": (311, 342),"": (342, 342),"": (373, 342),"": (404, 342),"": (435, 342),"": (466, 342),
-    # "": (497, 342),"": (528, 342),"": (559, 342),"": (590, 342),"": (621, 342),"": (652, 342),"": (683, 342),"": (714, 342),
+    "머신건 벨트 (1)": {'coord': (94, 1),  'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "머신건 벨트 (2)": {'coord': (125, 1), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "머신건 벨트 (3)": {'coord': (156, 1), 'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+
+    "확장탄 (1)":     {'coord': (187, 1), 'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "확장탄 (2)":     {'coord': (218, 1), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "확장탄 (3)":     {'coord': (249, 1), 'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+
+    "확장 구경 (1)":  {'coord': (280, 1), 'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "확장 구경 (2)":  {'coord': (311, 1), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "확장 구경 (3)":  {'coord': (342, 1), 'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+
+    "철갑탄 (1)":     {'coord': (373, 1), 'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "철갑탄 (2)":     {'coord': (404, 1), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+
+    "컴펜세이터 (1)": {'coord': (435, 1), 'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "컴펜세이터 (2)": {'coord': (466, 1), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+
+    "리펄서 (1)":     {'coord': (63, 156),'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "리펄서 (2)":     {'coord': (94, 156),'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "리펄서 (3)":     {'coord': (125,156),'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+
+    "플라즈마 안정성 (1)": {'coord': (156,156),'cost': {0: 4},                 'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "플라즈마 안정성 (2)": {'coord': (187,156),'cost': {0: 4, 1: 8},           'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+
+    "플라즈마 커터 (1)": {'coord': (218,156),'cost': {0: 4},                  'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "플라즈마 커터 (2)": {'coord': (249,156),'cost': {0: 4, 1: 8},            'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "플라즈마 커터 (3)": {'coord': (280,156),'cost': {0: 4, 1: 8, 2: 12},     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "플라즈마 커터 (4)": {'coord': (311,156),'cost': {0: 4, 1: 8, 2: 12, 3: 16}, 'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "플라즈마 커터 (5)": {'coord': (342,156),'cost': {0: 4, 1: 8, 2: 12, 3: 16, 4: 20}, 'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "플라즈마 커터 (6)": {'coord': (373,156),'cost': {0: 4, 1: 8, 2: 12, 3: 16, 4: 20, 5: 24}, 'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+
+    "수리":            {'coord': (652,156),'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+
+    "효과적인 수리 (1)": {'coord': (1, 187), 'cost': {0: 4},                  'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "효과적인 수리 (2)": {'coord': (32,187), 'cost': {0: 4, 1: 8},            'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "효과적인 수리 (3)": {'coord': (63,187), 'cost': {0: 4, 1: 8, 2: 12},     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
 }
 
 upgrade_complete = { key : False for key in sprite_coord.keys() }
