@@ -4,7 +4,6 @@ import common
 import event_set
 import game_framework
 import play_scene
-import math
 from physics_data import *
 
 
@@ -58,9 +57,30 @@ class UIFrame:
         frame_top = WIN_HEIGHT // 2 + frame_height // 2 * 1.1
         y = frame_top - frame_height * 0.2
         self.upgrade_menu = [
-            UpgradeType(int(frame_left + frame_width * 1 / 6), y, frame_width * 0.25, '머신건'),
-            UpgradeType(int(frame_left + frame_width * 3 / 6), y, frame_width * 0.25, '엑소슈트'),
-            UpgradeType(int(frame_left + frame_width * 5 / 6), y, frame_width * 0.25, '로보스파이더'),
+            UpgradeType(
+                int(frame_left + frame_width * 1 / 6), y, frame_width * 0.25, '머신건',
+                layout_keys={
+                    0: ['베어링 향상 (1)', '베어링 향상 (2)', '베어링 향상 (3)'],
+                    1: ['머신건 벨트 (1)', '머신건 벨트 (2)', '머신건 벨트 (3)'],
+                    2: ['확장탄 (1)', '확장탄 (2)', '확장탄 (3)'],
+                }
+            ),
+            UpgradeType(
+                int(frame_left + frame_width * 3 / 6), y, frame_width * 0.25, '엑소슈트',
+                layout_keys={
+                    0: ['플라즈마 커터 (1)', '플라즈마 커터 (2)', '플라즈마 커터 (3)'],
+                    1: ['플라즈마 커터 (4)', '플라즈마 커터 (5)', '플라즈마 커터 (6)'],
+                    2: ['플라즈마 안정성 (1)', '플라즈마 안정성 (2)'],
+                }
+            ),
+            UpgradeType(
+                int(frame_left + frame_width * 5 / 6), y, frame_width * 0.25, '로보스파이더',
+                layout_keys={
+                    0: ['리펄서 (1)', '리펄서 (2)', '리펄서 (3)'],
+                    1: ['수리'],
+                    2: ['효과적인 수리 (1)', '효과적인 수리 (2)', '효과적인 수리 (3)'],
+                }
+            ),
         ]
 
         self.sprite_coord =(
@@ -120,7 +140,7 @@ class UpgradeType:
     frame_w = 0
     frame_h = 0
 
-    def __init__(self, x, y, back_w, image_path, row=12):
+    def __init__(self, x, y, back_w, image_path, layout_keys=None):
         if UpgradeType.font is None:
             UpgradeType.font = load_font('Assets/Fonts/NeoDunggeunmoPro-Regular.ttf', self.font_size)
         if UpgradeType.image_icon is None:
@@ -140,16 +160,29 @@ class UpgradeType:
         self.image_path = image_path
         self.x = x
         self.y = y
-        self.button_row = row
+        self.row = len(max(layout_keys.values(), key=lambda lst: len(lst), default=0)) + 1
+        self.layout_keys = layout_keys or {}
         self.icon_clip_x = UpgradeType.sprite_coord[image_path][0]
         self.icon_clip_y = UpgradeType.sprite_coord[image_path][1]
         self.offset = 1.5
         self.branch_back_w = back_w
         self.branch_back_h = 44
 
-        self.upgrade_icon_list = [
-            UpgradeButton(self.x, self.branch_y, '베어링 향상 (1)'),
-        ]
+        # 버튼 배치 (layout_keys 우선 사용)
+        self.upgrade_icon_list = []
+        if self.layout_keys:
+            for col, keys in self.layout_keys.items():
+                for r, key in enumerate(keys):
+                    if key in sprite_coord:
+                        button_x = self.x - self.branch_back_w // 2 + 66 * WIN_W_RATIO + (self.branch_back_w // 3 * col)
+                        button_y = self.branch_y - 120 * WIN_H_RATIO - 80 * r
+                        self.upgrade_icon_list.append(UpgradeButton(button_x, button_y, key))
+        else:
+            for col, row in self.row_col.items():
+                for r in range(row):
+                    button_x = self.x - self.branch_back_w // 2 + 66 * WIN_W_RATIO + (self.branch_back_w // 3 * col)
+                    button_y = self.branch_y - 120 * WIN_H_RATIO - 80 * r
+                    self.upgrade_icon_list.append(UpgradeButton(button_x, button_y, '베어링 향상 (1)'))
 
     def draw(self):# branch_back 길이 설정 (중앙 파트 반복 개수)
         part_h = 12
@@ -167,7 +200,8 @@ class UpgradeType:
 
         # 중앙 파트 반복 출력 (y값 감소)
         i = 0
-        for i in range(self.button_row):
+        row = self.row * 80 // 44
+        for i in range(row):
             clip_draw_frame(
                 self.image_branch_back,
                 0, img_h - part_h - 44, part_w, part_h,
@@ -268,7 +302,7 @@ class UpgradeButton:
         clip_draw_frame(self.image_icon,
                         self.icon_x, self.image_icon.h - self.icon_h - self.icon_y,
                         self.icon_w, self.icon_h,
-                        self.x + self.icon_w * WIN_W_RATIO * 0.1, self.y + self.icon_h * WIN_H_RATIO * 0.6,
+                        self.x , self.y + self.icon_h * 0.42,
                         self.icon_w * WIN_W_RATIO * self.offset,
                         self.icon_h * WIN_H_RATIO * self.offset
                         )
@@ -364,47 +398,47 @@ def finish():
 
 
 sprite_coord = {
-    "베어링 향상 (1)": {'coord': (1, 1),   'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "베어링 향상 (2)": {'coord': (32, 1),  'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "베어링 향상 (3)": {'coord': (63, 1),  'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "베어링 향상 (1)": {'coord': (0, 0),   'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "베어링 향상 (2)": {'coord': (32, 0),  'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "베어링 향상 (3)": {'coord': (64, 0),  'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
 
-    "머신건 벨트 (1)": {'coord': (94, 1),  'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "머신건 벨트 (2)": {'coord': (125, 1), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "머신건 벨트 (3)": {'coord': (156, 1), 'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "머신건 벨트 (1)": {'coord': (96, 0),  'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "머신건 벨트 (2)": {'coord': (128, 0), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "머신건 벨트 (3)": {'coord': (160, 0), 'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
 
-    "확장탄 (1)":     {'coord': (187, 1), 'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "확장탄 (2)":     {'coord': (218, 1), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "확장탄 (3)":     {'coord': (249, 1), 'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "확장탄 (1)":     {'coord': (192, 0), 'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "확장탄 (2)":     {'coord': (224, 0), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "확장탄 (3)":     {'coord': (256, 0), 'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
 
-    "확장 구경 (1)":  {'coord': (280, 1), 'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "확장 구경 (2)":  {'coord': (311, 1), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "확장 구경 (3)":  {'coord': (342, 1), 'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "확장 구경 (1)":  {'coord': (288, 0), 'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "확장 구경 (2)":  {'coord': (320, 0), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "확장 구경 (3)":  {'coord': (352, 0), 'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
 
-    "철갑탄 (1)":     {'coord': (373, 1), 'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "철갑탄 (2)":     {'coord': (404, 1), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "철갑탄 (1)":     {'coord': (384, 0), 'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "철갑탄 (2)":     {'coord': (416, 0), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
 
-    "컴펜세이터 (1)": {'coord': (435, 1), 'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "컴펜세이터 (2)": {'coord': (466, 1), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "컴펜세이터 (1)": {'coord': (448, 0), 'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "컴펜세이터 (2)": {'coord': (480, 0), 'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
 
-    "리펄서 (1)":     {'coord': (63, 156),'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "리펄서 (2)":     {'coord': (94, 156),'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "리펄서 (3)":     {'coord': (125,156),'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "리펄서 (1)":     {'coord': (64, 160),'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "리펄서 (2)":     {'coord': (96, 160),'cost': {0: 4, 1: 8},               'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "리펄서 (3)":     {'coord': (128,160),'cost': {0: 4, 1: 8, 2: 12},        'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
 
-    "플라즈마 안정성 (1)": {'coord': (156,156),'cost': {0: 4},                 'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "플라즈마 안정성 (2)": {'coord': (187,156),'cost': {0: 4, 1: 8},           'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "플라즈마 안정성 (1)": {'coord': (160,160),'cost': {0: 4},                 'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "플라즈마 안정성 (2)": {'coord': (192,160),'cost': {0: 4, 1: 8},           'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
 
-    "플라즈마 커터 (1)": {'coord': (218,156),'cost': {0: 4},                  'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "플라즈마 커터 (2)": {'coord': (249,156),'cost': {0: 4, 1: 8},            'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "플라즈마 커터 (3)": {'coord': (280,156),'cost': {0: 4, 1: 8, 2: 12},     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "플라즈마 커터 (4)": {'coord': (311,156),'cost': {0: 4, 1: 8, 2: 12, 3: 16}, 'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "플라즈마 커터 (5)": {'coord': (342,156),'cost': {0: 4, 1: 8, 2: 12, 3: 16, 4: 20}, 'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "플라즈마 커터 (6)": {'coord': (373,156),'cost': {0: 4, 1: 8, 2: 12, 3: 16, 4: 20, 5: 24}, 'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "플라즈마 커터 (1)": {'coord': (224,160),'cost': {0: 4},                  'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "플라즈마 커터 (2)": {'coord': (256,160),'cost': {0: 4, 1: 8},            'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "플라즈마 커터 (3)": {'coord': (288,160),'cost': {0: 4, 1: 8, 2: 12},     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "플라즈마 커터 (4)": {'coord': (320,160),'cost': {0: 4, 1: 8, 2: 12, 3: 16}, 'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "플라즈마 커터 (5)": {'coord': (352,160),'cost': {0: 4, 1: 8, 2: 12, 3: 16, 4: 20}, 'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "플라즈마 커터 (6)": {'coord': (384,160),'cost': {0: 4, 1: 8, 2: 12, 3: 16, 4: 20, 5: 24}, 'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
 
-    "수리":            {'coord': (652,156),'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "수리":            {'coord': (640,160),'cost': {0: 4},                     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
 
-    "효과적인 수리 (1)": {'coord': (1, 187), 'cost': {0: 4},                  'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "효과적인 수리 (2)": {'coord': (32,187), 'cost': {0: 4, 1: 8},            'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
-    "효과적인 수리 (3)": {'coord': (63,187), 'cost': {0: 4, 1: 8, 2: 12},     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "효과적인 수리 (1)": {'coord': (0, 192), 'cost': {0: 4},                  'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "효과적인 수리 (2)": {'coord': (32,192), 'cost': {0: 4, 1: 8},            'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
+    "효과적인 수리 (3)": {'coord': (64,192), 'cost': {0: 4, 1: 8, 2: 12},     'value': (SPIDER_TURRET_ROTATE_SPEED, UPGRADE_TURRET_ROTATE_SPEED, 0.3, True)},
 }
 
 upgrade_complete = { key : False for key in sprite_coord.keys() }
