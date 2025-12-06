@@ -303,7 +303,7 @@ class RoboSpider:
         })
 
     def update(self):
-        if all(mine.resEmpty for mine in self.mine_list):
+        if all(mine.resEmpty for mine in self.mine_list) and len(common.ore_list) == 0 and not common.player.engage:
             game_framework.push_scene(game_end_scene)
 
         self.stateMachine.update()

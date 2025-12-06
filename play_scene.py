@@ -25,7 +25,8 @@ def init():
 
     common.cam = Camera(WIN_WIDTH, WIN_HEIGHT)
 
-    mines = [Mine(1, 5, x = 1920 / 2, y = TILE_SIZE_PIXEL * 20 * (i // 2) * 2 * (-1) ** i + random.randint(0, int(TILE_SIZE_PIXEL * 6))) for i in range(1, 7)]
+    # mines = [Mine(1, 5, x = 1920 / 2, y = TILE_SIZE_PIXEL * 20 * (i // 2) * 2 * (-1) ** i + random.randint(0, int(TILE_SIZE_PIXEL * 6))) for i in range(1, 7)]
+    mines = [Mine(1, 5, 1920 / 2, 1080 / 2 + TILE_SIZE_PIXEL)]
     game_world.add_objects(mines, 5)
 
     ground = Ground()

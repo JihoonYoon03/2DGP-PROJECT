@@ -68,6 +68,7 @@ class Ore:
             Ore.image_ore.append(load_image('Assets/Sprites/Item/RareRes6_Item.png'))
             Ore.image_ore.append(load_image('Assets/Sprites/Item/RareRes7_Item.png'))
             Ore.image_ore.append(load_image('Assets/Sprites/Item/RareRes8_Item.png'))
+        common.ore_list.append(self)
 
         # 위치
         self.x = x
@@ -147,6 +148,7 @@ class Ore:
 
     def caught_by_hoover(self, hoover):
         game_world.remove_object(self)
+        common.ore_list.remove(self)
 
     def stopped_by_barrier(self, barrier):
         self.x = barrier.x + barrier.w // 2 + self.w // 2 + 1
