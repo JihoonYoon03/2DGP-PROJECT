@@ -298,3 +298,11 @@ def handle_collisions_range():
                 if collide_range(a, b):
                     a.handle_collision(group, b)
                     b.handle_collision(group, a)
+
+def clear():
+    global world
+    world = [[]]
+    collision_pairs_bb.clear()
+    collision_pairs_radius_limited.clear()
+    collision_pairs_ray_cast.clear()
+    collision_pairs_range.clear()

@@ -18,6 +18,7 @@ import game_world
 import game_framework
 
 def init():
+    clear()
     hide_cursor()
     common.cursor_image = load_image('Assets/Sprites/UI/Cursor_Target.png')
     background = Background()
@@ -25,8 +26,7 @@ def init():
 
     common.cam = Camera(WIN_WIDTH, WIN_HEIGHT)
 
-    # mines = [Mine(1, 5, x = 1920 / 2, y = TILE_SIZE_PIXEL * 20 * (i // 2) * 2 * (-1) ** i + random.randint(0, int(TILE_SIZE_PIXEL * 6))) for i in range(1, 7)]
-    mines = [Mine(1, 5, 1920 / 2, 1080 / 2 + TILE_SIZE_PIXEL)]
+    mines = [Mine(1, 5, x = 1920 / 2, y = TILE_SIZE_PIXEL * 20 * (i // 2) * 2 * (-1) ** i + random.randint(0, int(TILE_SIZE_PIXEL * 6))) for i in range(1, 4)]
     game_world.add_objects(mines, 5)
 
     ground = Ground()
@@ -93,4 +93,22 @@ def resume():
     pass
 
 def finish():
+    game_world.clear()
+
+def clear():
+    common.cam = None
+    common.spider = None
+    common.player = None
+
+    common.UI_ResourceData = None
+    common.UI_SpiderStatus = None
+
+    common.obj_pool = None
+    common.wave_manager = None
+
+    common.cursor_image = None
+    common.mouse_x, common.mouse_y = 0, 0
+    common.ore_list = []
+
+    common.run_time = 0
     game_world.clear()
