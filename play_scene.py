@@ -31,7 +31,7 @@ def init():
     game_world.add_objects(mines, 5)
 
     ground = Ground()
-    game_world.add_object(ground, 2)
+    game_world.add_object(ground, 1)
 
     ground.add_mines(mines)
 

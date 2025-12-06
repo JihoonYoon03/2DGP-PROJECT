@@ -8,6 +8,9 @@ class MainImage:
     def __init__(self):
         self.image = load_image('Assets/Sprites/Background/Loading_Background.png')
         self.image_hole = load_image('Assets/Sprites/Background/Loading_Center.png')
+        self.bgm = load_music('Assets/Audios/BGM/Menu_Theme.wav')
+        self.bgm.set_volume(90)
+
         self.hole_w = 76
         self.hole_h = 72
         self.frame = 0
@@ -39,6 +42,8 @@ class Logo:
         self.frame_len = 18
         self.frame_speed = 10 # frames per second
         self.image = load_image('Assets/Sprites/UI/LOGO_Final animation.png')
+        self.title = load_wav('Assets/Audios/SFX/WallWorld_Title.wav')
+        self.title.set_volume(80)
 
         self.sprite_coord = (
             (0, 0), (340, 0), (680, 0), (1020, 0), (1360, 0), (1700, 0),
@@ -48,6 +53,10 @@ class Logo:
 
     def update(self):
         self.frame += self.frame_speed * game_framework.frame_time
+        if self.frame >= self.frame_len * 0.35:
+            if common.game_first_enter:
+                common.game_first_enter = False
+                self.title.play()
         if self.frame >= self.frame_len:
             self.frame = self.frame_len - 1
 
@@ -56,7 +65,11 @@ class Logo:
         self.image.clip_draw(x, self.image.h - self.h - y, self.w, self.h, self.x, self.y, self.w * WIN_W_RATIO, self.h * WIN_H_RATIO)
 
 class MenuBar:
+    sound_select = None
     def __init__(self):
+        if MenuBar.sound_select is None:
+            MenuBar.sound_select = load_wav('Assets/Audios/UI/UI_Button_Click.wav')
+            MenuBar.sound_select.set_volume(64)
         self.image_unselect = load_image('Assets/Sprites/UI/button_unselect.png')
         self.image_select = load_image('Assets/Sprites/UI/button_select.png')
         self.font = load_font('Assets/Fonts/NeoDunggeunmoPro-Regular.ttf', int(40 * WIN_W_RATIO))
@@ -87,6 +100,8 @@ def init():
     main_image = MainImage()
     logo_image = Logo()
     menu_bar = MenuBar()
+    main_image.bgm.stop()
+    main_image.bgm.play()
 
 def handle_events():
     event_list = get_events()
@@ -100,6 +115,7 @@ def handle_events():
             common.mouse_x, common.mouse_y = event.x, WIN_HEIGHT - event.y
         elif event.type == SDL_MOUSEBUTTONUP:
             if menu_bar.mouse_hovering:
+                MenuBar.sound_select.play()
                 game_framework.change_scene(main_scene)
 
 

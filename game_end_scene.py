@@ -34,7 +34,11 @@ class GameEndWindow:
         self.menu_bar.draw()
 
 class MenuBar:
+    sound = None
     def __init__(self, x, y):
+        if MenuBar.sound is None:
+            MenuBar.sound = load_wav('Assets/Audios/UI/UI_Button_Click.wav')
+            MenuBar.sound.set_volume(64)
         self.image_unselect = load_image('Assets/Sprites/UI/button_unselect.png')
         self.image_select = load_image('Assets/Sprites/UI/button_select.png')
         self.font_size = int(28 * WIN_W_RATIO)
@@ -77,6 +81,7 @@ def handle_events():
             common.mouse_x, common.mouse_y = event.x, WIN_HEIGHT - event.y
         elif event.type == SDL_MOUSEBUTTONUP:
             if end.menu_bar.mouse_hovering:
+                MenuBar.sound.play()
                 game_framework.pop_scene()
                 game_framework.change_scene(title_scene)
 

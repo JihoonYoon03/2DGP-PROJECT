@@ -18,3 +18,4 @@ mouse_x, mouse_y = 0, 0
 ore_list = [] # 생성된 광석 리스트
 
 run_time = 0
+game_first_enter = True
