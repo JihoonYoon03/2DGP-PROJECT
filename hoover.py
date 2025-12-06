@@ -244,7 +244,7 @@ class Hoover:
         self.damage = HOOVER_LASER_DAMAGE_PER_TIME * UPGRADE_LASER_DAMAGE_PERCENT + UPGRADE_LASER_DAMAGE
 
     def draw(self):
-        if self.player.is_docked:
+        if common.player.is_docked or common.spider.stateMachine.cur_state == common.spider.DEATH and not common.player.engage:
             return
         self.stateMachine.draw()
         if common.debug_mode:

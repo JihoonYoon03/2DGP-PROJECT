@@ -240,6 +240,8 @@ class Player:
             self.stateMachine.update()
 
     def draw(self):
+        if common.spider.stateMachine.cur_state == common.spider.DEATH and not self.engage:
+            return
         if common.spider.is_docking:
             self.stateMachine.draw()
 

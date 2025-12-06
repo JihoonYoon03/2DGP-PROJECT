@@ -8,7 +8,7 @@ import math
 import UI_Upgrade_scene
 import game_end_scene
 from state_machine import StateMachine
-from event_set import signal_empty, signal_not_empty, r_pressed, signal_time_out
+from event_set import signal_empty, signal_not_empty, r_pressed, signal_time_out, signal_dead
 from physics_data import *
 from projectile import *
 
@@ -163,6 +163,8 @@ class SpDock:
         event_set.reset_all_flags()
 
     def exit(self, e):
+        if self.sp.stateMachine.next_state == self.sp.DEATH:
+            return True
         if self.sp.frame < 34 or not common.player.is_docked: return False # 도킹 모션이 끝나지 않았을 때는 상태 전환 불가
         return True
 
@@ -231,6 +233,8 @@ class SpUndock:
         event_set.reset_all_flags()
 
     def exit(self, e):
+        if self.sp.stateMachine.next_state == self.sp.DEATH:
+            return True
         common.cam.apply_camera_settings()
         return True
 
@@ -339,10 +343,11 @@ class RoboSpider:
         self.stateMachine = StateMachine(
             self.IDLE,
         {
-            self.IDLE : { signal_not_empty : self.UP, r_pressed : self.DOCK, lambda e: self.health <= 0 : self.DEATH },
-            self.UP : { signal_empty : self.IDLE, r_pressed : self.DOCK, lambda e: self.health <= 0 : self.DEATH },
-            self.DOCK : { r_pressed : self.UNDOCK, lambda e: self.health <= 0 : self.DEATH },
-            self.UNDOCK : { signal_time_out : self.IDLE, lambda e: self.health <= 0 : self.DEATH },
+            self.IDLE : { signal_not_empty : self.UP, r_pressed : self.DOCK, signal_dead : self.DEATH },
+            self.UP : { signal_empty : self.IDLE, r_pressed : self.DOCK, signal_dead : self.DEATH },
+            self.DOCK : { r_pressed : self.UNDOCK, signal_dead : self.DEATH },
+            self.UNDOCK : { signal_time_out : self.IDLE, signal_dead : self.DEATH },
+            self.DEATH : {}
         })
 
     def update(self):
@@ -363,10 +368,10 @@ class RoboSpider:
             self.shield += SPIDER_SHIELD_REGEN_PPS * game_framework.frame_time
 
     def draw(self):
+        if self.stateMachine.cur_state != self.DEATH:
+            self.turret.draw()
         self.stateMachine.draw()
-        if self.stateMachine.cur_state == self.DEATH:
-            return
-        self.turret.draw()
+
         if common.debug_mode:
             view_x, view_y = common.cam.world_to_view(self.x + self.collision_range_offset[0], self.y + self.collision_range_offset[1])
             draw_circle(view_x, view_y, int(self.collision_range * common.cam.zoom), 255, 0, 0)
@@ -423,10 +428,12 @@ class RoboSpider:
                 self.shield -= other.owner.dmg  # 충돌 대상이 enemy의 collider_range 객체이므로 owner로 접근
                 if self.shield < 0:
                     self.shield = 0
-                print('RoboSpider Shield:', self.shield)
             else:
                 self.health -= other.owner.dmg  # 충돌 대상이 enemy의 collider_range 객체이므로 owner로 접근
                 print('RoboSpider HP:', self.health)
+                if self.health < 0:
+                    self.health = 0
+                    self.stateMachine.handle_state_event(('DEAD', None))
 
     # 도킹 시 근처 광산을 찾는 함수
     def find_nearby_mine(self):
@@ -475,6 +482,9 @@ class SpInIdle:
         self.sp_in.docker_y = self.sp_in.sp.y
 
     def draw(self):
+        if common.spider.stateMachine.cur_state == common.spider.DEATH:
+            return
+
         camera = get_camera()
         # 배경 그리기
         view_x, view_y = camera.world_to_view(self.sp_in.sp.x, self.sp_in.sp.y - 16) # 이미지 크기 보정용 -2 추가
