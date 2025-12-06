@@ -5,7 +5,7 @@ import game_framework
 import event_set
 import common
 import math
-import UI_Upgrade_scene
+import upgrade_scene
 import game_end_scene
 from VFX import *
 from state_machine import StateMachine
@@ -403,7 +403,7 @@ class RoboSpider:
         event_tuple = ('INPUT', event)
 
         if event_set.f_pressed(event_tuple) and common.player.is_docked:
-            game_framework.push_scene(UI_Upgrade_scene)
+            game_framework.push_scene(upgrade_scene)
 
         if not self.is_docking and self.stateMachine.cur_state != self.DOCK:
             prev_moving = self.move_dir != 0

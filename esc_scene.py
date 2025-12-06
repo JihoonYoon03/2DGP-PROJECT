@@ -87,6 +87,7 @@ def handle_events():
 
 def update():
     global esc
+    common.background.IDLE.do()
     esc.update()
 
 def draw():

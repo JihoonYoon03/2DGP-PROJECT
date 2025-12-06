@@ -467,6 +467,7 @@ def handle_events():
 def update():
     global frame
     frame.update()
+    common.background.IDLE.do()
     common.UI_SpiderStatus.update()
 
 def draw():

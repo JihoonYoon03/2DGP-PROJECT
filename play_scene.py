@@ -12,7 +12,7 @@ from tile import Ground
 from mine import Mine
 from camera import Camera
 from UI_play_scene import UIResourceData, UISpiderStatus, UIKey
-import UI_Upgrade_scene
+import upgrade_scene
 import esc_scene
 from object_pool import ObjectPool
 from enemy import *
