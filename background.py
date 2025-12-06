@@ -36,7 +36,10 @@ class Idle:
         elif self.bg.y - camera.world_y < self.bg.image.h / -2:
             self.bg.y = self.bg.y + self.bg.image.h
 
-        if not common.wave_manager.waveRunning:
+        if common.wave_manager and common.wave_manager.waveRunning:
+            self.bgm_elapsed = 0.0
+            return
+        elif not common.wave_manager.waveRunning:
             self.bgm_elapsed += game_framework.frame_time
             if self.bgm_elapsed >= 120: # 2분마다 배경음악 변경
                 self.play_new_bgm()
