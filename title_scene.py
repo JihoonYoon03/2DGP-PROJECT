@@ -59,7 +59,7 @@ class MenuBar:
     def __init__(self):
         self.image_unselect = load_image('Assets/Sprites/UI/button_unselect.png')
         self.image_select = load_image('Assets/Sprites/UI/button_select.png')
-        self.font = load_font('Assets/Fonts/Fifaks10Dev1.ttf', int(40 * WIN_W_RATIO))
+        self.font = load_font('Assets/Fonts/NeoDunggeunmoPro-Regular.ttf', int(40 * WIN_W_RATIO))
         self.x = WIN_WIDTH // 2
         self.y = WIN_HEIGHT // 8
         self.w = self.image_unselect.w * 3.5
@@ -83,6 +83,7 @@ class MenuBar:
 
 def init():
     global main_image, logo_image, menu_bar
+    show_cursor()
     main_image = MainImage()
     logo_image = Logo()
     menu_bar = MenuBar()

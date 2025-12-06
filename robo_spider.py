@@ -6,6 +6,7 @@ import event_set
 import common
 import math
 import UI_Upgrade_scene
+import game_end_scene
 from state_machine import StateMachine
 from event_set import signal_empty, signal_not_empty, r_pressed, signal_time_out
 from physics_data import *
@@ -304,6 +305,7 @@ class RoboSpider:
     def update(self):
         if all(mine.resEmpty for mine in self.mine_list):
             print('All mines are depleted. Game End.')
+            game_framework.push_scene(game_end_scene)
 
         self.stateMachine.update()
         self.turret.update()
