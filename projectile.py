@@ -139,4 +139,5 @@ class SpitterShot(Projectile):
         self.vx /= normalizing
         self.vy /= normalizing
         game_world.add_collision_pair_range('spider:SpitterShot', None, self)
+        game_world.add_collision_pair_bb('bullet:ground', self, None)
         self.inactive = False

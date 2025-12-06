@@ -9,7 +9,7 @@ _ = False
 
 data_set = {0: {
     # 타일 이미지: 경로
-    'image': 'Assets/Sprites/Tile/Block01Tileset.png',
+    'image': 'Assets/Sprites/Tile/Block02Tileset.png',
     # 맵 크기: 가로, 세로 타일 개수
     'size': (23, 24),
     # 맵 타입: 타일 배치 및 플래그.
@@ -106,7 +106,7 @@ data_set = {0: {
 
     1: {
         # 타일 이미지: 경로
-        'image': 'Assets/Sprites/Tile/Block01Tileset.png',
+        'image': 'Assets/Sprites/Tile/GraniteMiddleTileset.png',
         # 맵 크기: 가로, 세로 타일 개수
         'size': (20, 21),
         # 맵 타입: 타일 배치 및 플래그.
@@ -194,7 +194,7 @@ data_set = {0: {
 
     2: {
         # 타일 이미지: 경로
-        'image': 'Assets/Sprites/Tile/Block01Tileset.png',
+        'image': 'Assets/Sprites/Tile/MarbleEasyTilesets.png',
         # 맵 크기: 가로, 세로 타일 개수
         'size': (27, 29),
         # 맵 타입: 타일 배치 및 플래그.
