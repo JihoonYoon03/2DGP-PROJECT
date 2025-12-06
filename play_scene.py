@@ -1,6 +1,8 @@
 import random
 
 from pico2d import *
+
+import event_set
 from physics_data import WIN_WIDTH, WIN_HEIGHT
 
 from background import Background
@@ -65,6 +67,11 @@ def handle_events():
         if event.type == SDL_QUIT:
             game_framework.quit()
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
+            event_set.reset_all_flags()
+            common.spider.move_dir = 0
+            common.player.move_x = 0
+            common.player.move_y = 0
+            common.player.stateMachine.handle_state_event(('EMPTY', None))
             game_framework.push_scene(esc_scene)
         elif event.type == SDL_MOUSEMOTION:
             common.mouse_x, common.mouse_y = event.x, WIN_HEIGHT - event.y

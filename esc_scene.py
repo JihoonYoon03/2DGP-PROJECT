@@ -75,18 +75,6 @@ def handle_events():
             game_framework.quit()
         elif event.type == SDL_MOUSEMOTION:
             common.mouse_x, common.mouse_y = event.x, WIN_HEIGHT - event.y
-        elif event.type == SDL_KEYUP and event.key == SDLK_w and event_set.flag_w:
-            event_set.flag_w = False
-            common.spider.move_dir -= 1
-        elif event.type == SDL_KEYUP and event.key == SDLK_s and event_set.flag_s:
-            event_set.flag_s = False
-            common.spider.move_dir += 1
-        elif event.type == SDL_KEYUP and event.key == SDLK_a and event_set.flag_a:
-            event_set.flag_a = False
-            common.player.face_dir += 1
-        elif event.type == SDL_KEYUP and event.key == SDLK_d and event_set.flag_d:
-            event_set.flag_d = False
-            common.player.face_dir += 1
         elif event.type == SDL_MOUSEBUTTONUP:
             if esc.menu_bar[0].mouse_hovering:  # 나가기
                 MenuBar.sound.play()
