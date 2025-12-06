@@ -182,6 +182,7 @@ class SpDock:
                 self.sp.move_dir = 0
                 self.sp.last_move_dir = 0
                 self.sp.frame = 0
+                self.sp.sound_dock.play()
 
             # 아닌 경우 계속 이동하여 위치 조정
             else:
@@ -232,6 +233,7 @@ class SpUndock:
         self.sp.last_move_dir = 0
         self.sp.frame = 0
         event_set.reset_all_flags()
+        self.sp.sound_undock.play()
 
     def exit(self, e):
         if self.sp.stateMachine.next_state == self.sp.DEATH:
@@ -301,16 +303,10 @@ class RoboSpider:
         self.sound_hit = load_wav('Assets/Audios/Enemy/enemy attack 1.wav')
         self.sound_hit.set_volume(32)
 
-        self.sound_idle = load_wav('Assets/Audios/Spider/Spider_Idle.wav')
-        self.sound_idle.set_volume(4)
-        self.sound_move_start = load_wav('Assets/Audios/Spider/Spider_Moving_Start.wav')
-        self.sound_move_start.set_volume(40)
-        self.sound_move = load_wav('Assets/Audios/Spider/Spider_Idle.wav')
-        self.sound_move.set_volume(40)
-        self.sound_move_stomp = load_wav('Assets/Audios/Spider/Spider_Moving_Idle.wav')
-        self.sound_move_stomp.set_volume(40)
-        self.sound_move_stop = load_wav('Assets/Audios/Spider/Spider_Moving_Finish.wav')
-        self.sound_move_stop.set_volume(40)
+        self.sound_dock = load_wav('Assets/Audios/Spider/Spider_Docking.wav')
+        self.sound_dock.set_volume(64)
+        self.sound_undock = load_wav('Assets/Audios/Spider/Spider_Undocking.wav')
+        self.sound_undock.set_volume(64)
 
         self.x = x - 178 // 2
         self.y = y

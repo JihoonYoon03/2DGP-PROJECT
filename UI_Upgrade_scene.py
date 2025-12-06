@@ -1,5 +1,6 @@
 from pico2d import *
 
+import UI_play_scene
 import common
 import event_set
 import game_framework
@@ -47,6 +48,11 @@ class UIFrame:
         self.font_discription = load_font('Assets/Fonts/NeoDunggeunmoPro-Regular.ttf', self.font_size_name)
         self.font = load_font('Assets/Fonts/NeoDunggeunmoPro-Regular.ttf', self.font_size_title)
 
+        self.sound_open = load_wav('Assets/Audios/UI/UI OPEN.wav')
+        self.sound_open.set_volume(64)
+        self.sound_show = load_wav('Assets/Audios/UI/UI SHOW.wav')
+        self.sound_show.set_volume(64)
+
 
         self.frame = 0
         self.frame_dir = 1
@@ -56,6 +62,7 @@ class UIFrame:
         self.h = 620
         self.w_ratio = WIN_WIDTH / self.w
         self.h_ratio = WIN_HEIGHT / self.h
+        self.show = False
 
         frame_width = self.w * 0.8 * self.w_ratio
         frame_left = WIN_WIDTH // 2 - frame_width // 2 * 1.05
@@ -98,8 +105,12 @@ class UIFrame:
         self.frame += self.frame_speed * game_framework.frame_time * self.frame_dir
         if self.frame >= self.frame_len:
             self.frame = self.frame_len
+            if not self.show:
+                self.sound_show.play()
+                self.show = True
         elif self.frame < 0:
             self.frame = 0
+            self.show = False
             game_framework.pop_scene()
 
     def draw(self):
@@ -256,6 +267,9 @@ class UpgradeButton:
     image_selector = None
     font = None
     font_size_cost = int(10 * WIN_W_RATIO * 2.2)
+    sound_select = None
+    sound_bought = None
+    sound_cannot = None
     def __init__(self, x, y, upgrade_name, parent=None):
         if UpgradeButton.image_icon is None:
             UpgradeButton.image_icon = load_image('Assets/Sprites/UI/TalentIcons.png')
@@ -279,6 +293,15 @@ class UpgradeButton:
             )
         if UpgradeButton.image_selector is None:
             UpgradeButton.image_selector = load_image('Assets/Sprites/UI/Window_Talent_TierPlate_Selected.png')
+        if UpgradeButton.sound_select is None:
+            UpgradeButton.sound_select = load_wav('Assets/Audios/UI/UI_Button_Click.wav')
+            UpgradeButton.sound_select.set_volume(64)
+        if UpgradeButton.sound_bought is None:
+            UpgradeButton.sound_bought = load_wav('Assets/Audios/UI/buy 2.wav')
+            UpgradeButton.sound_bought.set_volume(64)
+        if UpgradeButton.sound_cannot is None:
+            UpgradeButton.sound_cannot = load_wav('Assets/Audios/UI/UI_Button_Click_Unavailible.wav')
+            UpgradeButton.sound_cannot.set_volume(64)
 
         self.x = x
         self.y = y
@@ -356,10 +379,12 @@ class UpgradeButton:
                 # 자원 체크
                 for res_type, cost in upgrade_info[self.upgrade_name]['cost'].items():
                     if common.UI_ResourceData.res_amount[res_type] < cost:
+                        UpgradeButton.sound_cannot.play()
                         return
 
                 upgrade_amount, upgrade_type = upgrade_info[self.upgrade_name]['value']
                 if self.upgrade_name == '수리' and common.spider.health == SPIDER_MAX_HP:
+                    UpgradeButton.sound_cannot.play()
                     return
 
                 # 자원 차감
@@ -368,14 +393,18 @@ class UpgradeButton:
 
                 # 업그레이드 적용
                 self.apply_upgrade(upgrade_amount)
+                if self.upgrade_name == '수리':
+                    UpgradeButton.sound_bought.play()
+                    return
                 upgrade_complete[self.upgrade_name] = True
-                print_upgrade_stats()
+                UpgradeButton.sound_bought.play()
 
             else:
                 global name, comment
                 name = self.name
                 comment = self.comment
                 self.selected = True
+                UpgradeButton.sound_select.play()
         else:
             self.selected = False
 
@@ -410,6 +439,7 @@ class MenuBar:
 def init():
     global frame
     frame = UIFrame()
+    frame.sound_open.play()
 
 def handle_events():
     global frame
@@ -426,6 +456,7 @@ def handle_events():
             event_set.flag_s = False
             common.spider.move_dir += 1
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
+            frame.sound_open.play()
             frame.exit()
         elif event.type == SDL_MOUSEBUTTONUP:
             for upgrade in frame.upgrade_menu:
@@ -436,6 +467,7 @@ def handle_events():
 def update():
     global frame
     frame.update()
+    common.UI_SpiderStatus.update()
 
 def draw():
     global frame
