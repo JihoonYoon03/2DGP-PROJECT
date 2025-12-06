@@ -304,7 +304,6 @@ class RoboSpider:
 
     def update(self):
         if all(mine.resEmpty for mine in self.mine_list):
-            print('All mines are depleted. Game End.')
             game_framework.push_scene(game_end_scene)
 
         self.stateMachine.update()

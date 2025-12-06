@@ -4,6 +4,7 @@ import object_pool
 import physics_data
 import common
 import event_set
+import game_framework
 from physics_data import *
 
 world = [[]]
@@ -33,6 +34,7 @@ def update():
     for layer in world:
         for obj in layer:
             obj.update()
+    common.run_time += game_framework.frame_time
 
 def render():
     for layer in world:

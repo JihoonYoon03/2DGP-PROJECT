@@ -14,3 +14,5 @@ debug_mode = False
 
 cursor_image = None
 mouse_x, mouse_y = 0, 0
+
+run_time = 0

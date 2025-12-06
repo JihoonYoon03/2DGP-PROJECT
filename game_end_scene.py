@@ -9,27 +9,37 @@ import play_scene
 class GameEndWindow:
     def __init__(self):
         self.image = load_image('Assets/Sprites/UI/Message_Background.png')
+        self.font_size = int(40 * WIN_W_RATIO)
+        self.font_time_size = int(28 * WIN_W_RATIO)
+        self.font = load_font('Assets/Fonts/NeoDunggeunmoPro-Regular.ttf', self.font_size)
+        self.font_time = load_font('Assets/Fonts/NeoDunggeunmoPro-Regular.ttf', self.font_time_size)
         self.x = WIN_WIDTH / 2
         self.y = WIN_HEIGHT / 2
+        self.w = self.image.w * WIN_W_RATIO * 16.0 / 4
+        self.h = self.image.h * WIN_H_RATIO * 9.0 / 4
         self.menu_bar = MenuBar(self.x, self.y - self.image.h * 3 / 4 * WIN_H_RATIO)
 
     def update(self):
         self.menu_bar.update()
 
     def draw(self):
-        self.image.draw(self.x, self.y, self.image.w * WIN_W_RATIO * 1.5, self.image.h * WIN_H_RATIO * 1.5)
+        str_title = '모든 광물 채굴 완료!'
+        str_time = f'걸린 시간 : {common.run_time:.2f}초'
+        self.image.draw(self.x, self.y, self.w, self.h)
+        self.font.draw(self.x - len(str_title) * self.font_size * 0.4, self.y + self.image.h * 0.4, str_title, (240, 220, 0))
+        self.font_time.draw(self.x - len(str_time) * self.font_time_size * 0.46, self.y, str_time, (255, 255, 255))
         self.menu_bar.draw()
 
 class MenuBar:
     def __init__(self, x, y):
         self.image_unselect = load_image('Assets/Sprites/UI/button_unselect.png')
         self.image_select = load_image('Assets/Sprites/UI/button_select.png')
-        self.font_size = int(40 * WIN_W_RATIO)
+        self.font_size = int(28 * WIN_W_RATIO)
         self.font = load_font('Assets/Fonts/NeoDunggeunmoPro-Regular.ttf', self.font_size)
         self.x = x
         self.y = y
         self.w = self.image_unselect.w * 3.5
-        self.h = self.image_unselect.h * 3.5
+        self.h = self.image_unselect.h * 2.6
         self.mouse_hovering = False
 
     def update(self):
@@ -42,10 +52,10 @@ class MenuBar:
     def draw(self):
         if self.mouse_hovering:
             self.image_select.draw(self.x, self.y, self.w * WIN_W_RATIO, self.h * WIN_H_RATIO)
-            self.font.draw(self.x - len('메인 화면으로') * self.font_size / 2, self.y, '메인 화면으로', (0, 0, 0))
+            self.font.draw(self.x - len('메인 화면으로') * self.font_size * 0.46, self.y, '메인 화면으로', (0, 0, 0))
         else:
             self.image_unselect.draw(self.x, self.y, self.w * WIN_W_RATIO, self.h * WIN_H_RATIO)
-            self.font.draw(self.x - len('메인 화면으로') * self.font_size / 2, self.y, '메인 화면으로', (255, 255, 255))
+            self.font.draw(self.x - len('메인 화면으로') * self.font_size * 0.46, self.y, '메인 화면으로', (255, 255, 255))
 
 def init():
     global end
