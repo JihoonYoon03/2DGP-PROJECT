@@ -172,10 +172,14 @@ class Move:
 
         if self.player.x > common.spider.x + 100:
             common.cam.apply_camera_settings()
-            self.player.engage = True
+            if not self.player.engage:
+                self.player.engage = True
+                self.player.sound_engage.play()
         else:
             common.cam.apply_camera_settings()
-            self.player.engage = False
+            if self.player.engage:
+                self.player.engage = False
+                self.player.sound_engage.play()
 
     def draw(self):
         camera = get_camera()
@@ -208,7 +212,9 @@ class Player:
         self.image_move_down = load_image('Assets/Sprites/Player/Hero_Down_Moving.png')
 
         self.sound_dock = load_wav('Assets/Audios/Spider/Spider_Player_Attached.wav')
-        self.sound_dock.set_volume(64)
+        self.sound_dock.set_volume(80)
+        self.sound_engage = load_wav('Assets/Audios/Spider/SpiderEnergyGate.wav')
+        self.sound_engage.set_volume(80)
 
         self.is_docked = True  # 스파이더에 도킹 여부
         self.turret_control = True # 터렛 제어권 여부

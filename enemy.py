@@ -374,9 +374,9 @@ class WaveManager:
         self.bgm = load_music('Assets/Audios/BGM/Battle_Theme.wav')
         self.bgm.set_volume(90)
         self.alert = load_wav('Assets/Audios/SFX/Night_Start.wav')
-        self.alert.set_volume(80)
+        self.alert.set_volume(64)
         self.clear = load_wav('Assets/Audios/SFX/Night_End.wav')
-        self.clear.set_volume(80)
+        self.clear.set_volume(64)
         self.bgm_len = 64
         self.bgm_elapsed = 0.0
         self.current_wave = 0

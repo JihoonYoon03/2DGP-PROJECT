@@ -7,6 +7,7 @@ import common
 import math
 import UI_Upgrade_scene
 import game_end_scene
+from VFX import *
 from state_machine import StateMachine
 from event_set import signal_empty, signal_not_empty, r_pressed, signal_time_out, signal_dead
 from physics_data import *
@@ -304,9 +305,12 @@ class RoboSpider:
         self.sound_hit.set_volume(32)
 
         self.sound_dock = load_wav('Assets/Audios/Spider/Spider_Docking.wav')
-        self.sound_dock.set_volume(64)
+        self.sound_dock.set_volume(56)
         self.sound_undock = load_wav('Assets/Audios/Spider/Spider_Undocking.wav')
-        self.sound_undock.set_volume(64)
+        self.sound_undock.set_volume(56)
+
+        self.sound_rh = load_wav('Assets/Audios/Spider/harvest 1.wav')
+        self.sound_rh.set_volume(50)
 
         self.x = x - 178 // 2
         self.y = y
@@ -465,6 +469,7 @@ class RoboSpider:
     def gather_resources(self, amount):
         common.UI_ResourceData.add_resources(amount)
         self.inner.rh_frame = 1 # 자원 수집기 작동 애니메이션 재생
+        self.sound_rh.play()
 
 class SpInIdle:
     frames_per_action = None
