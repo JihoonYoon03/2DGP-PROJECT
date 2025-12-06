@@ -256,16 +256,21 @@ class SpExplode:
     frames_per_action = None
     action_per_time = None
 
+    sound_explode = None
     def __init__(self, sp):
         if SpExplode.frames_per_action is None:
             SpExplode.frames_per_action = len(SPIDER_EXPLODE_FRAMES)
         if SpExplode.action_per_time is None:
-            SpExplode.action_per_time = get_spider_action_per_time(SpExplode.frames_per_action)
+            SpExplode.action_per_time = get_spider_action_per_time(SpExplode.frames_per_action) * 0.6
+        if SpExplode.sound_explode is None:
+            SpExplode.sound_explode = load_wav('Assets/Audios/Spider/Spider_Death.wav')
+            SpExplode.sound_explode.set_volume(64)
         self.sp = sp
         self.w = SPIDER_EXPLODE_FRAMES[9][0]
         self.h = SPIDER_EXPLODE_FRAMES[9][1]
 
     def enter(self, e):
+        SpExplode.sound_explode.play()
         self.sp.frame = 0
 
     def exit(self, e):
@@ -291,6 +296,9 @@ class RoboSpider:
         self.image_dock = load_image('Assets/Sprites/Spider/Spider_Docking.png')
         self.image_undock = load_image('Assets/Sprites/Spider/Spider_Undocking.png')
         self.image_explode = load_image('Assets/Sprites/Spider/Spider_Death.png')
+
+        self.sound_hit = load_wav('Assets/Audios/Enemy/enemy attack 1.wav')
+        self.sound_hit.set_volume(32)
 
         self.sound_idle = load_wav('Assets/Audios/Spider/Spider_Idle.wav')
         self.sound_idle.set_volume(4)
@@ -435,6 +443,7 @@ class RoboSpider:
 
     def handle_collision(self, group, other):
         if group == 'spider:enemy_melee' or group == 'spider:SpitterShot':
+            self.sound_hit.play()
             if self.shield > 0:
                 self.shield -= other.owner.dmg  # 충돌 대상이 enemy의 collider_range 객체이므로 owner로 접근
                 if self.shield < 0:

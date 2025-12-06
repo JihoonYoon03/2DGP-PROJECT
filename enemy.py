@@ -12,7 +12,15 @@ from projectile import *
 from abc import abstractmethod, ABCMeta
 
 class EnemyBase(metaclass=ABCMeta):
+    sound_hit = None
+    sound_death = None
     def __init__(self, x, y, spider, name, frame_data, w, h, frame, frame_count, frame_per_time, draw_angle, flip, state, speed, hp, dmg, range):
+        if EnemyBase.sound_hit is None:
+            EnemyBase.sound_hit = load_wav('Assets/Audios/Enemy/enemy damage 1.wav')
+            EnemyBase.sound_hit.set_volume(64)
+        if EnemyBase.sound_death is None:
+            EnemyBase.sound_death = load_wav('Assets/Audios/Enemy/enemy death 1.wav')
+            EnemyBase.sound_death.set_volume(64)
         self.x = x
         self.y = y
         self.spider = spider.collider_spider
@@ -98,6 +106,7 @@ class EnemyBase(metaclass=ABCMeta):
 
     # 총알에서 호출
     def getDamage(self, dmg):
+        EnemyBase.sound_hit.play()
         self.hp -= dmg
         if self.hp <= 0:
             self.hp = 0
@@ -105,6 +114,7 @@ class EnemyBase(metaclass=ABCMeta):
             game_world.remove_collision_object(self)
             self.frame = 0
             self.state = 'Death'
+            EnemyBase.sound_death.play()
 
     def handle_collision(self, group, other):
         if group == 'spider:enemy_melee':
@@ -363,6 +373,10 @@ class WaveManager:
     def __init__(self):
         self.bgm = load_music('Assets/Audios/BGM/Battle_Theme.wav')
         self.bgm.set_volume(90)
+        self.alert = load_wav('Assets/Audios/SFX/Night_Start.wav')
+        self.alert.set_volume(80)
+        self.clear = load_wav('Assets/Audios/SFX/Night_End.wav')
+        self.clear.set_volume(80)
         self.bgm_len = 64
         self.bgm_elapsed = 0.0
         self.current_wave = 0
@@ -385,6 +399,7 @@ class WaveManager:
         if self.current_wave < len(self.waves):
             self.waveRunning = True
             self.bgm.play()
+            self.alert.play(2)
             common.cam.apply_camera_settings()
 
     def update(self):
@@ -421,6 +436,7 @@ class WaveManager:
                 self.cur_enemies = []
                 common.cam.apply_camera_settings()
                 common.background.IDLE.play_current_bgm()
+                self.clear.play()
         else:
             self.wave_timer += game_framework.frame_time
             if self.wave_timer > WAVE_MAX_TIME:
