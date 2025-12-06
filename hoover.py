@@ -11,6 +11,7 @@ import common
 import math
 import game_framework
 import game_world
+import physics_data as pd
 
 RAY_W_H = 28
 
@@ -218,7 +219,7 @@ class Hoover:
 
         # 화면 표시용 레이저 사거리
         self.radius_display = self.radius_max
-        self.damage = HOOVER_LASER_DAMAGE_PER_TIME * UPGRADE_LASER_DAMAGE_PERCENT + UPGRADE_LASER_DAMAGE
+        self.damage = HOOVER_LASER_DAMAGE_PER_TIME * pd.UPGRADE_LASER_DAMAGE_PERCENT + pd.UPGRADE_LASER_DAMAGE
         self.penetration = 0
         self.Vacuuming = False
         self.shooting = False
@@ -241,7 +242,7 @@ class Hoover:
 
     def update(self):
         self.stateMachine.update()
-        self.damage = HOOVER_LASER_DAMAGE_PER_TIME * UPGRADE_LASER_DAMAGE_PERCENT + UPGRADE_LASER_DAMAGE
+        self.damage = HOOVER_LASER_DAMAGE_PER_TIME * pd.UPGRADE_LASER_DAMAGE_PERCENT + pd.UPGRADE_LASER_DAMAGE
 
     def draw(self):
         if common.player.is_docked or common.spider.stateMachine.cur_state == common.spider.DEATH and not common.player.engage:

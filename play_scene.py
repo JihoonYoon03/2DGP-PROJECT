@@ -16,6 +16,7 @@ from enemy import *
 import common
 import game_world
 import game_framework
+import physics_data
 
 def init():
     clear()
@@ -112,4 +113,5 @@ def clear():
 
     common.run_time = 0
     common.debug_mode = False
+    physics_data.clear()
     game_world.clear()

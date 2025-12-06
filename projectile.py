@@ -6,6 +6,7 @@ import game_framework
 import game_world
 import math
 import random
+import physics_data as pd
 
 
 class Projectile(metaclass=ABCMeta):
@@ -40,7 +41,6 @@ class Projectile(metaclass=ABCMeta):
         # 일정 범위 밖으로 나가면 비활성화
         if abs(self.x) > PIXEL_PER_METER * 200 + self.w or abs(self.y) > PIXEL_PER_METER * 200 + self.h:
             self.inactive = True
-            print('Projectile deactivated due to out of bounds.')
 
     def draw(self):
         if self.inactive:
@@ -66,7 +66,7 @@ class Projectile(metaclass=ABCMeta):
 
 class MachineGunProjectile(Projectile):
     def __init__(self, x, y, rad, dmg):
-        r = rad + random.uniform(-MACHINE_GUN_SPREAD_RAD * UPGRADE_GUN_SPREAD, MACHINE_GUN_SPREAD_RAD * UPGRADE_GUN_SPREAD)
+        r = rad + random.uniform(-MACHINE_GUN_SPREAD_RAD * pd.UPGRADE_GUN_SPREAD, MACHINE_GUN_SPREAD_RAD * pd.UPGRADE_GUN_SPREAD)
         vx = math.cos(r)
         vy = math.sin(r)
 
@@ -93,7 +93,7 @@ class MachineGunProjectile(Projectile):
     def reactivate(self, x, y, rad, dmg):
         self.x = x
         self.y = y
-        self.rad = rad + random.uniform(-MACHINE_GUN_SPREAD_RAD * UPGRADE_GUN_SPREAD, MACHINE_GUN_SPREAD_RAD * UPGRADE_GUN_SPREAD)
+        self.rad = rad + random.uniform(-MACHINE_GUN_SPREAD_RAD * pd.UPGRADE_GUN_SPREAD, MACHINE_GUN_SPREAD_RAD * pd.UPGRADE_GUN_SPREAD)
         self.dmg = dmg
         self.vx = math.cos(self.rad)
         self.vy = math.sin(self.rad)

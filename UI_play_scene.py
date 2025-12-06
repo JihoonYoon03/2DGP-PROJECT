@@ -67,15 +67,15 @@ class UIResourceData:
         self.dy = self.h * 0.9 // 9 + 6
 
         self.res_amount = {
-            0 : 0,
-            1 : 0,
-            2 : 0,
-            3 : 0,
-            4 : 0,
-            5 : 0,
-            6 : 0,
-            7 : 0,
-            8 : 0
+            0 : 90,
+            1 : 90,
+            2 : 90,
+            3 : 90,
+            4 : 90,
+            5 : 90,
+            6 : 90,
+            7 : 90,
+            8 : 90
         }
 
         self.IDLE = ResData(self)

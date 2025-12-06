@@ -9,6 +9,7 @@ import math
 import game_framework
 import game_world
 import common
+import physics_data as pd
 
 PLAYER_WIDTH = 40
 PLAYER_HEIGHT = 40
@@ -160,8 +161,8 @@ class Move:
         return True
 
     def do(self):
-        self.player.delta_x = self.player.move_x * PLAYER_RUN_SPEED_PPS * UPGRADE_MINE_RUN_SPEED * game_framework.frame_time
-        self.player.delta_y = self.player.move_y * PLAYER_RUN_SPEED_PPS * UPGRADE_MINE_RUN_SPEED * game_framework.frame_time
+        self.player.delta_x = self.player.move_x * PLAYER_RUN_SPEED_PPS * pd.UPGRADE_MINE_RUN_SPEED * game_framework.frame_time
+        self.player.delta_y = self.player.move_y * PLAYER_RUN_SPEED_PPS * pd.UPGRADE_MINE_RUN_SPEED * game_framework.frame_time
         self.player.x += self.player.delta_x
         self.player.y += self.player.delta_y
 
