@@ -54,6 +54,14 @@ SPIDER_INNER_DOCKER_FRAMES = (
     (0, 40), (40, 40), (80, 40)
 )
 
+SPIDER_EXPLODE_FRAMES = (
+    (0, 0), (1000, 0), (2000, 0), (3000, 0), (4000, 0), (5000, 0), (6000, 0), (7000, 0),
+    (0, 740), (1000, 740), (2000, 740), (3000, 740), (4000, 740), (5000, 740), (6000, 740), (7000, 740),
+    (0, 1480), (1000, 1480), (2000, 1480), (3000, 1480), (4000, 1480), (5000, 1480), (6000, 1480), (7000, 1480),
+    (0, 2220), (1000, 2220), (2000, 2220), (3000, 2220), (4000, 2220), (5000, 2220), (6000, 2220), (7000, 2220),
+    (0, 2960), (1000, 2960), (2000, 2960), (3000, 2960), (4000, 2960), (5000, 2960)
+)
+
 class SpIdle:
     frames_per_action = None
     action_per_time = None
@@ -240,11 +248,45 @@ class SpUndock:
         self.sp.image_undock.clip_draw(x, self.sp.image_undock.h - SPIDER_HEIGHT_SMALL - y,
                                        SPIDER_WIDTH_SMALL, SPIDER_HEIGHT_SMALL, view_x, view_y, draw_w, draw_h)
 
+class SpExplode:
+    frames_per_action = None
+    action_per_time = None
+
+    def __init__(self, sp):
+        if SpExplode.frames_per_action is None:
+            SpExplode.frames_per_action = len(SPIDER_EXPLODE_FRAMES)
+        if SpExplode.action_per_time is None:
+            SpExplode.action_per_time = get_spider_action_per_time(SpExplode.frames_per_action)
+        self.sp = sp
+        self.w = SPIDER_EXPLODE_FRAMES[9][0]
+        self.h = SPIDER_EXPLODE_FRAMES[9][1]
+
+    def enter(self, e):
+        self.sp.frame = 0
+
+    def exit(self, e):
+        return True
+
+    def do(self):
+        self.sp.frame += SpExplode.frames_per_action * SpExplode.action_per_time * game_framework.frame_time
+        if self.sp.frame >= len(SPIDER_EXPLODE_FRAMES):
+            self.sp.frame = len(SPIDER_EXPLODE_FRAMES) - 1
+            game_framework.push_scene(game_end_scene)
+
+    def draw(self):
+        camera = get_camera()
+        x, y = SPIDER_EXPLODE_FRAMES[int(self.sp.frame)]
+        view_x, view_y = camera.world_to_view(self.sp.x - 194, self.sp.y - 14 - 112) # 14는 이미지 크기 보정용
+        draw_w, draw_h = camera.get_draw_size(self.w, self.h)
+        self.sp.image_explode.clip_draw(x, self.sp.image_explode.h - self.h - y,
+                                     self.w, self.h, view_x, view_y, draw_w, draw_h)
+
 class RoboSpider:
     def __init__(self, x = 1920 / 2, y = 1080 / 2):
         self.image_move = load_image('Assets/Sprites/Spider/Spider_Moving.png')
         self.image_dock = load_image('Assets/Sprites/Spider/Spider_Docking.png')
         self.image_undock = load_image('Assets/Sprites/Spider/Spider_Undocking.png')
+        self.image_explode = load_image('Assets/Sprites/Spider/Spider_Death.png')
 
         self.x = x - 178 // 2
         self.y = y
@@ -293,13 +335,14 @@ class RoboSpider:
         self.UP = SpMove(self)
         self.DOCK = SpDock(self)
         self.UNDOCK = SpUndock(self)
+        self.DEATH = SpExplode(self)
         self.stateMachine = StateMachine(
             self.IDLE,
         {
-            self.IDLE : { signal_not_empty : self.UP, r_pressed : self.DOCK },
-            self.UP : { signal_empty : self.IDLE, r_pressed : self.DOCK },
-            self.DOCK : { r_pressed : self.UNDOCK },
-            self.UNDOCK : { signal_time_out : self.IDLE },
+            self.IDLE : { signal_not_empty : self.UP, r_pressed : self.DOCK, lambda e: self.health <= 0 : self.DEATH },
+            self.UP : { signal_empty : self.IDLE, r_pressed : self.DOCK, lambda e: self.health <= 0 : self.DEATH },
+            self.DOCK : { r_pressed : self.UNDOCK, lambda e: self.health <= 0 : self.DEATH },
+            self.UNDOCK : { signal_time_out : self.IDLE, lambda e: self.health <= 0 : self.DEATH },
         })
 
     def update(self):
@@ -307,6 +350,8 @@ class RoboSpider:
             game_framework.push_scene(game_end_scene)
 
         self.stateMachine.update()
+        if self.stateMachine.cur_state == self.DEATH:
+            return
         self.turret.update()
         self.collider_spider.update()
         self.collider_entrance_up.update()
@@ -318,13 +363,18 @@ class RoboSpider:
             self.shield += SPIDER_SHIELD_REGEN_PPS * game_framework.frame_time
 
     def draw(self):
-        self.turret.draw()
         self.stateMachine.draw()
+        if self.stateMachine.cur_state == self.DEATH:
+            return
+        self.turret.draw()
         if common.debug_mode:
             view_x, view_y = common.cam.world_to_view(self.x + self.collision_range_offset[0], self.y + self.collision_range_offset[1])
             draw_circle(view_x, view_y, int(self.collision_range * common.cam.zoom), 255, 0, 0)
 
     def handle_event(self, event):
+        if self.stateMachine.cur_state == self.DEATH:
+            return
+
         event_tuple = ('INPUT', event)
 
         if event_set.f_pressed(event_tuple) and common.player.is_docked:

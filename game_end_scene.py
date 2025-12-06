@@ -23,11 +23,14 @@ class GameEndWindow:
         self.menu_bar.update()
 
     def draw(self):
-        str_title = '모든 광물 채굴 완료!'
-        str_time = f'걸린 시간 : {common.run_time:.2f}초'
+        if common.spider.health <= 0:
+            str_title = '게임 오버'
+        else:
+            str_title = '모든 광물 채굴 완료!'
+        str_time = f'플레이 시간 : {common.run_time:.2f}초'
         self.image.draw(self.x, self.y, self.w, self.h)
         self.font.draw(self.x - len(str_title) * self.font_size * 0.4, self.y + self.image.h * 0.4, str_title, (240, 220, 0))
-        self.font_time.draw(self.x - len(str_time) * self.font_time_size * 0.46, self.y, str_time, (255, 255, 255))
+        self.font_time.draw(self.x - len(str_time) * self.font_time_size * 0.34, self.y, str_time, (255, 255, 255))
         self.menu_bar.draw()
 
 class MenuBar:

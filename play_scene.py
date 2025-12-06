@@ -30,7 +30,7 @@ def init():
     game_world.add_objects(mines, 5)
 
     ground = Ground()
-    game_world.add_object(ground, 1)
+    game_world.add_object(ground, 2)
 
     ground.add_mines(mines)
 
@@ -111,4 +111,5 @@ def clear():
     common.ore_list = []
 
     common.run_time = 0
+    common.debug_mode = False
     game_world.clear()
