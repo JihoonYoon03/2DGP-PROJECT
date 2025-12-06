@@ -38,13 +38,13 @@ class Idle:
 
         if not common.wave_manager.waveRunning:
             self.bgm_elapsed += game_framework.frame_time
-            if self.bgm_elapsed >= 120:
-                self.bgm_elapsed = 0
-                self.bgm_cur = random.randint(0, 8)
-                Idle.bgm[self.bgm_cur].play()
+            if self.bgm_elapsed >= 120: # 2분마다 배경음악 변경
+                self.play_new_bgm()
 
-    def play_current_bgm(self):
+    def play_new_bgm(self):
         if self.bgm_cur != -1:
+            self.bgm_elapsed = 0
+            self.bgm_cur = random.randint(0, 8)
             Idle.bgm[self.bgm_cur].play()
 
     def draw(self):

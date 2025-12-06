@@ -194,7 +194,7 @@ def tile_index_from_flags(flags: int) -> int:
 class Ground:
     image = None
 
-    def __init__(self, x = 1920 / 2, y = 1080 / 2):
+    def __init__(self, x = 1920 / 2, y = 0):
         self.x = x + 20
         self.y = y
         if Ground.image is None:

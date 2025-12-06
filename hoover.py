@@ -292,7 +292,7 @@ class Hoover:
             # 충돌 지점에 스파크 효과 추가
             spark_x = self.player.x + self.radius_display * math.cos(self.angle)
             spark_y = self.player.y + self.radius_display * math.sin(self.angle)
-            common.obj_pool.get_object(VFXHooverLaserHit, spark_x, spark_y, self, 4, **{'unique_key': self})
+            common.obj_pool.get_object(VFXHooverLaserHit, spark_x, spark_y, self, 3, **{'unique_key': self})
 
         elif group == 'ore:hoover_vacuum':
             ore = other[0]

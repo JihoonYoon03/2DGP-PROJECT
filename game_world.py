@@ -40,13 +40,12 @@ def render():
     for layer in world:
         for obj in layer:
             obj.draw()
-    # common.obj_pool.print_pool_status()
 
 def handle_event(event):
     # 디버그 모드 토글
-    if event_set.slash_pressed(('INPUT', event)):
-        common.debug_mode = not common.debug_mode
-        print(f"Debug mode: {'ON' if common.debug_mode else 'OFF'}")
+    # if event_set.slash_pressed(('INPUT', event)):
+    #     common.debug_mode = not common.debug_mode
+    #     print(f"Debug mode: {'ON' if common.debug_mode else 'OFF'}")
 
     if common.cam:
         common.cam.handle_event(event)

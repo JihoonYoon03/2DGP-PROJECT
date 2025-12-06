@@ -386,18 +386,21 @@ class WaveManager:
             {InfantryTier0: 6, SpitterTier0: 3},
             {InfantryTier0: 10, SpitterTier0: 8},
             {InfantryTier0: 12, SpitterTier0: 20},
+            {InfantryTier0: 16, SpitterTier0: 20},
         )
         self.waves = [
             # 실제 웨이브의 적 유닛별 남은 수
             { InfantryTier0 : 6, SpitterTier0 : 3 },
             { InfantryTier0 : 10, SpitterTier0 : 8 },
             {InfantryTier0: 12, SpitterTier0: 20},
+            {InfantryTier0: 16, SpitterTier0: 20},
         ]
         self.spawn_interval = (
             # 웨이브의 적 유닛별 스폰 간격 (초)
             { InfantryTier0 : 1.5, SpitterTier0 : 2.0 },
             { InfantryTier0 : 1.2, SpitterTier0 : 1.8 },
-            {InfantryTier0: 1.2, SpitterTier0: 1.4}
+            {InfantryTier0: 1.2, SpitterTier0: 1.4},
+            {InfantryTier0: 1.0, SpitterTier0: 1.0}
         )
         self.last_spawn_time = {InfantryTier0: 0.0, SpitterTier0: 0.0}
         self.cur_enemies = []
@@ -442,10 +445,11 @@ class WaveManager:
                 self.waves[self.current_wave] = self.waves_raw[self.current_wave].copy()
                 self.current_wave += 1
                 self.wave_timer = 0.0
+                self.bgm_elapsed = 0.0
                 self.last_spawn_time = {InfantryTier0: 0.0, SpitterTier0: 0.0}
                 self.cur_enemies = []
                 common.cam.apply_camera_settings()
-                common.background.IDLE.play_current_bgm()
+                common.background.IDLE.play_new_bgm()
                 self.clear.play()
         else:
             self.wave_timer += game_framework.frame_time

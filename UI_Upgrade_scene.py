@@ -519,8 +519,8 @@ upgrade_info = {
     # "플라즈마 안정성 (1)": {'coord': (160,160),'cost': {0: 4},                 'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
     # "플라즈마 안정성 (2)": {'coord': (192,160),'cost': {0: 4, 1: 8},           'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
 
-    "플라즈마 커터 (1)": {'coord': (224,160),'cost': {0: 6},       'value': (5, 'UPGRADE_LASER_DAMAGE'), 'comment' : '시추 효율 +5'},
-    "플라즈마 커터 (2)": {'coord': (256,160),'cost': {0: 16, 1: 4},'value': (0.15, 'UPGRADE_LASER_DAMAGE_PERCENT'), 'comment' : '시추 효율 +15%'},
+    "플라즈마 커터 (1)": {'coord': (224,160),'cost': {0: 6},       'value': (25, 'UPGRADE_LASER_DAMAGE'), 'comment' : '시추 효율 +25'},
+    "플라즈마 커터 (2)": {'coord': (256,160),'cost': {0: 16, 1: 4},'value': (0.15, 'UPGRADE_LASER_DAMAGE_PERCENT'), 'comment' : '시추 효율 +25%'},
     "플라즈마 커터 (3)": {'coord': (288,160),'cost': {0: 25, 2: 4},'value': (25, 'UPGRADE_LASER_DAMAGE'), 'comment' : '시추 효율 +25'},
     # "플라즈마 커터 (4)": {'coord': (320,160),'cost': {0: 4, 1: 8, 2: 12, 3: 16}, 'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',
     # "플라즈마 커터 (5)": {'coord': (352,160),'cost': {0: 4, 1: 8, 2: 12, 3: 16, 4: 20}, 'value': (0.3, UPGRADE_TURRET_ROTATE_SPEED)}, 'comment' : '총기 회전 속도 +30%',

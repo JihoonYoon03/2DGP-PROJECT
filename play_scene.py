@@ -9,8 +9,9 @@ from player import Player
 from tile import Ground
 from mine import Mine
 from camera import Camera
-from UI_play_scene import UIResourceData, UISpiderStatus
+from UI_play_scene import UIResourceData, UISpiderStatus, UIKey
 import UI_Upgrade_scene
+import esc_scene
 from object_pool import ObjectPool
 from enemy import *
 import common
@@ -27,12 +28,12 @@ def init():
 
     common.cam = Camera(WIN_WIDTH, WIN_HEIGHT)
 
-    mines = [Mine(1, 1920 / 2, TILE_SIZE_PIXEL * 20 * (i // 2) * 2 * (-1) ** i + random.randint(0, int(TILE_SIZE_PIXEL * 6))) for i in range(1, 4)]
-    game_world.add_objects(mines, 5)
-
     ground = Ground()
     game_world.add_object(ground, 1)
 
+
+    mines = [Mine(4, 1920 / 2, TILE_SIZE_PIXEL * 20 * (i // 2) * 2 * (-1) ** i + random.randint(0, int(TILE_SIZE_PIXEL * i * 2))) for i in range(1, 4)]
+    game_world.add_objects(mines, 1)
     ground.add_mines(mines)
 
     common.spider = RoboSpider()
@@ -40,11 +41,6 @@ def init():
 
     common.player = Player()
     game_world.add_object(common.player, 2)
-
-    # enemy_test0 = InfantryTier0(common.spider.x + 72, common.spider.y - 400, common.spider)
-    # enemy_test1 = SpitterTier0(common.spider.x - 600, common.spider.y - 100, common.spider)
-    # game_world.add_object(enemy_test0, 2)
-    # game_world.add_object(enemy_test1, 2)
 
     common.spider.mine_list = ground.get_mine_list()
     common.cam.apply_camera_settings()  # 기본 상태(스파이더 추적) 적용
@@ -57,6 +53,9 @@ def init():
     common.UI_SpiderStatus = UISpiderStatus()
     game_world.add_object(common.UI_SpiderStatus, 10)
 
+    common.UI_Key = UIKey()
+    game_world.add_object(common.UI_Key, 10)
+
     common.obj_pool = ObjectPool()
 
 
@@ -66,7 +65,7 @@ def handle_events():
         if event.type == SDL_QUIT:
             game_framework.quit()
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
-            game_framework.quit()
+            game_framework.push_scene(esc_scene)
         elif event.type == SDL_MOUSEMOTION:
             common.mouse_x, common.mouse_y = event.x, WIN_HEIGHT - event.y
 
@@ -101,7 +100,6 @@ def clear():
     common.spider = None
     common.player = None
 
-    common.UI_ResourceData = None
     common.UI_SpiderStatus = None
 
     common.obj_pool = None

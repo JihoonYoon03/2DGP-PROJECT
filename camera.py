@@ -64,12 +64,13 @@ class Camera:
         return False
 
     def handle_event(self, event):
-        if event_set.equals_pressed(('INPUT', event)):
-            self.zoom += 0.05
-        elif event_set.minus_pressed(('INPUT', event)):
-            self.zoom -= 0.05
-            if self.zoom < 0.2:
-                self.zoom = 0.2
+        # if event_set.equals_pressed(('INPUT', event)):
+        #     self.zoom += 0.05
+        # elif event_set.minus_pressed(('INPUT', event)):
+        #     self.zoom -= 0.05
+        #     if self.zoom < 0.2:
+        #         self.zoom = 0.2
+        pass
 
     def apply_camera_settings(self):
         # 우선순위 1: 플레이어가 광산에 들어갔을 때

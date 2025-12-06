@@ -45,12 +45,12 @@ class Mine:
         for tile in self.tile_set.tiles:
             if tile.is_bedrock:
                 bedrock_tiles += 1
-        print('Total tiles: ', total_tiles)
-        print('Bedrock tiles: ', bedrock_tiles)
+        # print('Total tiles: ', total_tiles)
+        # print('Bedrock tiles: ', bedrock_tiles)
 
         for type, mineral in mine_data['minerals'].items():
             amount = int((total_tiles - bedrock_tiles) * mineral / 100)
-            print(f'Mineral {type}: {amount} tiles')
+            # print(f'Mineral {type}: {amount} tiles')
             for i in range(0, amount):
                 while True:
                     tile_index = random.randint(0, total_tiles - 1)
@@ -101,9 +101,10 @@ class Mine:
         pass
 
     def reveal(self):
-        self.revealed = True
-        self.tile_set.tiles_location[(self.entrance_tile_y, self.entrance_tile_x)].update_flags(F_L)
-        self.tile_set.tiles_location[(self.entrance_tile_y + 1, self.entrance_tile_x)].update_flags(C_LU)
-        self.tile_set.tiles_location[(self.entrance_tile_y - 1, self.entrance_tile_x)].update_flags(C_LD)
-        self.entrance_tile_top.update_flags(F_L | F_D)
-        self.entrance_tile_bottom.update_flags(F_L | F_U)
+        if not self.revealed:
+            self.revealed = True
+            self.tile_set.tiles_location[(self.entrance_tile_y, self.entrance_tile_x)].update_flags(F_L)
+            self.tile_set.tiles_location[(self.entrance_tile_y + 1, self.entrance_tile_x)].update_flags(C_LU)
+            self.tile_set.tiles_location[(self.entrance_tile_y - 1, self.entrance_tile_x)].update_flags(C_LD)
+            self.entrance_tile_top.update_flags(F_L | F_D)
+            self.entrance_tile_bottom.update_flags(F_L | F_U)

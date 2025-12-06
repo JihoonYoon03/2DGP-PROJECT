@@ -7,6 +7,46 @@ from state_machine import StateMachine
 
 UI_BAR_RATIO = [2.0, 1.0, 1.0]  # 체력, 실드, 웨이브 바 비율
 
+class UIKey:
+    def __init__(self):
+        self.font_size = int(24 * WIN_W_RATIO)
+        self.font = load_font('Assets/Fonts/NeoDunggeunmoPro-Regular.ttf', self.font_size)
+        self.str = {'dock' : '[R] : 광산 도킹/해제',
+                    'up' : '[W] : 위로 이동',
+                    'down' : '[S] : 아래로 이동',
+                    'dock_p' : '[E] : 스파이더 도킹/해제',
+                    'upgrade' : '[F] : 업그레이드',
+                    }
+        self.x = WIN_WIDTH / 2
+        self.y = 80 * WIN_H_RATIO
+
+    def update(self):
+        pass
+
+    def handle_event(self, event):
+        pass
+
+    def draw(self):
+        printList = []
+        if common.spider.mine_nearby_check():
+            printList.append(self.str['dock'])
+        if common.player.is_docked:
+            printList.append(self.str['upgrade'])
+        if not common.spider.is_docking:
+            printList.append(self.str['up'])
+            printList.append(self.str['down'])
+        if common.spider.is_docking:
+            printList.append(self.str['dock_p'])
+
+        str_len = 0
+        for s in printList:
+            str_len += len(s)
+
+        start_x = self.x - (str_len * self.font_size) // 2 - (len(printList) - 1) * self.font_size * 0.3 // 2
+        for s in printList:
+            self.font.draw(start_x, self.y, s, (255, 255, 255))
+            start_x += len(s) * self.font_size + self.font_size * 0.3
+
 class ResData:
     def __init__(self, res_data):
         self.res_data = res_data
@@ -67,15 +107,15 @@ class UIResourceData:
         self.dy = self.h * 0.9 // 9 + 6
 
         self.res_amount = {
-            0 : 90,
-            1 : 90,
-            2 : 90,
-            3 : 90,
-            4 : 90,
-            5 : 90,
-            6 : 90,
-            7 : 90,
-            8 : 90
+            0 : 0,
+            1 : 0,
+            2 : 0,
+            3 : 0,
+            4 : 0,
+            5 : 0,
+            6 : 0,
+            7 : 0,
+            8 : 0
         }
 
         self.IDLE = ResData(self)

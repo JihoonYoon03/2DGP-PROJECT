@@ -6,6 +6,7 @@ background = None
 
 UI_ResourceData = None
 UI_SpiderStatus = None
+UI_Key = None
 
 obj_pool = None
 wave_manager = None

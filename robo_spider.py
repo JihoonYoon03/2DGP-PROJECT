@@ -295,7 +295,7 @@ class SpExplode:
                                      self.w, self.h, view_x, view_y, draw_w, draw_h)
 
 class RoboSpider:
-    def __init__(self, x = 1920 / 2, y = 1080 / 2):
+    def __init__(self, x = 1920 / 2, y = 0):
         self.image_move = load_image('Assets/Sprites/Spider/Spider_Moving.png')
         self.image_dock = load_image('Assets/Sprites/Spider/Spider_Docking.png')
         self.image_undock = load_image('Assets/Sprites/Spider/Spider_Undocking.png')
@@ -451,7 +451,7 @@ class RoboSpider:
                     self.shield = 0
             else:
                 self.health -= other.owner.dmg  # 충돌 대상이 enemy의 collider_range 객체이므로 owner로 접근
-                print('RoboSpider HP:', self.health)
+                # print('RoboSpider HP:', self.health)
                 if self.health < 0:
                     self.health = 0
                     self.stateMachine.handle_state_event(('DEAD', None))
@@ -463,6 +463,13 @@ class RoboSpider:
         for mine in self.mine_list:
             if abs(mine.entrance_y - self.y) <= max_distance:  # 광산 입구 근처에 있을 때
                 self.docked_mine = mine
+                return True
+        return False
+
+    def mine_nearby_check(self):
+        max_distance = TILE_SIZE_PIXEL * 5
+        for mine in self.mine_list:
+            if abs(mine.entrance_y - self.y) <= max_distance:  # 광산 입구 근처에 있을 때
                 return True
         return False
 
