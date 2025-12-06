@@ -8,7 +8,7 @@ from game_world import get_camera
 class Mine:
     image_entrance = None
     image_bedrock = None
-    def __init__(self, mine_id, layer, x = 1920 / 2, y = 1080 / 2):
+    def __init__(self, layer, x = 1920 / 2, y = 1080 / 2):
         if Mine.image_entrance is None:
             Mine.image_entrance = load_image('Assets/Sprites/Tile/Enter_Biome.png')
         if Mine.image_bedrock is None:
@@ -16,7 +16,7 @@ class Mine:
 
         self.revealed = False
 
-        mine_data = data_set[mine_id]
+        mine_data = data_set[random.randint(0, len(data_set) - 1)]
         # 광산 데이터 구조
         # 타일 타입, 타일 배치, 광물 배치, 광산 크기
 
