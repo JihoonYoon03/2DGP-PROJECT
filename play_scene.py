@@ -21,8 +21,8 @@ def init():
     clear()
     hide_cursor()
     common.cursor_image = load_image('Assets/Sprites/UI/Cursor_Target.png')
-    background = Background()
-    game_world.add_object(background, 0)
+    common.background = Background()
+    game_world.add_object(common.background, 0)
 
     common.cam = Camera(WIN_WIDTH, WIN_HEIGHT)
 

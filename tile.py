@@ -363,6 +363,7 @@ class TileDefault:
 
 class TileDelete:
     image_delete = None
+    sound_delete = None
     def __init__(self, tile):
         self.tile = tile
         self.frame = 0
@@ -373,9 +374,12 @@ class TileDelete:
 
         if TileDelete.image_delete is None:
             TileDelete.image_delete = load_image('Assets/Sprites/Tile/BlockRuin.png')
+        if TileDelete.sound_delete is None:
+            TileDelete.sound_delete = load_wav('Assets/Audios/SFX/block_destroy.wav')
+            TileDelete.sound_delete.set_volume(64)
 
     def enter(self, e):
-        pass
+        TileDelete.sound_delete.play()
 
     def exit(self, e):
         return True

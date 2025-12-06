@@ -54,6 +54,7 @@ class Dock:
             self.player.move_x = 0
             self.player.move_y = 0
             event_set.reset_all_flags()
+            self.player.sound_dock.play()
 
     def exit(self, e):
         if not common.spider.is_docking:
@@ -62,6 +63,7 @@ class Dock:
         self.player.move_x = 0
         self.player.move_y = 0
         self.player.face_dir = 0
+        self.player.sound_dock.play()
         return True
 
     def do(self):
@@ -203,6 +205,9 @@ class Player:
         self.image_move_right = load_image('Assets/Sprites/Player/Hero_Right_Moving.png')
         self.image_move_up = load_image('Assets/Sprites/Player/Hero_Up_Moving.png')
         self.image_move_down = load_image('Assets/Sprites/Player/Hero_Down_Moving.png')
+
+        self.sound_dock = load_wav('Assets/Audios/Spider/Spider_Player_Attached.wav')
+        self.sound_dock.set_volume(64)
 
         self.is_docked = True  # 스파이더에 도킹 여부
         self.turret_control = True # 터렛 제어권 여부

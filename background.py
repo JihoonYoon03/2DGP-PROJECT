@@ -1,14 +1,30 @@
+import random
+
+import common
+import game_framework
 from pico2d import *
 from state_machine import StateMachine
 from game_world import get_camera
 from physics_data import *
 
 class Idle:
+    bgm = []
+    bgm_battle = None
     def __init__(self, bg):
+        if not Idle.bgm:
+            for i in range(0, 9):
+                Idle.bgm.append(load_music('Assets/Audios/BGM/Game_Theme_' + f'{i + 1}' + '.wav'))
+                Idle.bgm[i].set_volume(90)
+        if Idle.bgm_battle is None:
+            Idle.bgm_battle = load_music('Assets/Audios/BGM/Battle_Theme.wav')
+            Idle.bgm_battle.set_volume(90)
+        self.bgm_cur = -1
         self.bg = bg
+        self.bgm_elapsed = 0
 
     def enter(self, e):
-        pass
+        self.bgm_cur = random.randint(0, 8)
+        Idle.bgm[self.bgm_cur].play()
 
     def exit(self, e):
         return True
@@ -19,6 +35,17 @@ class Idle:
             self.bg.y = self.bg.y - self.bg.image.h
         elif self.bg.y - camera.world_y < self.bg.image.h / -2:
             self.bg.y = self.bg.y + self.bg.image.h
+
+        if not common.wave_manager.waveRunning:
+            self.bgm_elapsed += game_framework.frame_time
+            if self.bgm_elapsed >= 120:
+                self.bgm_elapsed = 0
+                self.bgm_cur = random.randint(0, 8)
+                Idle.bgm[self.bgm_cur].play()
+
+    def play_current_bgm(self):
+        if self.bgm_cur != -1:
+            Idle.bgm[self.bgm_cur].play()
 
     def draw(self):
         camera = get_camera()

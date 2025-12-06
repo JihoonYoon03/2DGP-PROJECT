@@ -292,6 +292,17 @@ class RoboSpider:
         self.image_undock = load_image('Assets/Sprites/Spider/Spider_Undocking.png')
         self.image_explode = load_image('Assets/Sprites/Spider/Spider_Death.png')
 
+        self.sound_idle = load_wav('Assets/Audios/Spider/Spider_Idle.wav')
+        self.sound_idle.set_volume(4)
+        self.sound_move_start = load_wav('Assets/Audios/Spider/Spider_Moving_Start.wav')
+        self.sound_move_start.set_volume(40)
+        self.sound_move = load_wav('Assets/Audios/Spider/Spider_Idle.wav')
+        self.sound_move.set_volume(40)
+        self.sound_move_stomp = load_wav('Assets/Audios/Spider/Spider_Moving_Idle.wav')
+        self.sound_move_stomp.set_volume(40)
+        self.sound_move_stop = load_wav('Assets/Audios/Spider/Spider_Moving_Finish.wav')
+        self.sound_move_stop.set_volume(40)
+
         self.x = x - 178 // 2
         self.y = y
         self.speed = 1

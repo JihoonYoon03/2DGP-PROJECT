@@ -361,6 +361,10 @@ class SpitterTier0(EnemyBase):
 
 class WaveManager:
     def __init__(self):
+        self.bgm = load_music('Assets/Audios/BGM/Battle_Theme.wav')
+        self.bgm.set_volume(90)
+        self.bgm_len = 64
+        self.bgm_elapsed = 0.0
         self.current_wave = 0
         self.wave_timer = 0.0
         self.waves = (
@@ -380,10 +384,16 @@ class WaveManager:
     def start_wave(self):
         if self.current_wave < len(self.waves):
             self.waveRunning = True
+            self.bgm.play()
             common.cam.apply_camera_settings()
 
     def update(self):
         if self.waveRunning:
+            self.bgm_elapsed += game_framework.frame_time
+            if self.bgm_elapsed >= self.bgm_len:
+                self.bgm_elapsed = 0.0
+                self.bgm.play()
+
             for enemy_type, amount in self.waves[self.current_wave].items():
                 self.last_spawn_time[enemy_type] += game_framework.frame_time
                 if amount > 0 and self.last_spawn_time[enemy_type] >= self.spawn_interval[self.current_wave][enemy_type]:
@@ -410,6 +420,7 @@ class WaveManager:
                 self.last_spawn_time = {InfantryTier0: 0.0, SpitterTier0: 0.0}
                 self.cur_enemies = []
                 common.cam.apply_camera_settings()
+                common.background.IDLE.play_current_bgm()
         else:
             self.wave_timer += game_framework.frame_time
             if self.wave_timer > WAVE_MAX_TIME:
