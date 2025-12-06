@@ -37,6 +37,8 @@ class Mine:
         self.mine_lower = mine_data['size'][1] - self.mine_upper - 1 # 입구 타일 포함 안함
 
         self.tile_set = TileSet(self, mine_data['image'], mine_data['size'], mine_data['tiles'], self.begin_x, self.begin_y, layer)
+        self.resEmpty = True
+
         # 광물 타일 분포 계산 및 생성
         total_tiles = len(self.tile_set.tiles)
         bedrock_tiles = 0
@@ -66,8 +68,10 @@ class Mine:
 
         game_world.add_collision_pair_bb('player:tile', None, self.entrance_tile_top)
         game_world.add_collision_pair_bb('player:tile', None, self.entrance_tile_bottom)
+
     def update(self):
-        pass
+        if self.tile_set.mined_all_resources():
+            self.resEmpty = True
 
     def draw(self):
         camera = get_camera()

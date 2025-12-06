@@ -299,6 +299,12 @@ class TileSet:
         self.tiles.remove(tile)
         self.tiles_location.pop((tile.y, tile.x), None)
 
+    def mined_all_resources(self):
+        for tile in self.tiles:
+            if tile.hasResource:
+                return False
+        return True
+
 class TileDefault:
     def __init__(self, tile):
         self.tile = tile
