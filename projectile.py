@@ -39,8 +39,10 @@ class Projectile(metaclass=ABCMeta):
         self.x += self.vx * self.velocity * game_framework.frame_time
         self.y += self.vy * self.velocity * game_framework.frame_time
         # 일정 범위 밖으로 나가면 비활성화
-        if abs(self.x) > PIXEL_PER_METER * 200 + self.w or abs(self.y) > PIXEL_PER_METER * 200 + self.h:
+        draw_x, draw_y = get_camera().world_to_view(self.x, self.y)
+        if draw_x < WIN_WIDTH / 2 - PIXEL_PER_METER * 100 or draw_x > WIN_WIDTH / 2 + PIXEL_PER_METER * 100 or draw_y < WIN_HEIGHT / 2 - PIXEL_PER_METER * 100 or draw_y > WIN_HEIGHT / 2 + PIXEL_PER_METER * 100:
             self.inactive = True
+            game_world.remove_collision_object(self)
 
     def draw(self):
         if self.inactive:
