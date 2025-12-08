@@ -64,6 +64,7 @@ class Dock:
         self.player.move_x = 0
         self.player.move_y = 0
         self.player.face_dir = 0
+        self.player.is_docked = False
         self.player.sound_dock.play()
         return True
 
@@ -94,14 +95,16 @@ class Idle:
     def __init__(self, player):
         self.player = player
         self.frame_delta = 1
+        self.dock_anim = False
         if Idle.frames_per_action is None:
             Idle.frames_per_action = len(PLAYER_IDLE_FRAMES)
         if Idle.action_per_time is None:
             Idle.action_per_time = get_player_action_per_time(Idle.frames_per_action)
 
     def enter(self, e):
-        if self.player.is_docked:  # Dock 상태에서 온 경우
+        if e_pressed(e):  # Dock 상태에서 온 경우
             self.player.turret_control = False
+            self.dock_anim = True
             self.frame_delta = -1  # 도킹 애니메이션 역재생
         else:
             self.frame_delta = 1
@@ -113,22 +116,21 @@ class Idle:
         return True
 
     def do(self):
-        if self.player.is_docked:
+        if self.dock_anim:
             self.player.frame = (self.player.frame
                                   + Idle.frames_per_action * Idle.action_per_time * game_framework.frame_time * self.frame_delta)
+            if self.player.frame <= 0:  # 도킹 애니메이션이 끝났을 때
+                self.frame_delta = 1
+                self.dock_anim = False
         else:
             self.player.frame = ((self.player.frame
                                 + Idle.frames_per_action * Idle.action_per_time * game_framework.frame_time * self.frame_delta)
                                 % Idle.frames_per_action)
 
-        if self.player.is_docked and self.player.frame <= 0:  # 도킹 애니메이션이 끝났을 때
-            self.player.is_docked = False
-            self.frame_delta = 1
-
 
     def draw(self):
         camera = get_camera()
-        if self.player.is_docked:
+        if self.dock_anim:
             image = self.player.image_dock
             x, y = PLAYER_DOCK_FRAMES[int(self.player.frame)]
         else:
@@ -307,7 +309,7 @@ class Player:
         now_moving = (self.move_x != 0 or self.move_y != 0)
 
         # 정지 -> 이동
-        if not prev_moving and now_moving and not self.is_docked:
+        if not prev_moving and now_moving and not self.is_docked and not self.IDLE.dock_anim:
             self.stateMachine.handle_state_event(('!EMPTY', None))
 
         # 이동 -> 정지
